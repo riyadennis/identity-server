@@ -1,11 +1,12 @@
 package internal
 
 import (
-	"github.com/riyadennis/identity-server/internal/handlers"
 	"net/http"
+
+	"github.com/riyadennis/identity-server/internal/handlers"
 )
 
-func Server(port string){
+func Server(port string) {
 	http.HandleFunc(registerEndpoint, handlers.Register)
 	http.ListenAndServe(port, nil)
 }
