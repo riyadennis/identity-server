@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
-
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // User hold information needed to complete user registration
@@ -20,13 +21,8 @@ type User struct {
 	RegistrationDate string
 }
 
-// Register is the handler function that will process rest call to /register endpoint
-func Register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid method"))
-		return
-	}
+// Register is the handler function that will process rest call to register endpoint
+func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if r.Header.Get("content-type") != "application/json" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid content type"))

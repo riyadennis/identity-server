@@ -3,10 +3,13 @@ package internal
 import (
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/internal/handlers"
+	"github.com/sirupsen/logrus"
 )
 
 func Server(port string) {
-	http.HandleFunc(registerEndpoint, handlers.Register)
-	http.ListenAndServe(port, nil)
+	router := httprouter.New()
+	router.POST(registerEndpoint, handlers.Register)
+	logrus.Fatal(http.ListenAndServe(port, router))
 }
