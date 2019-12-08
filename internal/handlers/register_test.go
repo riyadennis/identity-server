@@ -8,19 +8,19 @@ import (
 )
 
 func TestRegister(t *testing.T) {
-	scenarios := []struct{
-		name string
-		request  *http.Request
+	scenarios := []struct {
+		name           string
+		request        *http.Request
 		expectedStatus int
 	}{
 		{
-			name: "invalid content type",
-			request: &http.Request{},
+			name:           "invalid content type",
+			request:        &http.Request{},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			name: "empty content",
-			request: request(t, `{hello: hi}`),
+			name:           "empty content",
+			request:        request(t, `{hello: hi}`),
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
@@ -61,11 +61,11 @@ func TestRegister(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 	}
-	for _, sc := range scenarios{
+	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
 			Register(rr, sc.request, nil)
-			if rr.Code != sc.expectedStatus{
+			if rr.Code != sc.expectedStatus {
 				t.Errorf("want status code %d, got %d",
 					sc.expectedStatus, rr.Code)
 			}
@@ -73,12 +73,12 @@ func TestRegister(t *testing.T) {
 	}
 }
 
-func request(t *testing.T, content string) *http.Request{
+func request(t *testing.T, content string) *http.Request {
 	t.Helper()
 	body := strings.NewReader(content)
-	req, err:= http.NewRequest("POST",
+	req, err := http.NewRequest("POST",
 		"/register", body)
-	if err != nil{
+	if err != nil {
 		t.Error(err)
 	}
 	req.Header.Set("content-type", "application/json")

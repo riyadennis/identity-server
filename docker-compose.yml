@@ -1,0 +1,25 @@
+version: '3'
+services:
+  db:
+    build:
+      context: .
+    environment:
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_DATABASE: identity-server
+      MYSQL_USER: identity
+      MYSQL_PASSWORD: identity
+    container_name: identity-db
+    ports:
+      - "3306:3306"
+    tty: true
+  app:
+    build:
+      context: .
+    volumes:
+      - ".:/go"
+    container_name: identity-server
+    ports:
+      - "8080:8080"
+    tty: true
+    depends_on:
+      - db
