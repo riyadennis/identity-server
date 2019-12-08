@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +18,7 @@ type User struct {
 	LastName         string `json:"last_name"`
 	Email            string `json:"email"`
 	Company          string `json:"company"`
-	PostCode         string `json:"post_cod"`
+	PostCode         string `json:"post_code"`
 	Terms            bool   `json:"terms"`
 	RegistrationDate string
 }
@@ -41,7 +44,32 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	err = json.Unmarshal(data, u)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		logrus.Errorf("failed to unmarshal :: %v", err)
+		fmt.Fprintf(w, "%v", err)
 		return
 	}
+	err = validateUser(u)
+	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+		logrus.Errorf("validation failed :: %v", err)
+		fmt.Fprintf(w, "%v", err)
+		return
+	}
+}
+
+func validateUser(u *User) error{
+	if u.FirstName == ""{
+		return errors.New("missing first name")
+	}
+	if u.LastName == ""{
+		return errors.New("missing last name")
+	}
+	if u.Email == ""{
+		return errors.New("missing email")
+	}
+	if u.Terms == false{
+		return errors.New("missing terms")
+	}
+	return nil
 }
 
