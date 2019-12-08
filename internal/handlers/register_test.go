@@ -41,6 +41,15 @@ func TestRegister(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
+			name: "missing terms",
+			request: request(t, `{
+	"first_name": "John",
+	"last_name": "Doe",
+	"email": "@gml.com"
+}`),
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
 			name: "valid payload",
 			request: request(t, `
 {

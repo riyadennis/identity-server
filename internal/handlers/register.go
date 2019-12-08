@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -66,6 +67,10 @@ func validateUser(u *User) error{
 	}
 	if u.Email == ""{
 		return errors.New("missing email")
+	}
+	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	if !re.MatchString(u.Email){
+		return errors.New("invalid email")
 	}
 	if u.Terms == false{
 		return errors.New("missing terms")
