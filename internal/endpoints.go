@@ -1,3 +1,3 @@
 package internal
 
-const registerEndpoint = "/register"
+const RegisterEndpoint = "/register"
