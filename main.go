@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -8,8 +9,6 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang-migrate/migrate"
-	mmysql "github.com/golang-migrate/migrate/database/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/riyadennis/identity-server/internal"
 )
@@ -18,31 +17,25 @@ var (
 	port = flag.String("port", ":8080", "port http server will listen to")
 )
 
-const (
-	//when we add a new migration this constant need to be updated
-	step = 1
-	//if we change the folder in which we keep our migration
-	//files we need to update this
-	sourceUrl = "file://migrations/"
-)
 
 func main() {
 	user := os.Getenv("MYSQL_USER")
 	password := os.Getenv("MYSQL_PASSWORD")
 	dbName := os.Getenv("MYSQL_DATABASE")
-	dsn := fmt.Sprintf("%s:%s@/%s", user, password, dbName)
+	dsn := fmt.Sprintf("%s:%s@@tcp(172.17.0.2:3306)/%s", user, password, dbName)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		log.Fatalf("could not connect to the MySQL database... %v", err)
+		panic(err)
 	}
-	driver, _ := mmysql.WithInstance(db, &mmysql.Config{})
-	m, _ := migrate.NewWithDatabaseInstance(
-		sourceUrl,
-		"identity-server",
-		driver,
-	)
-
-	m.Steps(step)
+	ctx := context.Background()
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	_, err = conn.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS identity_users(id varchar(100) NOT NULL PRIMARY KEY,first_name  varchar(100),last_name varchar(100),email varchar(100),company varchar(100),post_code varchar(100),terms int, created_datetime DATETIME)")
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
 	flag.Parse()
 	internal.Server(*port)
 }
