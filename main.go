@@ -38,7 +38,7 @@ func main() {
 	driver, _ := mmysql.WithInstance(db, &mmysql.Config{})
 	m, _ := migrate.NewWithDatabaseInstance(
 		sourceUrl,
-		"mysql",
+		"identity-server",
 		driver,
 	)
 
