@@ -9,20 +9,12 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/riyadennis/identity-server/internal/store/sqlite"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 )
-
-// User hold information needed to complete user registration
-type User struct {
-	FirstName        string `json:"first_name"`
-	LastName         string `json:"last_name"`
-	Email            string `json:"email"`
-	Company          string `json:"company"`
-	PostCode         string `json:"post_code"`
-	Terms            bool   `json:"terms"`
-	RegistrationDate string
-}
 
 // Register is the handler function that will process rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -42,7 +34,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	u := &User{}
+	u := &store.User{}
 	err = json.Unmarshal(data, u)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -57,9 +49,14 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		fmt.Fprintf(w, "%v", err)
 		return
 	}
+	idb := sqlite.PrepareDB()
+	err = idb.Insert(u)
+	if err != nil {
+		logrus.Errorf("failed to register :: %v", err)
+	}
 }
 
-func validateUser(u *User) error {
+func validateUser(u *store.User) error {
 	if u.FirstName == "" {
 		return errors.New("missing first name")
 	}
