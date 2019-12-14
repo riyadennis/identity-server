@@ -3,39 +3,48 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
+	"log"
+
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
-	"log"
 )
 
 type IdentityDB struct {
-	Db *sql.DB
+	Db        *sql.DB
 	InsertNew *sql.Stmt
-	Fetch *sql.Stmt
+	Fetch     *sql.Stmt
 }
 
-func Setup() error{
+func Setup() error {
 	database, err := sql.Open("sqlite3", "./identity.db")
-	if err != nil{
+	if err != nil {
 		logrus.Fatalf("%v", err)
 		return err
 	}
-	prepare, err := database.Prepare("CREATE TABLE IF NOT EXISTS identity_users (id TEXT PRIMARY KEY, first_name  TEXT, last_name TEXT, email TEXT, password TEXT, company TEXT, post_code TEXT,terms INTEGER)")
-	if err != nil{
+	prepare, err := database.Prepare(`CREATE TABLE IF NOT EXISTS 
+											identity_users (id TEXT PRIMARY KEY, 
+											first_name  TEXT, 
+											last_name TEXT, 
+											email TEXT, 
+											password TEXT, 
+											company TEXT, 
+											post_code TEXT,
+											terms INTEGER)`)
+	if err != nil {
 		logrus.Fatalf("%v", err)
 		return err
 	}
 	_, err = prepare.Exec()
-	if err != nil{
+	if err != nil {
 		logrus.Fatalf("%v", err)
 		return err
 	}
 	return nil
 }
 
-func PrepareDB() *IdentityDB{
+func PrepareDB() *IdentityDB {
 	database, err := sql.Open("sqlite3", "./identity.db")
-	if err != nil{
+	if err != nil {
 		logrus.Fatalf("%v", err)
 		return nil
 	}
@@ -43,32 +52,32 @@ func PrepareDB() *IdentityDB{
 (id, first_name, last_name,
  email, company, post_code, terms) 
  VALUES (?, ?, ?, ?, ?, ?, ?)`)
-	if err != nil{
+	if err != nil {
 		log.Fatalf("%v", err)
 	}
 	fetch, err := database.Prepare("SELECT first_name,last_name, company  FROM identity_users where email = ? and password = ?")
-	if err != nil{
+	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	return  &IdentityDB{
+	return &IdentityDB{
 		Db:        database,
 		InsertNew: insert,
 		Fetch:     fetch,
 	}
 }
 
-func (id *IdentityDB) Insert(u *store.User) error{
-	_, err := id.InsertNew.Exec(1,u.FirstName, u.LastName,u.Email, u.Company, u.PostCode, u.Terms)
-	if err != nil{
+func (id *IdentityDB) Insert(u *store.User) error {
+	_, err := id.InsertNew.Exec(1, u.FirstName, u.LastName, u.Email, u.Company, u.PostCode, u.Terms)
+	if err != nil {
 		logrus.Errorf("failed to insert user data :: %v", err)
 		return err
 	}
 	return nil
 }
 
-func (id *IdentityDB) Read(email, password string) (*store.User, error){
+func (id *IdentityDB) Read(email, password string) (*store.User, error) {
 	rows, err := id.Fetch.Query(email, password)
-	if err != nil{
+	if err != nil {
 		logrus.Errorf("failed to fetch user data :: %v", err)
 		return nil, err
 	}
@@ -78,7 +87,7 @@ func (id *IdentityDB) Read(email, password string) (*store.User, error){
 	)
 
 	for rows.Next() {
-		u :=&store.User{}
+		u := &store.User{}
 		err := rows.Scan(&fname, &lname, &company)
 		if err != nil {
 			logrus.Errorf("failed to   fetch row:: %v", err)
