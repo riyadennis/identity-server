@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type IdentityDB struct {
+type LiteDB struct {
 	Db        *sql.DB
 	InsertNew *sql.Stmt
 	Fetch     *sql.Stmt
@@ -43,7 +43,7 @@ func Setup(source string) error {
 	return nil
 }
 
-func PrepareDB(source string) *IdentityDB {
+func PrepareDB(source string) *LiteDB {
 	database, err := sql.Open("sqlite3", source)
 	if err != nil {
 		logrus.Fatalf("%v", err)
@@ -68,7 +68,7 @@ func PrepareDB(source string) *IdentityDB {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	return &IdentityDB{
+	return &LiteDB{
 		Db:        database,
 		InsertNew: insert,
 		Fetch:     fetch,
@@ -76,7 +76,7 @@ func PrepareDB(source string) *IdentityDB {
 	}
 }
 
-func (id *IdentityDB) Insert(u *store.User) error {
+func (id *LiteDB) Insert(u *store.User) error {
 	uid := uuid.New()
 	_, err := id.InsertNew.Exec(uid, u.FirstName, u.LastName,
 		u.Password, u.Email, u.Company, u.PostCode, u.Terms)
@@ -87,7 +87,7 @@ func (id *IdentityDB) Insert(u *store.User) error {
 	return nil
 }
 
-func (id *IdentityDB) Read(email string) (*store.User, error) {
+func (id *LiteDB) Read(email string) (*store.User, error) {
 	rows := id.Fetch.QueryRow(email)
 	var u *store.User
 
@@ -106,7 +106,7 @@ func (id *IdentityDB) Read(email string) (*store.User, error) {
 	return u, nil
 }
 
-func (id *IdentityDB) Authenticate(email, password string) (bool, error) {
+func (id *LiteDB) Authenticate(email, password string) (string, error) {
 	rows := id.Login.QueryRow(email, password)
 	var fname, lname string
 	err := rows.Scan(&fname, &lname)
@@ -114,7 +114,7 @@ func (id *IdentityDB) Authenticate(email, password string) (bool, error) {
 		logrus.Errorf("%v", err)
 	}
 	if fname == "" {
-		return false, nil
+		return "", nil
 	}
-	return true, nil
+	return fname, nil
 }

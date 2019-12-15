@@ -15,4 +15,5 @@ type User struct {
 type Store interface {
 	Insert(u *User) error
 	Read(email string) (*User, error)
+	Authenticate(email, password string) (bool, error)
 }

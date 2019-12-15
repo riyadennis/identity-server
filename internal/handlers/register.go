@@ -20,47 +20,67 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		fmt.Fprint(w, err.Error())
 		return
 	}
+
 	u := &store.User{}
 	err = json.Unmarshal(data, u)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
 		logrus.Errorf("failed to unmarshal :: %v", err)
-		fmt.Fprintf(w, "%v", err)
+		errorResponse(w, &CustomError{
+			Code: InvalidRequest,
+			Err:  err,
+		})
 		return
 	}
-	err = validateUser(u)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	customErr := validateUser(u)
+	if customErr != nil {
 		logrus.Errorf("validation failed :: %v", err)
-		fmt.Fprintf(w, "%v", err)
+		errorResponse(w, customErr)
 		return
 	}
-	exists, err := userExists(u.Email)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		logrus.Errorf("failed to check user  :: %v", err)
-		fmt.Fprintf(w, "%v", err)
-		return
-	}
-	if exists {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "email already exists :: %v", u.Email)
-		return
-	}
+
 	password, err := generatePassword()
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "unable to generate password :: %v", u.Email)
+		errorResponse(w, &CustomError{
+			Code: PassWordError,
+			Err:  err,
+		})
 		return
 	}
 	u.Password = password
 	err = storeUser(u)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("failed to save user  :: %v", err)
-		fmt.Fprintf(w, "%v", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(newResponse(http.StatusInternalServerError,
+			"registration failed",
+			err.Error(),
+		))
 	}
-	w.Write([]byte(password))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(newResponse(http.StatusOK,
+		fmt.Sprintf("your generated password : %s", password),
+		"",
+	))
+}
+
+func errorResponse(w http.ResponseWriter, err *CustomError) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(w).Encode(newResponse(
+		http.StatusBadRequest,
+		err.Error(),
+		err.Code,
+	))
+}
+
+func newResponse(status int, message, errCode string) *response {
+	return &response{
+		Status:    status,
+		Message:   message,
+		ErrorCode: errCode,
+	}
 }
 
 func storeUser(u *store.User) error {
@@ -84,22 +104,50 @@ func userExists(email string) (bool, error) {
 	return true, nil
 }
 
-func validateUser(u *store.User) error {
+func validateUser(u *store.User) *CustomError {
 	if u.FirstName == "" {
-		return errors.New("missing first name")
+		return &CustomError{
+			Code: FirstNameMissing,
+			Err:  errors.New("missing first name"),
+		}
 	}
 	if u.LastName == "" {
-		return errors.New("missing last name")
+		return &CustomError{
+			Code: LastNameMissing,
+			Err:  errors.New("missing last name"),
+		}
 	}
 	if u.Email == "" {
-		return errors.New("missing email")
+		return &CustomError{
+			Code: EmailMissing,
+			Err:  errors.New("missing last name"),
+		}
 	}
 	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	if !re.MatchString(u.Email) {
-		return errors.New("invalid email")
+		return &CustomError{
+			Code: EmailInvalid,
+			Err:  errors.New("invalid email"),
+		}
 	}
 	if u.Terms == false {
-		return errors.New("missing terms")
+		return &CustomError{
+			Code: TermsMissing,
+			Err:  errors.New("missing terms"),
+		}
+	}
+	exists, err := userExists(u.Email)
+	if err != nil {
+		return &CustomError{
+			Code: DatabaseError,
+			Err:  err,
+		}
+	}
+	if exists {
+		return &CustomError{
+			Code: EmailExists,
+			Err:  fmt.Errorf("email already exists :: %v", u.Email),
+		}
 	}
 	return nil
 }

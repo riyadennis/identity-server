@@ -14,15 +14,22 @@ import (
 )
 
 var (
-	Idb *sqlite.IdentityDB
+	Idb *sqlite.LiteDB
 )
+
+const passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+type response struct {
+	Status    int    `Status`
+	Message   string `Message`
+	ErrorCode string `ErrorCode`
+}
 
 func Init() {
 	Idb = sqlite.PrepareDB("/var/tmp/identity.db")
 }
 
 func generatePassword() (string, error) {
-	characters := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	result := ""
 	for {
 		if len(result) >= 15 {
@@ -33,7 +40,7 @@ func generatePassword() (string, error) {
 			return "", err
 		}
 		s := string(num.Int64())
-		if strings.Contains(characters, s) {
+		if strings.Contains(passwordSeed, s) {
 			result += s
 		}
 	}

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -24,35 +25,48 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	ld := &LoginDetails{}
 	err = json.Unmarshal(data, ld)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
 		logrus.Errorf("failed to unmarshal :: %v", err)
-		fmt.Fprintf(w, "%v", err)
+		errorResponse(w, &CustomError{
+			Code: InvalidRequest,
+			Err:  err,
+		})
 		return
 	}
 	if ld.Email == "" {
-		w.WriteHeader(http.StatusBadRequest)
 		logrus.Errorf("no email :: %v", ld)
-		fmt.Fprint(w, "no email")
+		errorResponse(w, &CustomError{
+			Code: EmailMissing,
+			Err:  err,
+		})
 		return
 	}
 	if ld.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
 		logrus.Error("no password")
-		fmt.Fprint(w, "no password")
+		errorResponse(w, &CustomError{
+			Code: PassWordError,
+			Err:  err,
+		})
 		return
 	}
-	a, err := Idb.Authenticate(ld.Email, ld.Password)
+	fname, err := Idb.Authenticate(ld.Email, ld.Password)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "unable to authenticate the user")
+		errorResponse(w, &CustomError{
+			Code: InvalidRequest,
+			Err:  err,
+		})
 		return
 	}
-	if !a {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "unable to login")
+	if fname == "" {
+		errorResponse(w, &CustomError{
+			Code: InvalidRequest,
+			Err:  errors.New("cannot authenticate"),
+		})
 		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
-	fmt.Fprint(w, "welcome")
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(newResponse(http.StatusOK,
+		fmt.Sprintf("welcome  : %s", fname),
+		"",
+	))
 	return
 }

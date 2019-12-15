@@ -12,11 +12,7 @@ import (
 )
 
 func init() {
-	err := os.Remove("/var/tmp/identityTest.db")
-	if err != nil {
-		panic(err)
-	}
-	err = sqlite.Setup("/var/tmp/identityTest.db")
+	err := sqlite.Setup("/var/tmp/identityTest.db")
 	if err != nil {
 		panic(err)
 	}
@@ -88,16 +84,32 @@ func TestRegister(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
-
+	defer func() {
+		err := os.Remove("/var/tmp/identityTest.db")
+		if err != nil {
+			panic(err)
+		}
+	}()
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
 			Register(rr, sc.request, nil)
 			if rr.Code != sc.expectedStatus {
-				t.Errorf("want status code %d, got %d",
+				t.Errorf("want Status code %d, got %d",
 					sc.expectedStatus, rr.Code)
 			}
 		})
+	}
+
+}
+
+func TestGeneratePassword(t *testing.T) {
+	pass, err := generatePassword()
+	if err != nil {
+		t.Error(err)
+	}
+	if pass == "" {
+		t.Error("empty password")
 	}
 }
 

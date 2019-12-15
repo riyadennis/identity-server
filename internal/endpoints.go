@@ -1,4 +1,6 @@
 package internal
 
-const RegisterEndpoint = "/register"
-const LoginEndPoint = "/login"
+const (
+	RegisterEndpoint = "/register"
+	LoginEndPoint    = "/login"
+)
