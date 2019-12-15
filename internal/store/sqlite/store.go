@@ -2,9 +2,9 @@ package sqlite
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
 )
@@ -55,7 +55,9 @@ func PrepareDB() *IdentityDB {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	fetch, err := database.Prepare("SELECT first_name,last_name, company  FROM identity_users where email = ? and password = ?")
+	fetch, err := database.Prepare(`SELECT first_name, last_name, 
+											company, post_code FROM
+										    identity_users where email = ?`)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -67,7 +69,8 @@ func PrepareDB() *IdentityDB {
 }
 
 func (id *IdentityDB) Insert(u *store.User) error {
-	_, err := id.InsertNew.Exec(1, u.FirstName, u.LastName, u.Email, u.Company, u.PostCode, u.Terms)
+	uid := uuid.New()
+	_, err := id.InsertNew.Exec(uid, u.FirstName, u.LastName, u.Email, u.Company, u.PostCode, u.Terms)
 	if err != nil {
 		logrus.Errorf("failed to insert user data :: %v", err)
 		return err
@@ -75,28 +78,21 @@ func (id *IdentityDB) Insert(u *store.User) error {
 	return nil
 }
 
-func (id *IdentityDB) Read(email, password string) (*store.User, error) {
-	rows, err := id.Fetch.Query(email, password)
-	if err != nil {
-		logrus.Errorf("failed to fetch user data :: %v", err)
-		return nil, err
-	}
-	defer rows.Close()
-	var (
-		fname, lname, company string
-	)
+func (id *IdentityDB) Read(email string) (*store.User, error) {
+	rows := id.Fetch.QueryRow(email)
+	var u *store.User
 
-	for rows.Next() {
-		u := &store.User{}
-		err := rows.Scan(&fname, &lname, &company)
-		if err != nil {
-			logrus.Errorf("failed to   fetch row:: %v", err)
-			return nil, err
-		}
+	var fname, lname, post, company string
+	err := rows.Scan(&fname, &lname, &post, &company)
+	if err != nil {
+		logrus.Errorf("%v", err)
+	}
+	if fname != "" {
+		u = &store.User{}
 		u.FirstName = fname
 		u.LastName = lname
 		u.Company = company
-		return u, nil
+		u.PostCode = post
 	}
-	return nil, errors.New("no user found")
+	return u, nil
 }

@@ -9,10 +9,9 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
-
-	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 )
 
@@ -49,11 +48,47 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		fmt.Fprintf(w, "%v", err)
 		return
 	}
+	exists, err := userExists(u.Email)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logrus.Errorf("failed to check user  :: %v", err)
+		fmt.Fprintf(w, "%v", err)
+		return
+	}
+	if exists {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "email already exists :: %v", u.Email)
+		return
+	}
+	err = storeUser(u)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logrus.Errorf("failed to save user  :: %v", err)
+		fmt.Fprintf(w, "%v", err)
+	}
+}
+
+func storeUser(u *store.User) error {
 	idb := sqlite.PrepareDB()
-	err = idb.Insert(u)
+	err := idb.Insert(u)
 	if err != nil {
 		logrus.Errorf("failed to register :: %v", err)
+		return err
 	}
+	return nil
+}
+
+func userExists(email string) (bool, error) {
+	idb := sqlite.PrepareDB()
+	selectUser, err := idb.Read(email)
+	if err != nil {
+		logrus.Errorf("failed to check for user in database :: %v", err)
+		return false, err
+	}
+	if selectUser == nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 func validateUser(u *store.User) error {

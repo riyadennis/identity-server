@@ -13,5 +13,5 @@ type User struct {
 
 type Store interface {
 	Insert(u *User) error
-	Read(email string, password string) (*User, error)
+	Read(email string) (*User, error)
 }
