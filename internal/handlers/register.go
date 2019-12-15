@@ -19,7 +19,7 @@ import (
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if r.Header.Get("content-type") != "application/json" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid content type"))
+		fmt.Fprint(w, "invalid content type")
 		logrus.Error(errors.New("invalid content"))
 		return
 	}
@@ -27,10 +27,10 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		if err == io.EOF {
-			w.Write([]byte("empty request body"))
+			fmt.Fprint(w, "empty request body")
 			return
 		}
-		w.Write([]byte(err.Error()))
+		fmt.Fprint(w, err.Error())
 		return
 	}
 	u := &store.User{}
