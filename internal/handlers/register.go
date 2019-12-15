@@ -16,8 +16,10 @@ import (
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	data, err := requestBody(r)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, err.Error())
+		errorResponse(w, http.StatusBadRequest, &CustomError{
+			Code: InvalidRequest,
+			Err:  err,
+		})
 		return
 	}
 
@@ -25,7 +27,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	err = json.Unmarshal(data, u)
 	if err != nil {
 		logrus.Errorf("failed to unmarshal :: %v", err)
-		errorResponse(w, &CustomError{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
 			Err:  err,
 		})
@@ -34,30 +36,28 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	customErr := validateUser(u)
 	if customErr != nil {
 		logrus.Errorf("validation failed :: %v", err)
-		errorResponse(w, customErr)
+		errorResponse(w, http.StatusBadRequest, customErr)
 		return
 	}
 
 	password, err := generatePassword()
 	if err != nil {
-		errorResponse(w, &CustomError{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: PassWordError,
 			Err:  err,
 		})
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	u.Password = password
 	err = storeUser(u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(newResponse(http.StatusInternalServerError,
-			"registration failed",
-			err.Error(),
-		))
+		errorResponse(w, http.StatusInternalServerError, &CustomError{
+			Code: DatabaseError,
+			Err:  err,
+		})
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(newResponse(http.StatusOK,
 		fmt.Sprintf("your generated password : %s", password),
@@ -65,11 +65,11 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	))
 }
 
-func errorResponse(w http.ResponseWriter, err *CustomError) {
+func errorResponse(w http.ResponseWriter, code int, err *CustomError) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(newResponse(
-		http.StatusBadRequest,
+		code,
 		err.Error(),
 		err.Code,
 	))

@@ -18,15 +18,17 @@ type LoginDetails struct {
 func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	data, err := requestBody(req)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, err.Error())
+		errorResponse(w, http.StatusBadRequest, &CustomError{
+			Code: InvalidRequest,
+			Err:  err,
+		})
 		return
 	}
 	ld := &LoginDetails{}
 	err = json.Unmarshal(data, ld)
 	if err != nil {
 		logrus.Errorf("failed to unmarshal :: %v", err)
-		errorResponse(w, &CustomError{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
 			Err:  err,
 		})
@@ -34,7 +36,7 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	}
 	if ld.Email == "" {
 		logrus.Errorf("no email :: %v", ld)
-		errorResponse(w, &CustomError{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: EmailMissing,
 			Err:  err,
 		})
@@ -42,7 +44,7 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	}
 	if ld.Password == "" {
 		logrus.Error("no password")
-		errorResponse(w, &CustomError{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: PassWordError,
 			Err:  err,
 		})
@@ -50,14 +52,14 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	}
 	fname, err := Idb.Authenticate(ld.Email, ld.Password)
 	if err != nil {
-		errorResponse(w, &CustomError{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
 			Err:  err,
 		})
 		return
 	}
 	if fname == "" {
-		errorResponse(w, &CustomError{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
 			Err:  errors.New("cannot authenticate"),
 		})
