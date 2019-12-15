@@ -15,8 +15,8 @@ type IdentityDB struct {
 	Fetch     *sql.Stmt
 }
 
-func Setup() error {
-	database, err := sql.Open("sqlite3", "./identity.db")
+func Setup(source string) error {
+	database, err := sql.Open("sqlite3", source)
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return err
@@ -42,8 +42,8 @@ func Setup() error {
 	return nil
 }
 
-func PrepareDB() *IdentityDB {
-	database, err := sql.Open("sqlite3", "./identity.db")
+func PrepareDB(source string) *IdentityDB {
+	database, err := sql.Open("sqlite3", source)
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return nil

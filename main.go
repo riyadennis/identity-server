@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/riyadennis/identity-server/internal"
+	"github.com/riyadennis/identity-server/internal/handlers"
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
 )
 
@@ -14,9 +15,10 @@ var (
 
 func main() {
 	flag.Parse()
-	err := sqlite.Setup()
+	err := sqlite.Setup("/var/tmp/identity.db")
 	if err != nil {
 		panic(err)
 	}
+	handlers.Init()
 	internal.Server(*port)
 }

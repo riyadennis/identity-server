@@ -11,7 +11,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/internal/store"
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
 )
 
@@ -69,8 +68,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func storeUser(u *store.User) error {
-	idb := sqlite.PrepareDB()
-	err := idb.Insert(u)
+	err := Idb.Insert(u)
 	if err != nil {
 		logrus.Errorf("failed to register :: %v", err)
 		return err
@@ -79,8 +77,7 @@ func storeUser(u *store.User) error {
 }
 
 func userExists(email string) (bool, error) {
-	idb := sqlite.PrepareDB()
-	selectUser, err := idb.Read(email)
+	selectUser, err := Idb.Read(email)
 	if err != nil {
 		logrus.Errorf("failed to check for user in database :: %v", err)
 		return false, err

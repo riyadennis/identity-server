@@ -3,9 +3,25 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/riyadennis/identity-server/internal/store/sqlite"
 )
+
+func init() {
+	err := os.Remove("/var/tmp/identityTest.db")
+	if err != nil {
+		panic(err)
+	}
+	err = sqlite.Setup("/var/tmp/identityTest.db")
+	if err != nil {
+		panic(err)
+	}
+	Idb = sqlite.PrepareDB("/var/tmp/identityTest.db")
+}
 
 func TestRegister(t *testing.T) {
 	scenarios := []struct {
@@ -60,7 +76,19 @@ func TestRegister(t *testing.T) {
 }`),
 			expectedStatus: http.StatusOK,
 		},
+		{
+			name: "duplicate payload",
+			request: request(t, `
+{
+	"first_name": "John",
+	"last_name": "Doe",
+	"email": "john@gmail.com",
+	"terms": true
+}`),
+			expectedStatus: http.StatusBadRequest,
+		},
 	}
+
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
