@@ -75,8 +75,8 @@ func errorResponse(w http.ResponseWriter, code int, err *CustomError) {
 	))
 }
 
-func newResponse(status int, message, errCode string) *response {
-	return &response{
+func newResponse(status int, message, errCode string) *Response {
+	return &Response{
 		Status:    status,
 		Message:   message,
 		ErrorCode: errCode,

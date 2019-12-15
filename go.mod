@@ -3,6 +3,7 @@ module github.com/riyadennis/identity-server
 go 1.13
 
 require (
+	github.com/google/go-cmp v0.3.1
 	github.com/google/uuid v1.1.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible

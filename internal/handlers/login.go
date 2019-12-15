@@ -24,21 +24,24 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	ld := &LoginDetails{}
-	err = json.Unmarshal(data, ld)
-	if err != nil {
-		logrus.Errorf("failed to unmarshal :: %v", err)
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: InvalidRequest,
-			Err:  err,
-		})
-		return
+	var ld *LoginDetails
+	if data != nil {
+		ld = &LoginDetails{}
+		err = json.Unmarshal(data, ld)
+		if err != nil {
+			logrus.Errorf("failed to unmarshal :: %v", err)
+			errorResponse(w, http.StatusBadRequest, &CustomError{
+				Code: InvalidRequest,
+				Err:  err,
+			})
+			return
+		}
 	}
+
 	if ld.Email == "" {
-		logrus.Errorf("no email :: %v", ld)
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: EmailMissing,
-			Err:  err,
+			Err:  errors.New("email missing"),
 		})
 		return
 	}
@@ -46,11 +49,11 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		logrus.Error("no password")
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: PassWordError,
-			Err:  err,
+			Err:  errors.New("password missing"),
 		})
 		return
 	}
-	fname, err := Idb.Authenticate(ld.Email, ld.Password)
+	fName, err := Idb.Authenticate(ld.Email, ld.Password)
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
@@ -58,16 +61,9 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	if fname == "" {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: InvalidRequest,
-			Err:  errors.New("cannot authenticate"),
-		})
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newResponse(http.StatusOK,
-		fmt.Sprintf("welcome  : %s", fname),
+		fmt.Sprintf("welcome  : %s", fName),
 		"",
 	))
 	return

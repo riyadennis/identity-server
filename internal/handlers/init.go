@@ -19,7 +19,7 @@ var (
 
 const passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-type response struct {
+type Response struct {
 	Status    int    `Status`
 	Message   string `Message`
 	ErrorCode string `ErrorCode`
