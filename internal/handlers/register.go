@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 
@@ -16,19 +14,9 @@ import (
 
 // Register is the handler function that will process rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	if r.Header.Get("content-type") != "application/json" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "invalid content type")
-		logrus.Error(errors.New("invalid content"))
-		return
-	}
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := requestBody(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if err == io.EOF {
-			fmt.Fprint(w, "empty request body")
-			return
-		}
 		fmt.Fprint(w, err.Error())
 		return
 	}
@@ -59,12 +47,20 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		fmt.Fprintf(w, "email already exists :: %v", u.Email)
 		return
 	}
+	password, err := generatePassword()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "unable to generate password :: %v", u.Email)
+		return
+	}
+	u.Password = password
 	err = storeUser(u)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("failed to save user  :: %v", err)
 		fmt.Fprintf(w, "%v", err)
 	}
+	w.Write([]byte(password))
 }
 
 func storeUser(u *store.User) error {

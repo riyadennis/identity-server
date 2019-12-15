@@ -13,6 +13,7 @@ type IdentityDB struct {
 	Db        *sql.DB
 	InsertNew *sql.Stmt
 	Fetch     *sql.Stmt
+	Login     *sql.Stmt
 }
 
 func Setup(source string) error {
@@ -49,9 +50,9 @@ func PrepareDB(source string) *IdentityDB {
 		return nil
 	}
 	insert, err := database.Prepare(`INSERT INTO identity_users 
-(id, first_name, last_name,
+(id, first_name, last_name,password,
  email, company, post_code, terms) 
- VALUES (?, ?, ?, ?, ?, ?, ?)`)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -61,16 +62,24 @@ func PrepareDB(source string) *IdentityDB {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
+	login, err := database.Prepare(`SELECT first_name, last_name FROM
+										    identity_users where email = ? AND 
+										    password = ?`)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
 	return &IdentityDB{
 		Db:        database,
 		InsertNew: insert,
 		Fetch:     fetch,
+		Login:     login,
 	}
 }
 
 func (id *IdentityDB) Insert(u *store.User) error {
 	uid := uuid.New()
-	_, err := id.InsertNew.Exec(uid, u.FirstName, u.LastName, u.Email, u.Company, u.PostCode, u.Terms)
+	_, err := id.InsertNew.Exec(uid, u.FirstName, u.LastName,
+		u.Password, u.Email, u.Company, u.PostCode, u.Terms)
 	if err != nil {
 		logrus.Errorf("failed to insert user data :: %v", err)
 		return err
@@ -95,4 +104,17 @@ func (id *IdentityDB) Read(email string) (*store.User, error) {
 		u.PostCode = post
 	}
 	return u, nil
+}
+
+func (id *IdentityDB) Authenticate(email, password string) (bool, error) {
+	rows := id.Login.QueryRow(email, password)
+	var fname, lname string
+	err := rows.Scan(&fname, &lname)
+	if err != nil {
+		logrus.Errorf("%v", err)
+	}
+	if fname == "" {
+		return false, nil
+	}
+	return true, nil
 }
