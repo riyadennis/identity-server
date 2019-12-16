@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -113,8 +114,8 @@ func (id *LiteDB) Authenticate(email, password string) (string, error) {
 	if err != nil {
 		logrus.Errorf("%v", err)
 	}
-	if fname == "" {
+	if fname == "" && lname == "" {
 		return "", nil
 	}
-	return fname, nil
+	return fmt.Sprintf("%s %s", fname, lname), nil
 }
