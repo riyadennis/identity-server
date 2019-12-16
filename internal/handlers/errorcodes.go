@@ -10,6 +10,7 @@ const (
 	DatabaseError    = "database-error"
 	PassWordError    = "password-error"
 	InvalidRequest   = "invalid-request"
+	TokenError = "token-error"
 )
 
 type CustomError struct {

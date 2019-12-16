@@ -22,9 +22,10 @@ var (
 const passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 type Response struct {
-	Status    int    `Status`
-	Message   string `Message`
-	ErrorCode string `ErrorCode`
+	Status    int    `json:"status"`
+	Message   string `json:"message"`
+	ErrorCode string `json:"error-code"`
+	Token	string   `json:"token,omitempty"`
 }
 
 func Init() {
