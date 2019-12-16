@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/rand"
 	"errors"
+
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -11,7 +12,8 @@ import (
 
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
-)
+	"golang.org/x/crypto/bcrypt"
+	)
 
 var (
 	Idb *sqlite.LiteDB
@@ -28,7 +30,14 @@ type Response struct {
 func Init() {
 	Idb = sqlite.PrepareDB("/var/tmp/identity.db")
 }
+func encryptPassword(password string) (string,error) {
+	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	if err != nil {
+		return "", err
+	}
+	return string(enPass),nil
 
+}
 func generatePassword() (string, error) {
 	result := ""
 	for {

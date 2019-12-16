@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 
 	"github.com/google/uuid"
@@ -63,9 +64,8 @@ func PrepareDB(source string) *LiteDB {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	login, err := database.Prepare(`SELECT first_name, last_name FROM
-										    identity_users where email = ? AND 
-										    password = ?`)
+	login, err := database.Prepare(`SELECT first_name, last_name, password FROM
+										    identity_users where email = ?`)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -108,14 +108,21 @@ func (id *LiteDB) Read(email string) (*store.User, error) {
 }
 
 func (id *LiteDB) Authenticate(email, password string) (string, error) {
-	rows := id.Login.QueryRow(email, password)
-	var fname, lname string
-	err := rows.Scan(&fname, &lname)
+	rows := id.Login.QueryRow(email)
+	var fname, lname, hashedPass string
+	err := rows.Scan(&fname, &lname, &hashedPass)
 	if err != nil {
-		logrus.Errorf("%v", err)
+		logrus.Errorf("failed to fetch data :: %v", err)
+		return "", err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
+	if err != nil {
+		logrus.Errorf("invalid password :: %v", err)
+		return "", err
 	}
 	if fname == "" && lname == "" {
 		return "", nil
 	}
+
 	return fmt.Sprintf("%s %s", fname, lname), nil
 }

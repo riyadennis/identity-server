@@ -14,6 +14,7 @@ import (
 
 // Register is the handler function that will process rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	w.Header().Set("Content-Type", "application/json")
 	data, err := requestBody(r)
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
@@ -48,8 +49,16 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	u.Password = password
+	enPass, err := encryptPassword(password)
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, &CustomError{
+			Code: PassWordError,
+			Err:  err,
+		})
+		return
+	}
+
+	u.Password = enPass
 	err = storeUser(u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
