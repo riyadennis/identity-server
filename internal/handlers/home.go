@@ -12,17 +12,21 @@ import (
 )
 
 func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	if req.Header.Get("Token") == "" {
+	headerToken := req.Header.Get("Token")
+	if headerToken == "" {
 		errorResponse(w, http.StatusUnauthorized, &CustomError{
 			Code: UnAuthorised,
 			Err:  errors.New("missing token"),
 		})
 		return
 	}
-	claims := jwt.MapClaims{
-		"exp": time.Now().UTC().Add(tokenTTL).Unix(),
-	}
-	t, err := jwt.ParseWithClaims(req.Header.Get("Token"), claims, tokenHandler)
+	t, err := jwt.ParseWithClaims(
+		headerToken,
+		jwt.MapClaims{
+			"exp": time.Now().UTC().Add(tokenTTL).Unix(),
+		},
+		tokenHandler,
+	)
 	if err != nil || t == nil {
 		errorResponse(w, http.StatusUnauthorized, &CustomError{
 			Code: UnAuthorised,
