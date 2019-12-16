@@ -21,39 +21,39 @@ func TestLogin(t *testing.T) {
 			name:    "empty request",
 			request: &http.Request{},
 			response: &Response{
-				Status:    400,
+				Status:    http.StatusBadRequest,
 				Message:   "invalid content",
 				ErrorCode: InvalidRequest,
 			},
 		},
 		{
 			name:    "missing email",
-			request: request(t, `{}`),
+			request: request(t, "/login", `{}`),
 			response: &Response{
-				Status:    400,
+				Status:    http.StatusBadRequest,
 				Message:   "email missing",
 				ErrorCode: EmailMissing,
 			},
 		},
 		{
 			name: "missing password",
-			request: request(t, `{
+			request: request(t, "/login", `{
 	"email": "john4@gmail.com"
 }`),
 			response: &Response{
-				Status:    400,
+				Status:    http.StatusBadRequest,
 				Message:   "password missing",
 				ErrorCode: PassWordError,
 			},
 		},
 		{
 			name: "invalid password",
-			request: request(t, `{
+			request: request(t, "/login", `{
 	"email": "john4@gmail.com",
 	"password": "invalid"
 }`),
 			response: &Response{
-				Status:    400,
+				Status:    http.StatusBadRequest,
 				Message:   "sql: no rows in result set",
 				ErrorCode: InvalidRequest,
 			},

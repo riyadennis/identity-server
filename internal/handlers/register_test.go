@@ -32,12 +32,12 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name:           "empty content",
-			request:        request(t, `{hello: hi}`),
+			request:        request(t,"/register", `{hello: hi}`),
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "missing email",
-			request: request(t, `{
+			request: request(t, "/register", `{
 	"first_name": "John",
 	"last_name": "Doe"
 }`),
@@ -45,7 +45,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			request: request(t, `{
+			request: request(t, "/register", `{
 	"first_name": "John",
 	"last_name": "Doe",
 	"email": "john@gmail.com"
@@ -54,7 +54,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			request: request(t, `{
+			request: request(t, "/register", `{
 	"first_name": "John",
 	"last_name": "Doe",
 	"email": "@gml.com"
@@ -63,7 +63,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "valid payload",
-			request: request(t, `
+			request: request(t,"/register",  `
 {
 	"first_name": "John",
 	"last_name": "Doe",
@@ -74,7 +74,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "duplicate payload",
-			request: request(t, `
+			request: request(t, "/register", `
 {
 	"first_name": "John",
 	"last_name": "Doe",
@@ -113,11 +113,11 @@ func TestGeneratePassword(t *testing.T) {
 	}
 }
 
-func request(t *testing.T, content string) *http.Request {
+func request(t *testing.T, endpoint, content string) *http.Request {
 	t.Helper()
 	body := strings.NewReader(content)
 	req, err := http.NewRequest("POST",
-		"/register", body)
+		endpoint, body)
 	if err != nil {
 		t.Error(err)
 	}
