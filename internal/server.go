@@ -13,5 +13,6 @@ func Server(port string) {
 	// register routes here
 	router.POST(RegisterEndpoint, handlers.Register)
 	router.POST(LoginEndPoint, handlers.Login)
+	router.GET(HomeEndPoint, handlers.Home)
 	logrus.Fatal(http.ListenAndServe(port, router))
 }

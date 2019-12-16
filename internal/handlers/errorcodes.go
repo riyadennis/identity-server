@@ -11,6 +11,7 @@ const (
 	PassWordError    = "password-error"
 	InvalidRequest   = "invalid-request"
 	TokenError = "token-error"
+	UnAuthorised = "unauthorised"
 )
 
 type CustomError struct {
