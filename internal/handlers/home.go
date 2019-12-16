@@ -1,49 +1,54 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
-func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params){
-	if req.Header.Get("Token")== ""{
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(newResponse(
-			http.StatusUnauthorized,
+func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	w.WriteHeader(http.StatusUnauthorized)
+	if req.Header.Get("Token") == "" {
+		err := jsonResponse(w, http.StatusUnauthorized,
 			"missing token",
-			UnAuthorised,
-		))
+			UnAuthorised)
+		if err != nil {
+			logrus.Error(err)
+		}
 		return
 	}
 	t, err := jwt.Parse(req.Header.Get("Token"), tokenHandler)
 	if err != nil || t == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(newResponse(
-			http.StatusUnauthorized,
+		err := jsonResponse(w, http.StatusUnauthorized,
 			"invalid token",
-			UnAuthorised,
-		))
+			UnAuthorised)
+		if err != nil {
+			logrus.Error(err)
+		}
 		return
 	}
-	if !t.Valid{
-		json.NewEncoder(w).Encode(newResponse(
-			http.StatusUnauthorized,
+	if !t.Valid {
+		err := jsonResponse(w, http.StatusUnauthorized,
 			"invalid token",
-			UnAuthorised,
-		))
+			UnAuthorised)
+		if err != nil {
+			logrus.Error(err)
+		}
 		return
 	}
-	json.NewEncoder(w).Encode(newResponse(
-		http.StatusOK,
+	w.WriteHeader(http.StatusOK)
+	err = jsonResponse(w, http.StatusOK,
 		"Authorised",
-		"",
-	))
+		"")
+	if err != nil {
+		logrus.Error(err)
+	}
+
 }
 
-func tokenHandler(token *jwt.Token) (interface{}, error){
+func tokenHandler(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf("There was an error")
 	}
