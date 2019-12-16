@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
@@ -10,34 +12,28 @@ import (
 
 func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	if req.Header.Get("Token") == "" {
-		err := jsonResponse(w, http.StatusUnauthorized,
-			"missing token",
-			UnAuthorised)
-		if err != nil {
-			logrus.Error(err)
-		}
+		errorResponse(w, http.StatusUnauthorized, &CustomError{
+			Code: UnAuthorised,
+			Err:  errors.New("missing token"),
+		})
 		return
 	}
 	t, err := jwt.Parse(req.Header.Get("Token"), tokenHandler)
 	if err != nil || t == nil {
-		err := jsonResponse(w, http.StatusUnauthorized,
-			"invalid token",
-			UnAuthorised)
-		if err != nil {
-			logrus.Error(err)
-		}
+		errorResponse(w, http.StatusUnauthorized, &CustomError{
+			Code: UnAuthorised,
+			Err:  errors.New("invalid token"),
+		})
 		return
 	}
 	if !t.Valid {
-		err := jsonResponse(w, http.StatusUnauthorized,
-			"invalid token",
-			UnAuthorised)
-		if err != nil {
-			logrus.Error(err)
-		}
+		errorResponse(w, http.StatusUnauthorized, &CustomError{
+			Code: UnAuthorised,
+			Err:  errors.New("invalid token"),
+		})
 		return
 	}
-
+	w.Header().Set("Content-Type", "application/json")
 	err = jsonResponse(w, http.StatusOK,
 		"Authorised",
 		"")
@@ -49,7 +45,7 @@ func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
 func tokenHandler(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("There was an error")
+		return nil, fmt.Errorf("unable to handle token")
 	}
 	return mySigningKey, nil
 }
