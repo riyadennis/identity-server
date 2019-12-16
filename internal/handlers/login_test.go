@@ -54,7 +54,7 @@ func TestLogin(t *testing.T) {
 }`),
 			response: &Response{
 				Status:    400,
-				Message:   "cannot authenticate",
+				Message:   "sql: no rows in result set",
 				ErrorCode: InvalidRequest,
 			},
 		},

@@ -112,7 +112,7 @@ func (id *LiteDB) Authenticate(email, password string) (string, error) {
 	var fname, lname, hashedPass string
 	err := rows.Scan(&fname, &lname, &hashedPass)
 	if err != nil {
-		logrus.Errorf("failed to fetch data :: %v", err)
+		logrus.Errorf("%v", err)
 		return "", err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
