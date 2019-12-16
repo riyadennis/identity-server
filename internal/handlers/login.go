@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
@@ -40,7 +41,13 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 			return
 		}
 	}
-
+	if ld == nil {
+		errorResponse(w, http.StatusBadRequest, &CustomError{
+			Code: InvalidRequest,
+			Err:  errors.New("empty login data"),
+		})
+		return
+	}
 	if ld.Email == "" {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: EmailMissing,
@@ -72,20 +79,26 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	res  := newResponse(http.StatusOK,
+	res := newResponse(http.StatusOK,
 		fmt.Sprintf("welcome  : %s", fName),
 		"",
 	)
 	res.Token = token
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		logrus.Error(err)
+	}
 	return
 }
 
-func generateToken() (string, error){
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{})
+func generateToken() (string, error) {
+	ttl := 60 * time.Second
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp": time.Now().UTC().Add(ttl).Unix(),
+	})
 	tokenStr, err := token.SignedString(mySigningKey)
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 	return tokenStr, nil

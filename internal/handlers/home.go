@@ -9,7 +9,6 @@ import (
 )
 
 func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	w.WriteHeader(http.StatusUnauthorized)
 	if req.Header.Get("Token") == "" {
 		err := jsonResponse(w, http.StatusUnauthorized,
 			"missing token",
@@ -38,7 +37,7 @@ func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		}
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
 	err = jsonResponse(w, http.StatusOK,
 		"Authorised",
 		"")

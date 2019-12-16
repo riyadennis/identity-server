@@ -67,7 +67,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			Err:  err,
 		})
 	}
-	w.WriteHeader(http.StatusOK)
+
 	err = jsonResponse(w, http.StatusOK,
 		fmt.Sprintf("your generated password : %s", password),
 		"")
@@ -78,7 +78,6 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func errorResponse(w http.ResponseWriter, code int, customErr *CustomError) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
 	err := jsonResponse(w, code, customErr.Error(), customErr.Code)
 	if err != nil {
 		logrus.Error(err)
@@ -87,6 +86,7 @@ func errorResponse(w http.ResponseWriter, code int, customErr *CustomError) {
 
 func jsonResponse(w http.ResponseWriter, status int,
 	message, errCode string) error {
+	w.WriteHeader(status)
 	res := newResponse(status, message, errCode)
 	err := json.NewEncoder(w).Encode(res)
 	if err != nil {
