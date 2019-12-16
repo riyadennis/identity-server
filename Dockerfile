@@ -1,4 +1,4 @@
-FROM golang:alpine
+FROM golang:latest
 RUN mkdir identity-server
 ADD .  /identity-server/
 WORKDIR /identity-server

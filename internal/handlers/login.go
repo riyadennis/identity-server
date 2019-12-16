@@ -94,7 +94,7 @@ func generateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp": time.Now().UTC().Add(tokenTTL).Unix(),
 	})
-	tokenStr, err := token.SignedString(mySigningKey)
+	tokenStr, err := token.SignedString([]byte(mySigningKey))
 	if err != nil {
 		return "", err
 	}
