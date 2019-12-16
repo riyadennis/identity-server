@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
@@ -18,7 +19,10 @@ func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	t, err := jwt.Parse(req.Header.Get("Token"), tokenHandler)
+	claims := jwt.MapClaims{
+		"exp": time.Now().UTC().Add(tokenTTL).Unix(),
+	}
+	t, err := jwt.ParseWithClaims(req.Header.Get("Token"), claims, tokenHandler)
 	if err != nil || t == nil {
 		errorResponse(w, http.StatusUnauthorized, &CustomError{
 			Code: UnAuthorised,

@@ -17,8 +17,6 @@ type LoginDetails struct {
 	Password string `json:"password"`
 }
 
-var mySigningKey = []byte("captainjacksparrowsayshi")
-
 func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	data, err := requestBody(req)
 	if err != nil {
@@ -93,9 +91,8 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 }
 
 func generateToken() (string, error) {
-	ttl := 60 * time.Second
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp": time.Now().UTC().Add(ttl).Unix(),
+		"exp": time.Now().UTC().Add(tokenTTL).Unix(),
 	})
 	tokenStr, err := token.SignedString(mySigningKey)
 	if err != nil {

@@ -3,40 +3,44 @@ package handlers
 import (
 	"crypto/rand"
 	"errors"
-
 	"io"
 	"io/ioutil"
 	"math/big"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	)
+)
 
 var (
 	Idb *sqlite.LiteDB
 )
 
-const passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+const (
+	passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	tokenTTL     = 60 * time.Second
+	mySigningKey = "thisistobereplaced"
+)
 
 type Response struct {
 	Status    int    `json:"status"`
 	Message   string `json:"message"`
 	ErrorCode string `json:"error-code"`
-	Token	string   `json:"token,omitempty"`
+	Token     string `json:"token,omitempty"`
 }
 
 func Init() {
 	Idb = sqlite.PrepareDB("/var/tmp/identity.db")
 }
-func encryptPassword(password string) (string,error) {
+func encryptPassword(password string) (string, error) {
 	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return "", err
 	}
-	return string(enPass),nil
+	return string(enPass), nil
 
 }
 func generatePassword() (string, error) {
