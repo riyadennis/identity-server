@@ -30,7 +30,7 @@ func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	if err != nil || t == nil {
 		errorResponse(w, http.StatusUnauthorized, &CustomError{
 			Code: UnAuthorised,
-			Err:  errors.New("invalid token"),
+			Err:  err,
 		})
 		return
 	}
@@ -55,5 +55,5 @@ func tokenHandler(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf("unable to handle token")
 	}
-	return mySigningKey, nil
+	return []byte(mySigningKey), nil
 }
