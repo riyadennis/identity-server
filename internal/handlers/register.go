@@ -36,7 +36,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 	customErr := validateUser(u)
 	if customErr != nil {
-		logrus.Errorf("validation failed :: %v", err)
+		logrus.Errorf("validation failed :: %v", customErr.Err)
 		errorResponse(w, http.StatusBadRequest, customErr)
 		return
 	}

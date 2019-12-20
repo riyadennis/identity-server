@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sirupsen/logrus"
 	"net/http"
-	"time"
 )
 
 func Auth(next httprouter.Handle) httprouter.Handle{
@@ -18,14 +18,9 @@ func Auth(next httprouter.Handle) httprouter.Handle{
 			})
 			return
 		}
-		t, err := jwt.ParseWithClaims(
-			headerToken,
-			jwt.MapClaims{
-				"exp": time.Now().UTC().Add(tokenTTL).Unix(),
-			},
-			tokenHandler,
-		)
+		t, err := jwt.Parse(headerToken, tokenHandler)
 		if err != nil || t == nil {
+			logrus.Errorf("unable to parse jwt :: %v", err)
 			errorResponse(w, http.StatusUnauthorized, &CustomError{
 				Code: UnAuthorised,
 				Err:  err,
