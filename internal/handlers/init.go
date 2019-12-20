@@ -21,7 +21,7 @@ var (
 
 const (
 	passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-	tokenTTL     = 60 * time.Second
+	tokenTTL     = 120 * time.Second
 	mySigningKey = "thisistobereplaced"
 )
 
