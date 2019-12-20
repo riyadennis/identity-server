@@ -1,6 +1,6 @@
 # identity-server
 
-Basic rest API for user authentication and registration
+Basic rest API for user authentication and registration.
 User attributes saved during the registration are:
 
     a. First Name (mandatory)
