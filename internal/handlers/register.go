@@ -17,10 +17,8 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	data, err := requestBody(r)
 	if err != nil {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: InvalidRequest,
-			Err:  err,
-		})
+		errorResponse(w, http.StatusBadRequest,
+			NewCustomError(InvalidRequest, err))
 		return
 	}
 
@@ -28,10 +26,8 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	err = json.Unmarshal(data, u)
 	if err != nil {
 		logrus.Errorf("failed to unmarshal :: %v", err)
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: InvalidRequest,
-			Err:  err,
-		})
+		errorResponse(w, http.StatusBadRequest,
+			NewCustomError(InvalidRequest, err))
 		return
 	}
 	customErr := validateUser(u)
@@ -43,18 +39,14 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	password, err := generatePassword()
 	if err != nil {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: PassWordError,
-			Err:  err,
-		})
+		errorResponse(w, http.StatusBadRequest,
+			NewCustomError(PassWordError, err))
 		return
 	}
 	enPass, err := encryptPassword(password)
 	if err != nil {
-		errorResponse(w, http.StatusInternalServerError, &CustomError{
-			Code: PassWordError,
-			Err:  err,
-		})
+		errorResponse(w, http.StatusInternalServerError,
+			NewCustomError(PassWordError, err))
 		return
 	}
 
@@ -62,10 +54,8 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	err = storeUser(u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
-		errorResponse(w, http.StatusInternalServerError, &CustomError{
-			Code: DatabaseError,
-			Err:  err,
-		})
+		errorResponse(w, http.StatusInternalServerError,
+			NewCustomError(DatabaseError, err))
 	}
 
 	err = jsonResponse(w, http.StatusOK,
