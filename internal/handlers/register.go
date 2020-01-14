@@ -126,48 +126,48 @@ func userExists(email string) (bool, error) {
 
 func validateUser(u *store.User) *CustomError {
 	if u.FirstName == "" {
-		return &CustomError{
-			Code: FirstNameMissing,
-			Err:  errors.New("missing first name"),
-		}
+		return NewCustomError(
+			FirstNameMissing,
+			errors.New("missing first name"),
+		)
 	}
 	if u.LastName == "" {
-		return &CustomError{
-			Code: LastNameMissing,
-			Err:  errors.New("missing last name"),
-		}
+		return NewCustomError(
+			LastNameMissing,
+			errors.New("missing last name"),
+		)
 	}
 	if u.Email == "" {
-		return &CustomError{
-			Code: EmailMissing,
-			Err:  errors.New("missing last name"),
-		}
+		return NewCustomError(
+			EmailMissing,
+			errors.New("missing last name"),
+		)
 	}
 	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	if !re.MatchString(u.Email) {
-		return &CustomError{
-			Code: EmailInvalid,
-			Err:  errors.New("invalid email"),
-		}
+		return NewCustomError(
+			EmailInvalid,
+			errors.New("invalid email"),
+		)
 	}
 	if u.Terms == false {
-		return &CustomError{
-			Code: TermsMissing,
-			Err:  errors.New("missing terms"),
-		}
+		return NewCustomError(
+			TermsMissing,
+			errors.New("missing terms"),
+		)
 	}
 	exists, err := userExists(u.Email)
 	if err != nil {
-		return &CustomError{
-			Code: DatabaseError,
-			Err:  err,
-		}
+		return NewCustomError(
+			DatabaseError,
+			err,
+		)
 	}
 	if exists {
-		return &CustomError{
-			Code: EmailExists,
-			Err:  fmt.Errorf("email already exists :: %v", u.Email),
-		}
+		return NewCustomError(
+			EmailExists,
+			fmt.Errorf("email already exists :: %v", u.Email),
+		)
 	}
 	return nil
 }

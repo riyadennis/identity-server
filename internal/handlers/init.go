@@ -35,6 +35,14 @@ type Response struct {
 func Init() {
 	Idb = sqlite.PrepareDB("/var/tmp/identity.db")
 }
+
+func NewCustomError(code string, err error) *CustomError {
+	return &CustomError{
+		Code: code,
+		Err:  err,
+	}
+}
+
 func encryptPassword(password string) (string, error) {
 	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
@@ -43,6 +51,7 @@ func encryptPassword(password string) (string, error) {
 	return string(enPass), nil
 
 }
+
 func generatePassword() (string, error) {
 	result := ""
 	for {
