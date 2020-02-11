@@ -5,6 +5,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/internal/handlers"
+	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,5 +15,6 @@ func Server(port string) {
 	router.POST(RegisterEndpoint, handlers.Register)
 	router.POST(LoginEndPoint, handlers.Login)
 	router.GET(HomeEndPoint, handlers.Auth(handlers.Home))
-	logrus.Fatal(http.ListenAndServe(port, router))
+	handler := cors.Default().Handler(router)
+	logrus.Fatal(http.ListenAndServe(port, handler))
 }
