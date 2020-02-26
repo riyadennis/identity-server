@@ -2,13 +2,12 @@ package sqlite
 
 import (
 	"database/sql"
-	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 
 	"github.com/google/uuid"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LiteDB struct {
@@ -107,22 +106,18 @@ func (id *LiteDB) Read(email string) (*store.User, error) {
 	return u, nil
 }
 
-func (id *LiteDB) Authenticate(email, password string) (string, error) {
+func (id *LiteDB) Authenticate(email, password string) (bool, error) {
 	rows := id.Login.QueryRow(email)
-	var fname, lname, hashedPass string
-	err := rows.Scan(&fname, &lname, &hashedPass)
+	var hashedPass string
+	err := rows.Scan(&hashedPass)
 	if err != nil {
 		logrus.Errorf("%v", err)
-		return "", err
+		return false, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
 	if err != nil {
 		logrus.Errorf("invalid password :: %v", err)
-		return "", err
+		return false, err
 	}
-	if fname == "" && lname == "" {
-		return "", nil
-	}
-
-	return fmt.Sprintf("%s %s", fname, lname), nil
+	return true, nil
 }

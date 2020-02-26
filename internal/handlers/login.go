@@ -12,13 +12,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type LoginDetails struct {
+type User struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	user, password, ok:= req.BasicAuth()
+	email, password, ok:= req.BasicAuth()
 	if !ok{
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
@@ -26,29 +26,33 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	ld := &LoginDetails{
-		Email: user,
-		Password: password,
-	}
-	if ld.Email == "" {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: EmailMissing,
-			Err:  errors.New("email missing"),
+	source := dataSource()
+	u, err := source.Read(email)
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, &CustomError{
+			Code: UserDoNotExist,
+			Err:  err,
 		})
 		return
 	}
-	if ld.Password == "" {
-		logrus.Error("no password")
-		errorResponse(w, http.StatusBadRequest, &CustomError{
+	if u.Password != password{
+		errorResponse(w, http.StatusInternalServerError, &CustomError{
 			Code: PassWordError,
-			Err:  errors.New("password missing"),
+			Err:  err,
 		})
 		return
 	}
-	fName, err := Idb.Authenticate(ld.Email, ld.Password)
+	valid, err := source.Authenticate(email, password)
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
+			Err:  err,
+		})
+		return
+	}
+	if !valid{
+		errorResponse(w, http.StatusBadRequest, &CustomError{
+			Code: UnAuthorised,
 			Err:  err,
 		})
 		return
@@ -61,8 +65,9 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
+
 	res := newResponse(http.StatusOK,
-		fmt.Sprintf("welcome  : %s", fName),
+		fmt.Sprintf("welcome  : %s", u.FirstName),
 		"",
 	)
 	res.Token = token

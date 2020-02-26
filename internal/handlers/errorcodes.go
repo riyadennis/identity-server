@@ -12,6 +12,7 @@ const (
 	InvalidRequest   = "invalid-request"
 	TokenError = "token-error"
 	UnAuthorised = "unauthorised"
+	UserDoNotExist = "user-do-not-exist"
 )
 
 type CustomError struct {

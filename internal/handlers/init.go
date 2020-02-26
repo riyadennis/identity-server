@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/rand"
 	"errors"
+	"github.com/riyadennis/identity-server/internal/store"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -41,6 +42,10 @@ func NewCustomError(code string, err error) *CustomError {
 		Code: code,
 		Err:  err,
 	}
+}
+
+func dataSource() store.Store{
+	return Idb
 }
 
 func encryptPassword(password string) (string, error) {
