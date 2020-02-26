@@ -18,33 +18,17 @@ type LoginDetails struct {
 }
 
 func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	data, err := requestBody(req)
-	if err != nil {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: InvalidRequest,
-			Err:  err,
-		})
-		return
-	}
-	var ld *LoginDetails
-	if data != nil {
-		ld = &LoginDetails{}
-		err = json.Unmarshal(data, ld)
-		if err != nil {
-			logrus.Errorf("failed to unmarshal :: %v", err)
-			errorResponse(w, http.StatusBadRequest, &CustomError{
-				Code: InvalidRequest,
-				Err:  err,
-			})
-			return
-		}
-	}
-	if ld == nil {
+	user, password, ok:= req.BasicAuth()
+	if !ok{
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
 			Err:  errors.New("empty login data"),
 		})
 		return
+	}
+	ld := &LoginDetails{
+		Email: user,
+		Password: password,
 	}
 	if ld.Email == "" {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
