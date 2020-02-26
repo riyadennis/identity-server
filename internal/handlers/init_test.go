@@ -1,11 +1,11 @@
 package handlers_test
 
 import (
+	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"os"
 	"testing"
 
 	"github.com/riyadennis/identity-server/internal"
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
 )
 
 func TestMain(m *testing.M){

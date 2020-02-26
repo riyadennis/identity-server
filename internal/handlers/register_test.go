@@ -16,7 +16,14 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	Idb = sqlite.PrepareDB("/var/tmp/identityTest.db")
+	db, err := sqlite.ConnectDB("/var/tmp/identityTest.db")
+	if err != nil {
+		panic(err)
+	}
+	Idb,  err = sqlite.PrepareDB(db)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func TestRegister(t *testing.T) {

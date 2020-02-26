@@ -3,7 +3,7 @@ package handlers
 import (
 	"crypto/rand"
 	"errors"
-	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/riyadennis/identity-server/internal/store/sqlM"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
+	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	Idb *sqlite.LiteDB
+	Idb store.Store
 )
 
 const (
@@ -34,7 +34,19 @@ type Response struct {
 }
 
 func Init() {
-	Idb = sqlite.PrepareDB("/var/tmp/identity.db")
+	connectMysql()
+}
+
+func connectMysql(){
+	var err error
+	db, err := sqlM.ConnectDB()
+	if err != nil{
+		panic(err)
+	}
+	Idb, err = sqlM.PrepareDB(db)
+	if err != nil{
+		panic(err)
+	}
 }
 
 func NewCustomError(code string, err error) *CustomError {

@@ -35,10 +35,17 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
+	if u == nil{
+		errorResponse(w, http.StatusInternalServerError, &CustomError{
+			Code: UserDoNotExist,
+			Err:   errors.New("email not found"),
+		})
+		return
+	}
 	if u.Password != password{
 		errorResponse(w, http.StatusInternalServerError, &CustomError{
 			Code: PassWordError,
-			Err:  err,
+			Err:  errors.New("password not matching"),
 		})
 		return
 	}

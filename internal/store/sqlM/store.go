@@ -1,51 +1,25 @@
-package sqlite
+package sqlM
 
 import (
 	"database/sql"
-	"log"
-
+	_"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 )
 
-type LiteDB struct {
+type DB struct {
 	Db        *sql.DB
 	InsertNew *sql.Stmt
 	Fetch     *sql.Stmt
 	Login     *sql.Stmt
 }
 
-func Setup(source string) error {
-	database, err := sql.Open("sqlite3", source)
-	if err != nil {
-		logrus.Fatalf("%v", err)
-		return err
-	}
-	prepare, err := database.Prepare(`CREATE TABLE IF NOT EXISTS 
-											identity_users (id TEXT PRIMARY KEY, 
-											first_name  TEXT, 
-											last_name TEXT, 
-											email TEXT, 
-											password TEXT, 
-											company TEXT, 
-											post_code TEXT,
-											terms INTEGER)`)
-	if err != nil {
-		logrus.Fatalf("%v", err)
-		return err
-	}
-	_, err = prepare.Exec()
-	if err != nil {
-		logrus.Fatalf("%v", err)
-		return err
-	}
-	return nil
-}
-
-func ConnectDB(source string)(*sql.DB, error){
-	database, err := sql.Open("sqlite3", source)
+func ConnectDB() (*sql.DB, error){
+	database, err := sql.Open("mysql",
+		"root:root@tcp(127.0.0.1:3306)/identity_db")
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return nil, err
@@ -53,7 +27,7 @@ func ConnectDB(source string)(*sql.DB, error){
 	return database, nil
 }
 
-func PrepareDB(database *sql.DB) (*LiteDB, error) {
+func PrepareDB(database *sql.DB) (*DB, error) {
 	insert, err := database.Prepare(`INSERT INTO identity_users 
 (id, first_name, last_name,password,
  email, company, post_code, terms) 
@@ -75,7 +49,7 @@ func PrepareDB(database *sql.DB) (*LiteDB, error) {
 		log.Fatalf("%v", err)
 		return nil, err
 	}
-	return &LiteDB{
+	return &DB{
 		Db:        database,
 		InsertNew: insert,
 		Fetch:     fetch,
@@ -83,7 +57,7 @@ func PrepareDB(database *sql.DB) (*LiteDB, error) {
 	}, nil
 }
 
-func (id *LiteDB) Insert(u *store.User) error {
+func (id *DB) Insert(u *store.User) error {
 	uid := uuid.New()
 	_, err := id.InsertNew.Exec(uid, u.FirstName, u.LastName,
 		u.Password, u.Email, u.Company, u.PostCode, u.Terms)
@@ -94,7 +68,7 @@ func (id *LiteDB) Insert(u *store.User) error {
 	return nil
 }
 
-func (id *LiteDB) Read(email string) (*store.User, error) {
+func (id *DB) Read(email string) (*store.User, error) {
 	rows := id.Fetch.QueryRow(email)
 	var u *store.User
 
@@ -113,7 +87,7 @@ func (id *LiteDB) Read(email string) (*store.User, error) {
 	return u, nil
 }
 
-func (id *LiteDB) Authenticate(email, password string) (bool, error) {
+func (id *DB) Authenticate(email, password string) (bool, error) {
 	rows := id.Login.QueryRow(email)
 	var hashedPass string
 	err := rows.Scan(&hashedPass)
