@@ -3,7 +3,6 @@ package handlers
 import (
 	"crypto/rand"
 	"errors"
-	"github.com/riyadennis/identity-server/internal/store/sqlM"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/riyadennis/identity-server/internal/store/sqlM"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -37,15 +37,15 @@ func Init() {
 	connectMysql()
 }
 
-func connectMysql(){
+func connectMysql() {
 	var err error
 	db, err := sqlM.ConnectDB()
-	if err != nil{
-		panic(err)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 	Idb, err = sqlM.PrepareDB(db)
-	if err != nil{
-		panic(err)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 }
 
@@ -56,7 +56,7 @@ func NewCustomError(code string, err error) *CustomError {
 	}
 }
 
-func dataSource() store.Store{
+func dataSource() store.Store {
 	return Idb
 }
 

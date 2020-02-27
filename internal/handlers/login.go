@@ -18,8 +18,8 @@ type User struct {
 }
 
 func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	email, password, ok:= req.BasicAuth()
-	if !ok{
+	email, password, ok := req.BasicAuth()
+	if !ok {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: InvalidRequest,
 			Err:  errors.New("empty login data"),
@@ -35,14 +35,14 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	if u == nil{
+	if u == nil {
 		errorResponse(w, http.StatusInternalServerError, &CustomError{
 			Code: UserDoNotExist,
-			Err:   errors.New("email not found"),
+			Err:  errors.New("email not found"),
 		})
 		return
 	}
-	if u.Password != password{
+	if u.Password != password {
 		errorResponse(w, http.StatusInternalServerError, &CustomError{
 			Code: PassWordError,
 			Err:  errors.New("password not matching"),
@@ -57,7 +57,7 @@ func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		})
 		return
 	}
-	if !valid{
+	if !valid {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
 			Code: UnAuthorised,
 			Err:  err,

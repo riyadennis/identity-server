@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {

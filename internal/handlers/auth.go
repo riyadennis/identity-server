@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 func Auth(next httprouter.Handle) httprouter.Handle {

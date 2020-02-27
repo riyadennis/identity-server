@@ -26,6 +26,7 @@ services:
     volumes:
       - ./MySQL/init.sql:/docker-entrypoint-initdb.d/init.sql
       - named_volume:/var/lib/mysql
+      - sqlite_volume:/var/tmp
 
 networks:
   backend:
@@ -34,3 +35,4 @@ volumes:
   init: {}
   named_volume: {}
   code_volume: {}
+  sqlite_volume: {}

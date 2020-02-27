@@ -2,12 +2,13 @@ package sqlM
 
 import (
 	"database/sql"
+	"log"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 )
 
 type DB struct {

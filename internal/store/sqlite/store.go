@@ -44,7 +44,7 @@ func Setup(source string) error {
 	return nil
 }
 
-func ConnectDB(source string)(*sql.DB, error){
+func ConnectDB(source string) (*sql.DB, error) {
 	database, err := sql.Open("sqlite3", source)
 	if err != nil {
 		logrus.Fatalf("%v", err)
