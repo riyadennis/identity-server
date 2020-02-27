@@ -2,7 +2,7 @@ package sqlM
 
 import (
 	"database/sql"
-	_"github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
@@ -17,9 +17,9 @@ type DB struct {
 	Login     *sql.Stmt
 }
 
-func ConnectDB() (*sql.DB, error){
+func ConnectDB() (*sql.DB, error) {
 	database, err := sql.Open("mysql",
-		"root:root@tcp(127.0.0.1:3306)/identity_db")
+		"root:root@tcp(mysql-development:3306)/identity_db")
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return nil, err

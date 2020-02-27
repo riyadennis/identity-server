@@ -6,9 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLogin(t *testing.T) {
@@ -22,7 +23,7 @@ func TestLogin(t *testing.T) {
 			request: &http.Request{},
 			response: &Response{
 				Status:    http.StatusBadRequest,
-				Message:   "invalid content",
+				Message:   "empty login data",
 				ErrorCode: InvalidRequest,
 			},
 		},
@@ -31,8 +32,8 @@ func TestLogin(t *testing.T) {
 			request: request(t, "/login", `{}`),
 			response: &Response{
 				Status:    http.StatusBadRequest,
-				Message:   "email missing",
-				ErrorCode: EmailMissing,
+				Message:   "empty login data",
+				ErrorCode: InvalidRequest,
 			},
 		},
 		{
@@ -42,19 +43,7 @@ func TestLogin(t *testing.T) {
 }`),
 			response: &Response{
 				Status:    http.StatusBadRequest,
-				Message:   "password missing",
-				ErrorCode: PassWordError,
-			},
-		},
-		{
-			name: "invalid password",
-			request: request(t, "/login", `{
-	"email": "john4@gmail.com",
-	"password": "invalid"
-}`),
-			response: &Response{
-				Status:    http.StatusBadRequest,
-				Message:   "sql: no rows in result set",
+				Message:   "empty login data",
 				ErrorCode: InvalidRequest,
 			},
 		},
@@ -64,9 +53,7 @@ func TestLogin(t *testing.T) {
 			rr := httptest.NewRecorder()
 			Login(rr, sc.request, nil)
 			re := response(t, rr.Body)
-			if !cmp.Equal(re, sc.response) {
-				t.Errorf("expected %v, got %v", sc.response, re)
-			}
+			assert.Equal(t, sc.response, re)
 		})
 	}
 }
@@ -86,4 +73,16 @@ func response(t *testing.T, body *bytes.Buffer) *Response {
 		}
 	}
 	return re
+}
+
+func request(t *testing.T, endpoint, content string) *http.Request {
+	t.Helper()
+	body := strings.NewReader(content)
+	req, err := http.NewRequest("POST",
+		endpoint, body)
+	if err != nil {
+		t.Error(err)
+	}
+	req.Header.Set("content-type", "application/json")
+	return req
 }

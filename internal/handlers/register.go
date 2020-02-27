@@ -30,10 +30,20 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			NewCustomError(InvalidRequest, err))
 		return
 	}
-	customErr := validateUser(u)
-	if customErr != nil {
-		logrus.Errorf("validation failed :: %v", customErr.Err)
-		errorResponse(w, http.StatusBadRequest, customErr)
+	err = validateUser(u)
+	if err != nil {
+		logrus.Errorf("validation failed :: %v", err)
+		errorResponse(w, http.StatusBadRequest, NewCustomError(InvalidUserData, err))
+		return
+	}
+	exists, err := userExists(u.Email)
+	if err != nil {
+		//already logged
+		errorResponse(w, http.StatusBadRequest, NewCustomError(DatabaseError, err))
+		return
+	}
+	if exists {
+		errorResponse(w, http.StatusBadRequest, NewCustomError(EmailAlreadyExists, err))
 		return
 	}
 
@@ -43,14 +53,13 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			NewCustomError(PassWordError, err))
 		return
 	}
-	enPass, err := encryptPassword(password)
+	u.Password, err = encryptPassword(password)
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError,
 			NewCustomError(PassWordError, err))
 		return
 	}
 
-	u.Password = enPass
 	err = storeUser(u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
@@ -114,50 +123,25 @@ func userExists(email string) (bool, error) {
 	return true, nil
 }
 
-func validateUser(u *store.User) *CustomError {
+func validateUser(u *store.User) error {
+	if u == nil {
+		return errors.New("empty user details")
+	}
 	if u.FirstName == "" {
-		return NewCustomError(
-			FirstNameMissing,
-			errors.New("missing first name"),
-		)
+		return errors.New("missing first name")
 	}
 	if u.LastName == "" {
-		return NewCustomError(
-			LastNameMissing,
-			errors.New("missing last name"),
-		)
+		return errors.New("missing last name")
 	}
 	if u.Email == "" {
-		return NewCustomError(
-			EmailMissing,
-			errors.New("missing last name"),
-		)
+		return errors.New("missing email")
 	}
 	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	if !re.MatchString(u.Email) {
-		return NewCustomError(
-			EmailInvalid,
-			errors.New("invalid email"),
-		)
+		return errors.New("invalid email")
 	}
 	if u.Terms == false {
-		return NewCustomError(
-			TermsMissing,
-			errors.New("missing terms"),
-		)
-	}
-	exists, err := userExists(u.Email)
-	if err != nil {
-		return NewCustomError(
-			DatabaseError,
-			err,
-		)
-	}
-	if exists {
-		return NewCustomError(
-			EmailExists,
-			fmt.Errorf("email already exists :: %v", u.Email),
-		)
+		return errors.New("missing terms")
 	}
 	return nil
 }

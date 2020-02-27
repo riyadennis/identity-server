@@ -1,110 +1,76 @@
 package handlers
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"strings"
+	"errors"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
+	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	err := sqlite.Setup("/var/tmp/identityTest.db")
-	if err != nil {
-		panic(err)
-	}
-	db, err := sqlite.ConnectDB("/var/tmp/identityTest.db")
-	if err != nil {
-		panic(err)
-	}
-	Idb,  err = sqlite.PrepareDB(db)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func TestRegister(t *testing.T) {
+func TestValidateUser(t *testing.T) {
 	scenarios := []struct {
-		name           string
-		request        *http.Request
-		expectedStatus int
+		name        string
+		user        *store.User
+		expectedErr error
 	}{
 		{
-			name:           "invalid content type",
-			request:        &http.Request{},
-			expectedStatus: http.StatusBadRequest,
+			name:        "nil user",
+			user:        nil,
+			expectedErr: errors.New("empty user details"),
 		},
 		{
-			name:           "empty content",
-			request:        request(t,"/register", `{hello: hi}`),
-			expectedStatus: http.StatusBadRequest,
+			name: "missing first name",
+			user: func() *store.User {
+				u := user(t)
+				u.FirstName = ""
+				return u
+			}(),
+			expectedErr: errors.New("missing first name"),
+		},
+		{
+			name: "missing last name",
+			user: func() *store.User {
+				u := user(t)
+				u.LastName = ""
+				return u
+			}(),
+			expectedErr: errors.New("missing last name"),
 		},
 		{
 			name: "missing email",
-			request: request(t, "/register", `{
-	"first_name": "John",
-	"last_name": "Doe"
-}`),
-			expectedStatus: http.StatusBadRequest,
+			user: func() *store.User {
+				u := user(t)
+				u.Email = ""
+				return u
+			}(),
+			expectedErr: errors.New("missing email"),
 		},
 		{
 			name: "missing terms",
-			request: request(t, "/register", `{
-	"first_name": "John",
-	"last_name": "Doe",
-	"email": "john@gmail.com"
-}`),
-			expectedStatus: http.StatusBadRequest,
+			user: func() *store.User {
+				u := user(t)
+				u.Terms = false
+				return u
+			}(),
+			expectedErr: errors.New("missing terms"),
 		},
 		{
-			name: "missing terms",
-			request: request(t, "/register", `{
-	"first_name": "John",
-	"last_name": "Doe",
-	"email": "@gml.com"
-}`),
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			name: "valid payload",
-			request: request(t,"/register",  `
-{
-	"first_name": "John",
-	"last_name": "Doe",
-	"email": "john@gmail.com",
-	"terms": true
-}`),
-			expectedStatus: http.StatusOK,
-		},
-		{
-			name: "duplicate payload",
-			request: request(t, "/register", `
-{
-	"first_name": "John",
-	"last_name": "Doe",
-	"email": "john@gmail.com",
-	"terms": true
-}`),
-			expectedStatus: http.StatusBadRequest,
+			name: "invalid email",
+			user: func() *store.User {
+				u := user(t)
+				u.Email = "invalid"
+				return u
+			}(),
+			expectedErr: errors.New("invalid email"),
 		},
 	}
-	defer func() {
-		err := os.Remove("/var/tmp/identityTest.db")
-		if err != nil {
-			panic(err)
-		}
-	}()
+
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			rr := httptest.NewRecorder()
-			Register(rr, sc.request, nil)
-			if rr.Code != sc.expectedStatus {
-				t.Errorf("want Status code %d, got %d",
-					sc.expectedStatus, rr.Code)
-			}
+			err := validateUser(sc.user)
+			assert.Equal(t, sc.expectedErr, err)
 		})
 	}
 
@@ -120,14 +86,17 @@ func TestGeneratePassword(t *testing.T) {
 	}
 }
 
-func request(t *testing.T, endpoint, content string) *http.Request {
+func user(t *testing.T) *store.User {
 	t.Helper()
-	body := strings.NewReader(content)
-	req, err := http.NewRequest("POST",
-		endpoint, body)
-	if err != nil {
-		t.Error(err)
+	u := &store.User{
+		FirstName:        "John",
+		LastName:         "Doe",
+		Email:            "joh@doe.com",
+		Password:         "testPassword",
+		Company:          "testCompany",
+		PostCode:         "E112QD",
+		Terms:            true,
+		RegistrationDate: "",
 	}
-	req.Header.Set("content-type", "application/json")
-	return req
+	return u
 }
