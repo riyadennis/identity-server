@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/riyadennis/identity-server/internal/store/sqlite"
+
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/riyadennis/identity-server/internal/store/sqlM"
 	"github.com/sirupsen/logrus"
@@ -33,7 +35,15 @@ type Response struct {
 	Token     string `json:"token,omitempty"`
 }
 
-func Init() {
+func Init(env string) {
+	if env == "test" {
+		var err error
+		Idb, err = connectSQLite()
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		return
+	}
 	connectMysql()
 }
 
@@ -47,6 +57,18 @@ func connectMysql() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func connectSQLite() (*sqlite.LiteDB, error) {
+	db, err := sqlite.ConnectDB("/var/tmp/identity.db")
+	if err != nil {
+		return nil, err
+	}
+	err = sqlite.Setup("/var/tmp/identity.db")
+	if err != nil {
+		return nil, err
+	}
+	return sqlite.PrepareDB(db)
 }
 
 func NewCustomError(code string, err error) *CustomError {

@@ -12,8 +12,10 @@ type User struct {
 	RegistrationDate string
 }
 
+//TODO to consolidate these functions between two database type
 type Store interface {
 	Insert(u *User) error
 	Read(email string) (*User, error)
 	Authenticate(email, password string) (bool, error)
+	Delete(email string) (bool, error)
 }

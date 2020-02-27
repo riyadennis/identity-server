@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
 	"github.com/google/uuid"
@@ -15,6 +16,7 @@ type LiteDB struct {
 	InsertNew *sql.Stmt
 	Fetch     *sql.Stmt
 	Login     *sql.Stmt
+	Remove    *sql.Stmt
 }
 
 func Setup(source string) error {
@@ -124,6 +126,21 @@ func (id *LiteDB) Authenticate(email, password string) (bool, error) {
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
 	if err != nil {
 		logrus.Errorf("invalid password :: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
+func (id *LiteDB) Delete(email string) (bool, error) {
+	u, err := id.Read(email)
+	if err != nil {
+		return false, err
+	}
+	if u == nil {
+		return false, errors.New("user not found")
+	}
+	_, err = id.Remove.Query(email)
+	if err != nil {
 		return false, err
 	}
 	return true, nil

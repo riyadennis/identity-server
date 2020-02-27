@@ -2,6 +2,7 @@ package sqlM
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -16,6 +17,7 @@ type DB struct {
 	InsertNew *sql.Stmt
 	Fetch     *sql.Stmt
 	Login     *sql.Stmt
+	Remove    *sql.Stmt
 }
 
 func ConnectDB() (*sql.DB, error) {
@@ -50,11 +52,17 @@ func PrepareDB(database *sql.DB) (*DB, error) {
 		log.Fatalf("%v", err)
 		return nil, err
 	}
+	delete, err := database.Prepare(`DELETE  FROM identity_users where email = ?`)
+	if err != nil {
+		log.Fatalf("%v", err)
+		return nil, err
+	}
 	return &DB{
 		Db:        database,
 		InsertNew: insert,
 		Fetch:     fetch,
 		Login:     login,
+		Remove:    delete,
 	}, nil
 }
 
@@ -99,6 +107,21 @@ func (id *DB) Authenticate(email, password string) (bool, error) {
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
 	if err != nil {
 		logrus.Errorf("invalid password :: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
+func (id *DB) Delete(email string) (bool, error) {
+	u, err := id.Read(email)
+	if err != nil {
+		return false, err
+	}
+	if u == nil {
+		return false, errors.New("user not found")
+	}
+	_, err = id.Remove.Query(email)
+	if err != nil {
 		return false, err
 	}
 	return true, nil
