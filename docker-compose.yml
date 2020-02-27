@@ -12,6 +12,19 @@ services:
       - mysql-development
     networks:
       - backend
+    environment:
+      ENV: "prod"
+  identity-server-test:
+    build: .
+    volumes:
+      - code_volume:/identity-server
+    ports:
+      - 8088:8081
+    restart: on-failure
+    networks:
+      - backend
+    environment:
+      ENV: "test"
 
   mysql-development:
     build: ./MySQL
