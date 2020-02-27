@@ -15,6 +15,7 @@ func Server(port string) {
 	router.POST(RegisterEndpoint, handlers.Register)
 	router.POST(LoginEndPoint, handlers.Login)
 	router.GET(HomeEndPoint, handlers.Auth(handlers.Home))
+
 	handler := cors.Default().Handler(router)
 	logrus.Fatal(http.ListenAndServe(port, handler))
 }

@@ -33,17 +33,20 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	err = validateUser(u)
 	if err != nil {
 		logrus.Errorf("validation failed :: %v", err)
-		errorResponse(w, http.StatusBadRequest, NewCustomError(InvalidUserData, err))
+		errorResponse(w, http.StatusBadRequest,
+			NewCustomError(InvalidUserData, err))
 		return
 	}
 	exists, err := userExists(u.Email)
 	if err != nil {
 		//already logged
-		errorResponse(w, http.StatusBadRequest, NewCustomError(DatabaseError, err))
+		errorResponse(w, http.StatusBadRequest,
+			NewCustomError(DatabaseError, err))
 		return
 	}
 	if exists {
-		errorResponse(w, http.StatusBadRequest, NewCustomError(EmailAlreadyExists, err))
+		errorResponse(w, http.StatusBadRequest,
+			NewCustomError(EmailAlreadyExists, err))
 		return
 	}
 
