@@ -9,6 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Auth is the wrapper that should be used for endpoints
+// that needs jwt token authentication.
+// if token is not present or is invalid then user
+// is denied access to wrapped endpoint.
 func Auth(next httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		headerToken := req.Header.Get("Token")

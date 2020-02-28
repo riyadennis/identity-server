@@ -36,6 +36,7 @@ func beforeScenario(f interface{}) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	client = &http.Client{}
 }
 
 func afterScenario(i interface{}, e error) {

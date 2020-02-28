@@ -17,7 +17,11 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+// Login endpoint where user enters his email
+// and password to get back a token.
+// Which can be used to authenticate other requests.
+func Login(w http.ResponseWriter,
+	req *http.Request, _ httprouter.Params) {
 	email, password, ok := req.BasicAuth()
 	if !ok {
 		errorResponse(w, http.StatusBadRequest, &CustomError{

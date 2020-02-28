@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
-
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/riyadennis/identity-server/internal/store/sqlM"
+	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -35,7 +34,11 @@ type Response struct {
 	Token     string `json:"token,omitempty"`
 }
 
+// Init initialises and loads database settings
 func Init(env string) {
+	// if environment is test
+	// we want to initialise sqlite
+	// database.
 	if env == "test" {
 		var err error
 		Idb, err = connectSQLite()
@@ -45,6 +48,14 @@ func Init(env string) {
 		return
 	}
 	connectMysql()
+}
+
+// NewCustomError returns error with error code
+func NewCustomError(code string, err error) *CustomError {
+	return &CustomError{
+		Code: code,
+		Err:  err,
+	}
 }
 
 func connectMysql() {
@@ -69,13 +80,6 @@ func connectSQLite() (*sqlite.LiteDB, error) {
 		return nil, err
 	}
 	return sqlite.PrepareDB(db)
-}
-
-func NewCustomError(code string, err error) *CustomError {
-	return &CustomError{
-		Code: code,
-		Err:  err,
-	}
 }
 
 func dataSource() store.Store {
