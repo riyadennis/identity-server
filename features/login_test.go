@@ -2,33 +2,24 @@ package features
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"github.com/cucumber/godog"
+	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
 )
 
 var (
+	user *store.User
 	userEmail    string
 	userPassword string
 	loginResp    *response
 )
 
-// response is the response we get back
-// from rest call to login endpoint
-type response struct {
-	// Status is the http status code
-	Status int `json:"status"`
-	// Message is the message like
-	// `welcome John Doe`
-	Message string `json:"message"`
-	// ErrorCode helps to debug issues
-	// will be empty on success requests.
-	ErrorCode string `json:"error-code"`
-}
 
-func email(arg1 string) error {
+func aNotRegisteredEmail(arg1 string) error {
 	if arg1 == "" {
 		return errors.New("empty email")
 	}
@@ -47,7 +38,7 @@ func password(arg1 string) error {
 func iLogin() error {
 	req, err := http.NewRequest("POST",
 		fmt.Sprintf("%s/login", HOST),
-		bytes.NewBuffer(loginInput()))
+		bytes.NewBuffer(loginInput(userEmail, userPassword)))
 	if err != nil {
 		return err
 	}
@@ -82,32 +73,45 @@ func message(arg1 string) error {
 	return nil
 }
 
-// httpResponse will submit and http request using
-// http client and then unmarshal the response into
-// a struct.
-func httpResponse(req *http.Request) (*response, error) {
-	r, err := client.Do(req)
+func aRegisteredUserWithEmailWithFirstNameAndLastName(email, fname, lname string) error {
+	req, err := http.NewRequest("POST",
+		fmt.Sprintf("%s/register", HOST),
+		bytes.NewBuffer(registerInput(email, fname, lname)))
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	body, err := ioutil.ReadAll(r.Body)
+	req.Header.Set("Content-Type", "application/json")
+	regResp, err := httpResponse(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	loginResp = &response{}
-	err = json.Unmarshal(body, loginResp)
-	if err != nil {
-		return nil, err
+	password := strings.Split(regResp.Message, ":")
+	user = &store.User{
+		FirstName:        fname,
+		LastName:         lname,
+		Email:           email,
+		Password:         strings.TrimSpace(password[1]),
 	}
-	return loginResp, nil
+	return nil
 }
 
-// loginInput returns json request
-// body for login endpoint in bytes.
-func loginInput() []byte {
-	return []byte(`{
-	"email": "` + userEmail + `",
-	"password": "` + userPassword + `"
-}`)
+func thatUserLogin() error {
+	loginReq, err := http.NewRequest("POST",
+		fmt.Sprintf("%s/login", HOST),
+		bytes.NewBuffer(loginInput(user.Email, user.Password)))
+	if err != nil {
+		return err
+	}
+	loginReq.Header.Set("Content-Type", "application/json")
+	loginResp, err = httpResponse(loginReq)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("%v", loginResp)
+	return nil
+}
+
+
+func tokenNot(arg1 string) error {
+	return godog.ErrPending
 }
