@@ -18,6 +18,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	data, err := requestBody(r)
 	if err != nil {
+		logrus.Errorf("failed to read request body :: %v", err)
 		errorResponse(w, http.StatusBadRequest,
 			NewCustomError(InvalidRequest, err))
 		return

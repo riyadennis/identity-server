@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 )
+
 // response is the response we get back
 // from rest call to login endpoint
 type response struct {
@@ -17,7 +18,6 @@ type response struct {
 	// will be empty on success requests.
 	ErrorCode string `json:"error-code"`
 }
-
 
 // httpResponse will submit and http request using
 // http client and then unmarshal the response into
@@ -49,11 +49,11 @@ func loginInput(email, password string) []byte {
 }`)
 }
 
-func registerInput(email, fname,lname string) []byte{
+func registerInput(email, fname, lname string) []byte {
 	return []byte(`{
-	"first_name": "`+fname+`",
-	"last_name": "`+lname+`",
-	"email": "`+email+`",
+	"first_name": "` + fname + `",
+	"last_name": "` + lname + `",
+	"email": "` + email + `",
 	"terms": true
 }`)
 }

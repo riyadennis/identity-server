@@ -3,7 +3,6 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
-	"log"
 
 	"github.com/google/uuid"
 	"github.com/riyadennis/identity-server/internal/store"
@@ -61,20 +60,20 @@ func PrepareDB(database *sql.DB) (*LiteDB, error) {
  email, company, post_code, terms) 
  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
-		log.Fatalf("%v", err)
+		logrus.Fatalf("%v", err)
 		return nil, err
 	}
 	fetch, err := database.Prepare(`SELECT first_name, last_name, 
 											company, post_code FROM
 										    identity_users where email = ?`)
 	if err != nil {
-		log.Fatalf("%v", err)
+		logrus.Fatalf("%v", err)
 		return nil, err
 	}
 	login, err := database.Prepare(`SELECT first_name, last_name, password FROM
 										    identity_users where email = ?`)
 	if err != nil {
-		log.Fatalf("%v", err)
+		logrus.Fatalf("%v", err)
 		return nil, err
 	}
 	return &LiteDB{

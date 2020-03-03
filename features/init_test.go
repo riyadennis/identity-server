@@ -1,11 +1,12 @@
 package features
 
 import (
+	"net/http"
+
 	"github.com/cucumber/godog"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 const HOST = "http://localhost:8088"
@@ -24,11 +25,11 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`status code (\d+)$`, statusCode)
 	s.Step(`^message "([^"]*)"$`, message)
 
-	s.Step(`^a registered user with email "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`, aRegisteredUserWithEmailWithFirstNameAndLastName)
+	s.Step(`^a registered user with email "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`,
+		aRegisteredUserWithEmailWithFirstNameAndLastName)
 	s.Step(`^that user login$`, thatUserLogin)
 	s.Step(`^status code should be (\d+)$`, statusCode)
 	s.Step(`^token not "([^"]*)"$`, tokenNot)
-
 
 	s.AfterScenario(afterScenario)
 }

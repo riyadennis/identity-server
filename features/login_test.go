@@ -4,20 +4,20 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/cucumber/godog"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"strings"
 )
 
 var (
-	user *store.User
+	user         *store.User
 	userEmail    string
 	userPassword string
 	loginResp    *response
 )
-
 
 func aNotRegisteredEmail(arg1 string) error {
 	if arg1 == "" {
@@ -87,10 +87,10 @@ func aRegisteredUserWithEmailWithFirstNameAndLastName(email, fname, lname string
 	}
 	password := strings.Split(regResp.Message, ":")
 	user = &store.User{
-		FirstName:        fname,
-		LastName:         lname,
-		Email:           email,
-		Password:         strings.TrimSpace(password[1]),
+		FirstName: fname,
+		LastName:  lname,
+		Email:     email,
+		Password:  strings.TrimSpace(password[1]),
 	}
 	return nil
 }
@@ -110,7 +110,6 @@ func thatUserLogin() error {
 	logrus.Infof("%v", loginResp)
 	return nil
 }
-
 
 func tokenNot(arg1 string) error {
 	return godog.ErrPending
