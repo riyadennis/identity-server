@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/riyadennis/identity-server/internal/store/sqlM"
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
@@ -73,11 +75,11 @@ func connectMysql() (*store.DB, error) {
 }
 
 func connectSQLite() (*store.DB, error) {
-	db, err := sqlite.ConnectDB("/var/tmp/identity.db")
+	db, err := sqlite.ConnectDB(viper.GetString("source"))
 	if err != nil {
 		return nil, err
 	}
-	err = sqlite.Setup("/var/tmp/identity.db")
+	err = sqlite.Setup(viper.GetString("source"))
 	if err != nil {
 		return nil, err
 	}

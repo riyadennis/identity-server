@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+
 	"github.com/sirupsen/logrus"
 )
 

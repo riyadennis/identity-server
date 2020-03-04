@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	configFile = flag.String("config", "etc/config.yaml",
+	configFile = flag.String("config", "etc/config_test.yaml",
 		"path to config file")
 )
 

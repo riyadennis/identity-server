@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"errors"
+
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"

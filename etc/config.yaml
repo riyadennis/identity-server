@@ -1,2 +1,2 @@
-env: "test"
+env: "dev"
 port: ":8095"
