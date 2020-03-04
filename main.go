@@ -2,19 +2,30 @@ package main
 
 import (
 	"flag"
-	"os"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 
 	"github.com/riyadennis/identity-server/internal"
 	"github.com/riyadennis/identity-server/internal/handlers"
 )
 
 var (
-	port = flag.String("port", ":8095",
-		"port http server will listen to")
+	configFile = flag.String("config", "etc/config.yaml",
+		"path to config file")
 )
 
 func main() {
 	flag.Parse()
-	handlers.Init(os.Getenv("ENV"))
-	internal.Server(*port)
+	viper.SetConfigFile(*configFile)
+	viper.AutomaticEnv()
+	err := viper.ReadInConfig()
+	if err != nil {
+		logrus.Fatalf("failed to read config :: %v", err)
+	}
+	handlers.Init(viper.GetString("ENV"))
+	internal.Server(viper.GetString("port"))
 }

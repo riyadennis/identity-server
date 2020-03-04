@@ -11,6 +11,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.4.2
+	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 )

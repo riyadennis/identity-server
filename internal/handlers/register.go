@@ -48,7 +48,8 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 	if exists {
 		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(EmailAlreadyExists, err))
+			NewCustomError(EmailAlreadyExists,
+				errors.New("email already exists")))
 		return
 	}
 

@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	Idb store.Store
+	Idb *store.DB
 )
 
 const (
@@ -36,18 +36,22 @@ type Response struct {
 
 // Init initialises and loads database settings
 func Init(env string) {
+	var err error
 	// if environment is test
 	// we want to initialise sqlite
 	// database.
+
 	if env == "test" {
-		var err error
 		Idb, err = connectSQLite()
 		if err != nil {
 			logrus.Fatal(err)
 		}
 		return
 	}
-	connectMysql()
+	Idb, err = connectMysql()
+	if err != nil {
+		logrus.Fatal(err)
+	}
 }
 
 // NewCustomError returns error with error code
@@ -58,19 +62,17 @@ func NewCustomError(code string, err error) *CustomError {
 	}
 }
 
-func connectMysql() {
+func connectMysql() (*store.DB, error) {
 	var err error
 	db, err := sqlM.ConnectDB()
 	if err != nil {
 		logrus.Fatal(err)
+		return nil, err
 	}
-	Idb, err = sqlM.PrepareDB(db)
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	return store.PrepareDB(db)
 }
 
-func connectSQLite() (*sqlite.LiteDB, error) {
+func connectSQLite() (*store.DB, error) {
 	db, err := sqlite.ConnectDB("/var/tmp/identity.db")
 	if err != nil {
 		return nil, err
@@ -79,10 +81,11 @@ func connectSQLite() (*sqlite.LiteDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sqlite.PrepareDB(db)
+
+	return store.PrepareDB(db)
 }
 
-func dataSource() store.Store {
+func dataSource() *store.DB {
 	return Idb
 }
 

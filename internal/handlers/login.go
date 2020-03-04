@@ -46,13 +46,6 @@ func Login(w http.ResponseWriter,
 		})
 		return
 	}
-	if u.Password != password {
-		errorResponse(w, http.StatusInternalServerError, &CustomError{
-			Code: PassWordError,
-			Err:  errors.New("password not matching"),
-		})
-		return
-	}
 	valid, err := source.Authenticate(email, password)
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, &CustomError{
