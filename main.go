@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
@@ -20,7 +21,11 @@ var (
 
 func main() {
 	flag.Parse()
-	viper.SetConfigFile(*configFile)
+	cf := os.Getenv("CONFIG_FILE")
+	if cf == "" {
+		cf = *configFile
+	}
+	viper.SetConfigFile(cf)
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {

@@ -87,9 +87,12 @@ func (id *DB) Read(email string) (*User, error) {
 
 	var fname, lname, post, company string
 	err := rows.Scan(&fname, &lname, &post, &company)
-	if err == sql.ErrNoRows {
-		logrus.Infof("user not found :: %s", email)
-		return nil, nil
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logrus.Infof("user not found :: %s", email)
+			return nil, nil
+		}
+		return nil, err
 	}
 	u := &User{
 		FirstName: fname,

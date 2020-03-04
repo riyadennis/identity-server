@@ -19,6 +19,8 @@ type response struct {
 	ErrorCode string `json:"error-code"`
 }
 
+var client *http.Client
+
 // httpResponse will submit and http request using
 // http client and then unmarshal the response into
 // a struct.
@@ -32,7 +34,7 @@ func httpResponse(req *http.Request) (*response, error) {
 	if err != nil {
 		return nil, err
 	}
-	loginResp = &response{}
+	loginResp := &response{}
 	err = json.Unmarshal(body, loginResp)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,8 @@
 package features
 
 import (
+	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/spf13/viper"
 	"net/http"
 
 	"github.com/cucumber/godog"
@@ -12,8 +14,7 @@ import (
 const HOST = "http://localhost:8088"
 
 var (
-	Idb    *sqlite.LiteDB
-	client *http.Client
+	Idb *store.DB
 )
 
 func FeatureContext(s *godog.Suite) {
@@ -47,14 +48,15 @@ func afterScenario(i interface{}, e error) {
 	//TODO to truncate db
 }
 
-func connectSQLite() (*sqlite.LiteDB, error) {
-	db, err := sqlite.ConnectDB("/var/tmp/identity.db")
+func connectSQLite() (*store.DB, error) {
+	db, err := sqlite.ConnectDB(viper.GetString("source"))
 	if err != nil {
 		return nil, err
 	}
-	err = sqlite.Setup("/var/tmp/identity.db")
+	err = sqlite.Setup(viper.GetString("source"))
 	if err != nil {
 		return nil, err
 	}
-	return sqlite.PrepareDB(db)
+
+	return store.PrepareDB(db)
 }

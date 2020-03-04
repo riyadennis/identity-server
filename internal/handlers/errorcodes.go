@@ -17,5 +17,8 @@ type CustomError struct {
 }
 
 func (e *CustomError) Error() string {
+	if e.Err == nil {
+		return "invalid error"
+	}
 	return e.Err.Error()
 }
