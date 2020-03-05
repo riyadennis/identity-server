@@ -14,7 +14,7 @@ func Server(port string) {
 	// register routes here
 	router.POST(RegisterEndpoint, handlers.Register)
 	router.POST(LoginEndPoint, handlers.Login)
-	router.POST(DeleteEndpoint, handlers.Delete)
+	router.POST(DeleteEndpoint, handlers.Auth(handlers.Delete))
 	router.GET(HomeEndPoint, handlers.Auth(handlers.Home))
 
 	handler := cors.Default().Handler(router)
