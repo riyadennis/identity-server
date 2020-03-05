@@ -1,8 +1,9 @@
 package features
 
 import (
-	"github.com/spf13/viper"
 	"net/http"
+
+	"github.com/spf13/viper"
 
 	"github.com/cucumber/godog"
 	_ "github.com/mattn/go-sqlite3"

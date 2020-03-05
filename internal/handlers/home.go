@@ -7,6 +7,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
@@ -24,5 +25,5 @@ func tokenHandler(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf("unable to handle token")
 	}
-	return []byte(mySigningKey), nil
+	return []byte(viper.GetString("signing-key")), nil
 }

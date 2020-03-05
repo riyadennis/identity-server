@@ -35,16 +35,16 @@ func Delete(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 			NewCustomError(InvalidRequest, err))
 		return
 	}
-	if done == 0{
-		logrus.Error("failed to delete :: %v",)
+	if done == 0 {
+		logrus.Error("failed to delete :: %v")
 		errorResponse(w, http.StatusBadRequest,
 			NewCustomError(InvalidRequest, err))
 		return
 	}
 	logrus.Infof("user %s deleted for :: %d records", ud.Email, done)
 	err = jsonResponse(w, http.StatusOK,
-			"account deleted",
-			"")
+		"account deleted",
+		"")
 	if err != nil {
 		logrus.Error(err)
 	}

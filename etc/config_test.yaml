@@ -1,3 +1,4 @@
 env: "test"
 port: ":8088"
 source: "/var/tmp/identity.db"
+signing-key: "thisistobereplaced"

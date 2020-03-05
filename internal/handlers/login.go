@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
@@ -87,7 +89,7 @@ func generateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp": time.Now().UTC().Add(tokenTTL).Unix(),
 	})
-	tokenStr, err := token.SignedString([]byte(mySigningKey))
+	tokenStr, err := token.SignedString([]byte(viper.GetString("signing-key")))
 	if err != nil {
 		return "", err
 	}

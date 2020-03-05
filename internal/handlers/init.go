@@ -26,7 +26,6 @@ var (
 const (
 	passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	tokenTTL     = 120 * time.Second
-	mySigningKey = "thisistobereplaced"
 )
 
 type Response struct {
