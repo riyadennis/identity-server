@@ -1,6 +1,7 @@
 package features
 
 import (
+	"github.com/spf13/viper"
 	"net/http"
 
 	"github.com/cucumber/godog"
@@ -30,8 +31,6 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^a registered user with email "([^"]*)"$`, aRegisteredUserWithEmail)
 	s.Step(`^password "([^"]*)" firstName "([^"]*)" and lastName "([^"]*)""$`, passwordFirstNameAndLastName)
 
-	//s.Step(`^a registered user with email "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`,
-	//	aRegisteredUserWithEmailWithFirstNameAndLastName)
 	s.Step(`^that user login$`, thatUserLogin)
 	s.Step(`^status code should be (\d+)$`, statusCode)
 	s.Step(`^token not "([^"]*)"$`, tokenNot)
@@ -53,11 +52,16 @@ func afterScenario(i interface{}, e error) {
 }
 
 func connectSQLite() (*store.DB, error) {
-	db, err := sqlite.ConnectDB("/var/tmp/identity.db")
+	viper.SetConfigFile("../etc/config_test.yaml")
+	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
 	}
-	err = sqlite.Setup("/var/tmp/identity.db")
+	db, err := sqlite.ConnectDB(viper.GetString("source"))
+	if err != nil {
+		return nil, err
+	}
+	err = sqlite.Setup(viper.GetString("source"))
 	if err != nil {
 		return nil, err
 	}
