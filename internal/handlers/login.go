@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -63,7 +64,7 @@ func Login(w http.ResponseWriter,
 		})
 		return
 	}
-	token, err := generateToken()
+	token, err := generateToken(email)
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError, &CustomError{
 			Code: TokenError,
@@ -85,11 +86,24 @@ func Login(w http.ResponseWriter,
 	return
 }
 
-func generateToken() (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp": time.Now().UTC().Add(tokenTTL).Unix(),
-	})
-	tokenStr, err := token.SignedString([]byte(viper.GetString("signing-key")))
+func generateToken(email string) (string, error) {
+	claims := &Claims{
+		Email:          email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().UTC().Add(tokenTTL).Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claims)
+
+	key, err := ioutil.ReadFile(viper.GetString("signing-key"))
+	if err != nil{
+		return "", err
+	}
+	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
+	if err != nil{
+		return "", err
+	}
+	tokenStr, err := token.SignedString(signKey)
 	if err != nil {
 		return "", err
 	}

@@ -1,4 +1,5 @@
 env: "test"
 port: ":8088"
 source: "/var/tmp/identity.db"
-signing-key: "thisistobereplaced"
+signing-key: "etc/jwt-key"
+verification-key: "etc/jwt-key.pub"

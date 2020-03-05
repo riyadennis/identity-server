@@ -1,3 +1,4 @@
 env: "dev"
 port: ":8095"
-signing-key: "thisistobereplaced"
+signing-key: "etc/jwt-key"
+verification-key: "etc/jwt-key.pub"
