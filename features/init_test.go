@@ -1,13 +1,14 @@
 package features
 
 import (
-	"github.com/riyadennis/identity-server/internal/store"
 	"net/http"
 
 	"github.com/cucumber/godog"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
+
+	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/riyadennis/identity-server/internal/store/sqlite"
 )
 
 const HOST = "http://localhost:8088"
@@ -28,7 +29,6 @@ func FeatureContext(s *godog.Suite) {
 
 	s.Step(`^a registered user with email "([^"]*)"$`, aRegisteredUserWithEmail)
 	s.Step(`^password "([^"]*)" firstName "([^"]*)" and lastName "([^"]*)""$`, passwordFirstNameAndLastName)
-
 
 	//s.Step(`^a registered user with email "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`,
 	//	aRegisteredUserWithEmailWithFirstNameAndLastName)

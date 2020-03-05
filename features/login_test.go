@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/riyadennis/identity-server/internal/store"
 )
 
 const Password = "MUakRB5VndRu4U0"
+
 var (
 	user         *store.User
 	userEmail    string
@@ -74,7 +76,7 @@ func message(arg1 string) error {
 
 func aRegisteredUserWithEmail(email string) error {
 	user = &store.User{
-		Email:email,
+		Email: email,
 	}
 	return nil
 }
@@ -91,7 +93,7 @@ func passwordFirstNameAndLastName(password, firstName, lastName string) error {
 }
 
 func thatUserLogin() error {
-	loginReq, err := http.NewRequest("POST", fmt.Sprintf("%s/login", HOST),nil )
+	loginReq, err := http.NewRequest("POST", fmt.Sprintf("%s/login", HOST), nil)
 	if err != nil {
 		return err
 	}
@@ -105,7 +107,7 @@ func thatUserLogin() error {
 }
 
 func tokenNot(arg1 string) error {
-	if loginResp.Token == arg1{
+	if loginResp.Token == arg1 {
 		return errors.New("invalid token")
 	}
 	return nil
