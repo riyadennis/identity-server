@@ -17,6 +17,9 @@ type response struct {
 	// ErrorCode helps to debug issues
 	// will be empty on success requests.
 	ErrorCode string `json:"error-code"`
+	// Token will hold the token issued on a
+	// valid login.
+	Token string `json:"token"`
 }
 
 // httpResponse will submit and http request using

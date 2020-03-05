@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"strings"
 
-	"github.com/cucumber/godog"
 	"github.com/riyadennis/identity-server/internal/store"
-	"github.com/sirupsen/logrus"
 )
 
+const Password = "MUakRB5VndRu4U0"
 var (
 	user         *store.User
 	userEmail    string
@@ -27,7 +26,7 @@ func aNotRegisteredEmail(arg1 string) error {
 	return nil
 }
 
-func password(arg1 string) error {
+func aNotRegisteredPassword(arg1 string) error {
 	if arg1 == "" {
 		return errors.New("empty password")
 	}
@@ -49,7 +48,7 @@ func iLogin() error {
 	return nil
 }
 
-func iShouldGetErrorcode(arg1 string) error {
+func iShouldGetErrorCode(arg1 string) error {
 	if loginResp.ErrorCode != arg1 {
 		return fmt.Errorf("expected error code %s, got %s",
 			arg1, loginResp.ErrorCode)
@@ -73,44 +72,41 @@ func message(arg1 string) error {
 	return nil
 }
 
-func aRegisteredUserWithEmailWithFirstNameAndLastName(email, fname, lname string) error {
-	req, err := http.NewRequest("POST",
-		fmt.Sprintf("%s/register", HOST),
-		bytes.NewBuffer(registerInput(email, fname, lname)))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	regResp, err := httpResponse(req)
-	if err != nil {
-		return err
-	}
-	password := strings.Split(regResp.Message, ":")
+func aRegisteredUserWithEmail(email string) error {
 	user = &store.User{
-		FirstName: fname,
-		LastName:  lname,
-		Email:     email,
-		Password:  strings.TrimSpace(password[1]),
+		Email:email,
 	}
 	return nil
 }
 
-func thatUserLogin() error {
-	loginReq, err := http.NewRequest("POST",
-		fmt.Sprintf("%s/login", HOST),
-		bytes.NewBuffer(loginInput(user.Email, user.Password)))
+func passwordFirstNameAndLastName(password, firstName, lastName string) error {
+	enPass, err := bcrypt.GenerateFromPassword([]byte(Password), bcrypt.MinCost)
 	if err != nil {
 		return err
 	}
-	loginReq.Header.Set("Content-Type", "application/json")
+	user.Password = string(enPass)
+	user.FirstName = firstName
+	user.LastName = lastName
+	return Idb.Insert(user)
+}
+
+func thatUserLogin() error {
+	loginReq, err := http.NewRequest("POST", fmt.Sprintf("%s/login", HOST),nil )
+	if err != nil {
+		return err
+	}
+	loginReq.Header.Set("Authorization",
+		"Basic am9obi5kb2VAZ21haWwuY29tOk1VYWtSQjVWbmRSdTRVMA==")
 	loginResp, err = httpResponse(loginReq)
 	if err != nil {
 		return err
 	}
-	logrus.Infof("%v", loginResp)
 	return nil
 }
 
 func tokenNot(arg1 string) error {
-	return godog.ErrPending
+	if loginResp.Token == arg1{
+		return errors.New("invalid token")
+	}
+	return nil
 }

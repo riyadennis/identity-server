@@ -1,6 +1,7 @@
 package features
 
 import (
+	"github.com/riyadennis/identity-server/internal/store"
 	"net/http"
 
 	"github.com/cucumber/godog"
@@ -12,21 +13,25 @@ import (
 const HOST = "http://localhost:8088"
 
 var (
-	Idb    *sqlite.LiteDB
+	Idb    *store.DB
 	client *http.Client
 )
 
 func FeatureContext(s *godog.Suite) {
 	s.BeforeScenario(beforeScenario)
 	s.Step(`^a not registered email "([^"]*)"$`, aNotRegisteredEmail)
-	s.Step(`^password "([^"]*)"$`, password)
+	s.Step(`^password "([^"]*)"$`, aNotRegisteredPassword)
 	s.Step(`^I login$`, iLogin)
-	s.Step(`^I should get error-code "([^"]*)"$`, iShouldGetErrorcode)
+	s.Step(`^I should get error-code "([^"]*)"$`, iShouldGetErrorCode)
 	s.Step(`status code (\d+)$`, statusCode)
 	s.Step(`^message "([^"]*)"$`, message)
 
-	s.Step(`^a registered user with email "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`,
-		aRegisteredUserWithEmailWithFirstNameAndLastName)
+	s.Step(`^a registered user with email "([^"]*)"$`, aRegisteredUserWithEmail)
+	s.Step(`^password "([^"]*)" firstName "([^"]*)" and lastName "([^"]*)""$`, passwordFirstNameAndLastName)
+
+
+	//s.Step(`^a registered user with email "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`,
+	//	aRegisteredUserWithEmailWithFirstNameAndLastName)
 	s.Step(`^that user login$`, thatUserLogin)
 	s.Step(`^status code should be (\d+)$`, statusCode)
 	s.Step(`^token not "([^"]*)"$`, tokenNot)
@@ -47,7 +52,7 @@ func afterScenario(i interface{}, e error) {
 	//TODO to truncate db
 }
 
-func connectSQLite() (*sqlite.LiteDB, error) {
+func connectSQLite() (*store.DB, error) {
 	db, err := sqlite.ConnectDB("/var/tmp/identity.db")
 	if err != nil {
 		return nil, err
@@ -56,5 +61,5 @@ func connectSQLite() (*sqlite.LiteDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sqlite.PrepareDB(db)
+	return store.PrepareDB(db)
 }
