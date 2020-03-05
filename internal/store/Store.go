@@ -87,20 +87,20 @@ func (id *DB) Read(email string) (*User, error) {
 
 	var fname, lname, post, company string
 	err := rows.Scan(&fname, &lname, &post, &company)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			logrus.Infof("user not found :: %s", email)
-			return nil, nil
+	switch err {
+	case sql.ErrNoRows:
+		return nil, nil
+	case nil:
+		u := &User{
+			FirstName: fname,
+			LastName:  lname,
+			Company:   company,
+			PostCode:  post,
 		}
+		return u, nil
+	default:
 		return nil, err
 	}
-	u := &User{
-		FirstName: fname,
-		LastName:  lname,
-		Company:   company,
-		PostCode:  post,
-	}
-	return u, nil
 }
 
 func (id *DB) Authenticate(email, password string) (bool, error) {

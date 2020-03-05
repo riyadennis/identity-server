@@ -42,7 +42,6 @@ func Init(env string) {
 	// if environment is test
 	// we want to initialise sqlite
 	// database.
-
 	if env == "test" {
 		Idb, err = connectSQLite()
 		if err != nil {
