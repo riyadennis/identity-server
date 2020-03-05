@@ -63,7 +63,6 @@ func PrepareDB(database *sql.DB) (*DB, error) {
 	}, nil
 }
 
-//TODO to consolidate these functions between two database type
 type Store interface {
 	Insert(u *User) error
 	Read(email string) (*User, error)
@@ -116,17 +115,17 @@ func (id *DB) Authenticate(email, password string) (bool, error) {
 	return true, nil
 }
 
-func (id *DB) Delete(email string) (bool, error) {
+func (id *DB) Delete(email string) (int64, error) {
 	u, err := id.Read(email)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
 	if u == nil {
-		return false, errors.New("user not found")
+		return 0, errors.New("user not found")
 	}
-	_, err = id.Remove.Query(email)
+	result, err := id.Remove.Exec(email)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
-	return true, nil
+	return result.RowsAffected()
 }
