@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
@@ -20,7 +21,14 @@ var (
 
 func main() {
 	flag.Parse()
-	viper.SetConfigFile(*configFile)
+	// if we are not running main through docker-compose we
+	// might not have environment variable set
+	// then we take default from flag.
+	cf := os.Getenv("CONFIG_FILE")
+	if cf == "" {
+		cf = *configFile
+	}
+	viper.SetConfigFile(cf)
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
