@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"github.com/spf13/viper"
 	"net/http"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
@@ -23,7 +25,11 @@ func Auth(next httprouter.Handle) httprouter.Handle {
 			})
 			return
 		}
-		t, err := jwt.Parse(headerToken, tokenHandler)
+		jwtConf := viper.GetStringMapString("jwt")
+		t, err := jwt.ParseWithClaims(headerToken, jwt.MapClaims{
+			"exp": time.Now().UTC().Add(tokenTTL).Unix(),
+			"iss": jwtConf["issuer"],
+		}, tokenHandler)
 		if err != nil || t == nil {
 			logrus.Errorf("unable to parse jwt :: %v", err)
 			errorResponse(w, http.StatusUnauthorized, &CustomError{

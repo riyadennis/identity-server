@@ -1,4 +1,6 @@
 env: "test"
 port: ":8088"
 source: "/var/tmp/identity.db"
-signing-key: "thisistobereplaced"
+jwt:
+  signing-key: "this-should-be-secret-shared-only-to-client"
+  issuer: "name-of-the-organisation"
