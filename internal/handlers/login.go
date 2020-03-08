@@ -63,7 +63,7 @@ func Login(w http.ResponseWriter,
 		})
 		return
 	}
-	token, err := generateToken(email)
+	token, err := generateToken()
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError, &CustomError{
 			Code: TokenError,
@@ -85,7 +85,7 @@ func Login(w http.ResponseWriter,
 	return
 }
 
-func generateToken(email string) (string, error) {
+func generateToken() (string, error) {
 	jwtConf := viper.GetStringMapString("jwt")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp": time.Now().UTC().Add(tokenTTL).Unix(),
