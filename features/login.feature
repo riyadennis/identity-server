@@ -16,6 +16,4 @@ Scenario: user registered
    And password "MUakRB5VndRu4U0" firstName "John" and lastName "Doe""
    When that user login
    Then status code should be 200
-   And message "welcome  : John"
-   And token not ""
 

@@ -105,10 +105,3 @@ func thatUserLogin() error {
 	}
 	return nil
 }
-
-func tokenNot(arg1 string) error {
-	if loginResp.Token == arg1 {
-		return errors.New("invalid token")
-	}
-	return nil
-}

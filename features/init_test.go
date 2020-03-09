@@ -34,7 +34,6 @@ func FeatureContext(s *godog.Suite) {
 
 	s.Step(`^that user login$`, thatUserLogin)
 	s.Step(`^status code should be (\d+)$`, statusCode)
-	s.Step(`^token not "([^"]*)"$`, tokenNot)
 
 	s.AfterScenario(afterScenario)
 }
@@ -49,7 +48,10 @@ func beforeScenario(f interface{}) {
 }
 
 func afterScenario(i interface{}, e error) {
-	//TODO to truncate db
+	err := sqlite.Truncate(viper.GetString("source"))
+	if err != nil {
+		logrus.Fatal(err)
+	}
 }
 
 func connectSQLite() (*store.DB, error) {
