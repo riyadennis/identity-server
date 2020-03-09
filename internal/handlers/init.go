@@ -32,7 +32,6 @@ type Response struct {
 	Status    int    `json:"status"`
 	Message   string `json:"message"`
 	ErrorCode string `json:"error-code"`
-	Token     string `json:"token,omitempty"`
 }
 
 // Init initialises and loads database settings

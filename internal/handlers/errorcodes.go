@@ -6,7 +6,7 @@ const (
 	DatabaseError      = "database-error"
 	PassWordError      = "password-error"
 	InvalidRequest     = "invalid-request"
-	TokenError         = "token-error"
+	TokenError         = "Token-error"
 	UnAuthorised       = "unauthorised"
 	UserDoNotExist     = "user-do-not-exist"
 )

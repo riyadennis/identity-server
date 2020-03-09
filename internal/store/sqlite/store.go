@@ -41,3 +41,22 @@ func ConnectDB(source string) (*sql.DB, error) {
 	}
 	return database, nil
 }
+
+func Truncate(source string) error {
+	database, err := sql.Open("sqlite3", source)
+	if err != nil {
+		logrus.Fatalf("%v", err)
+		return err
+	}
+	prepare, err := database.Prepare("DELETE FROM identity_users")
+	if err != nil {
+		logrus.Fatalf("%v", err)
+		return err
+	}
+	_, err = prepare.Exec()
+	if err != nil {
+		logrus.Fatalf("%v", err)
+		return err
+	}
+	return nil
+}

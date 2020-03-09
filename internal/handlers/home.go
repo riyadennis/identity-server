@@ -23,7 +23,7 @@ func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 
 func tokenHandler(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("unable to handle token")
+		return nil, fmt.Errorf("unable to handle Token")
 	}
 	return []byte(viper.GetStringMapString("jwt")["signing-key"]), nil
 }
