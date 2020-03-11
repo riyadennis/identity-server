@@ -11,8 +11,6 @@ import (
 	"github.com/riyadennis/identity-server/internal/store"
 )
 
-const Password = "MUakRB5VndRu4U0"
-
 var (
 	user         *store.User
 	userEmail    string
@@ -82,7 +80,7 @@ func aRegisteredUserWithEmail(email string) error {
 }
 
 func passwordFirstNameAndLastName(password, firstName, lastName string) error {
-	enPass, err := bcrypt.GenerateFromPassword([]byte(Password), bcrypt.MinCost)
+	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return err
 	}
@@ -103,5 +101,6 @@ func thatUserLogin() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(loginResp)
 	return nil
 }
