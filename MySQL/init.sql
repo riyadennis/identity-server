@@ -9,3 +9,8 @@ Create table identity_users (
     company varchar(20),
     post_code varchar(20),
     terms int);
+
+
+INSERT INTO identity_users
+(id, first_name, last_name,password,email, company, post_code, terms)
+ VALUES ('testId', 'John', 'Doe', 'password','john@doe.com', 'test','code', 1)
