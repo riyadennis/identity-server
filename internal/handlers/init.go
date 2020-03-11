@@ -118,15 +118,15 @@ func generatePassword() (string, error) {
 
 func requestBody(r *http.Request) ([]byte, error) {
 	if r.Header.Get("content-type") != "application/json" {
-		err := errors.New("invalid content")
-		logrus.Error(err)
+		err := errors.New("invalid content type")
+		logrus.Errorf("content type is not json :: %v", err)
 		return nil, err
 	}
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		if err == io.EOF {
 			err := errors.New("invalid content")
-			logrus.Error(err)
+			logrus.Errorf("empty request body", err)
 			return nil, err
 		}
 		return nil, err
