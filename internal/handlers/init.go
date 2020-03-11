@@ -69,6 +69,7 @@ func connectMysql() (*store.DB, error) {
 		logrus.Fatal(err)
 		return nil, err
 	}
+	logrus.Infof("MYSQL db details %v", db.Stats())
 	return store.PrepareDB(db)
 }
 
@@ -81,7 +82,7 @@ func connectSQLite() (*store.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	logrus.Infof("SQLite db details %v", db.Stats())
 	return store.PrepareDB(db)
 }
 

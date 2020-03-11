@@ -67,7 +67,7 @@ type Store interface {
 	Insert(u *User) error
 	Read(email string) (*User, error)
 	Authenticate(email, password string) (bool, error)
-	Delete(email string) (bool, error)
+	Delete(email string) (int64, error)
 }
 
 func (id *DB) Insert(u *User) error {
