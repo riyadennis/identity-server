@@ -5,7 +5,7 @@ Create table identity_users (
     first_name varchar(20),
     last_name varchar(20),
     email varchar(20),
-    password varchar(20),
+    password varchar(100),
     company varchar(20),
     post_code varchar(20),
     terms int);

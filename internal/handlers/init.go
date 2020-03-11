@@ -82,7 +82,7 @@ func connectSQLite() (*store.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	logrus.Infof("SQLite db details %v", db.Stats())
+	logrus.Infof("SQLite db details %#v", db.Stats().MaxOpenConnections)
 	return store.PrepareDB(db)
 }
 
@@ -125,7 +125,7 @@ func requestBody(r *http.Request) ([]byte, error) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		if err == io.EOF {
-			err := errors.New("invalid content")
+			err := errors.New("empty content")
 			logrus.Errorf("empty request body", err)
 			return nil, err
 		}

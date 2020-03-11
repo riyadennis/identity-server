@@ -9,7 +9,7 @@ import (
 
 func ConnectDB() (*sql.DB, error) {
 	database, err := sql.Open("mysql",
-		"root:root@tcp(127.0.0.1:3306)/identity_db")
+		"root:root@tcp(mysql-development:3306)/identity_db")
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return nil, err
