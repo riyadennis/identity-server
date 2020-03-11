@@ -32,10 +32,7 @@ func FeatureContext(s *godog.Suite) {
 
 
 	s.Step(`^a registered user with email "([^"]*)"$`, aRegisteredUserWithEmail)
-	s.Step(`^not matching password "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`,
-		notMatchingPasswordWithFirstNameAndLastName)
-
-	//s.Step(`^password "([^"]*)" firstName "([^"]*)" and lastName "([^"]*)""$`, passwordFirstNameAndLastName)
+	s.Step(`^password "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`, passwordWithFirstNameAndLastName)
 
 	s.Step(`^that user login$`, thatUserLogin)
 	s.Step(`^status code should be (\d+)$`, statusCode)

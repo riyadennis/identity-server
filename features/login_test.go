@@ -1,7 +1,7 @@
 package features
 
 import (
-	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -36,10 +36,11 @@ func aNotRegisteredPassword(arg1 string) error {
 func iLogin() error {
 	req, err := http.NewRequest("POST",
 		fmt.Sprintf("%s/login", HOST),
-		bytes.NewBuffer(loginInput(userEmail, userPassword)))
+		nil)
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", getBase64())
 	loginResp, err = httpResponse(req)
 	if err != nil {
 		return err
@@ -75,13 +76,16 @@ func aRegisteredUserWithEmail(email string) error {
 	user = &store.User{
 		Email: email,
 	}
+	userEmail = email
 	return nil
 }
-func notMatchingPasswordWithFirstNameAndLastName(password, firstName, lastName string) error {
+
+func passwordWithFirstNameAndLastName(password, firstName, lastName string) error {
 	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return err
 	}
+	userPassword = password
 	user.Password = string(enPass)
 	user.FirstName = firstName
 	user.LastName = lastName
@@ -93,11 +97,15 @@ func thatUserLogin() error {
 	if err != nil {
 		return err
 	}
-	loginReq.Header.Set("Authorization",
-		"Basic am9obi5kb2VAZ21haWwuY29tOk1VYWtSQjVWbmRSdTRVMA==")
+	loginReq.Header.Set("Authorization", getBase64())
 	loginResp, err = httpResponse(loginReq)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func getBase64() string{
+	str := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", userEmail, userPassword)))
+	return fmt.Sprintf("Basic %s", str)
 }
