@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/riyadennis/identity-server/internal/store"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -78,8 +77,7 @@ func aRegisteredUserWithEmail(email string) error {
 	}
 	return nil
 }
-
-func passwordFirstNameAndLastName(password, firstName, lastName string) error {
+func notMatchingPasswordWithFirstNameAndLastName(password, firstName, lastName string) error {
 	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return err
@@ -101,6 +99,5 @@ func thatUserLogin() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(loginResp)
 	return nil
 }
