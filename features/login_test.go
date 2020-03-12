@@ -105,7 +105,7 @@ func thatUserLogin() error {
 	return nil
 }
 
-func getBase64() string{
+func getBase64() string {
 	str := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", userEmail, userPassword)))
 	return fmt.Sprintf("Basic %s", str)
 }

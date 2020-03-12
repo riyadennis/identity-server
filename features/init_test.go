@@ -29,8 +29,6 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`status code (\d+)$`, statusCode)
 	s.Step(`^message "([^"]*)"$`, message)
 
-
-
 	s.Step(`^a registered user with email "([^"]*)"$`, aRegisteredUserWithEmail)
 	s.Step(`^password "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`, passwordWithFirstNameAndLastName)
 

@@ -15,8 +15,8 @@ import (
 // Register is the handler function that will process
 // rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	u, err  := userDataFromRequest(r)
-	if err !=nil{
+	u, err := userDataFromRequest(r)
+	if err != nil {
 		errorResponse(w, http.StatusBadRequest,
 			NewCustomError(InvalidRequest, err))
 		return
@@ -70,8 +70,8 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 }
 
-func userDataFromRequest(r *http.Request) (*store.User, error){
-	if r == nil{
+func userDataFromRequest(r *http.Request) (*store.User, error) {
+	if r == nil {
 		return nil, errors.New("empty request")
 	}
 	data, err := requestBody(r)

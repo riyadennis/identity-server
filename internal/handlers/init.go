@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	Idb *store.DB
+	Idb *store.Store
 )
 
 const (
@@ -62,7 +62,7 @@ func NewCustomError(code string, err error) *CustomError {
 	}
 }
 
-func connectMysql() (*store.DB, error) {
+func connectMysql() (*store.Store, error) {
 	var err error
 	db, err := sqlM.ConnectDB()
 	if err != nil {
