@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"net/http"
 )
+
 var client *http.Client
+
 // response is the response we get back
 // from rest call to login endpoint
 type response struct {
@@ -39,14 +41,3 @@ func httpResponse(req *http.Request) (*response, error) {
 	}
 	return loginResp, nil
 }
-
-// loginInput returns json request
-// body for login endpoint in bytes.
-func loginInput(email, password string) []byte {
-	return []byte(`{
-	"email": "` + email + `",
-	"password": "` + password + `"
-}`)
-}
-
-
