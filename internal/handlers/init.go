@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	Idb *store.Store
+	Idb store.Store
 )
 
 const (
@@ -62,7 +62,7 @@ func NewCustomError(code string, err error) *CustomError {
 	}
 }
 
-func connectMysql() (*store.Store, error) {
+func connectMysql() (store.Store, error) {
 	var err error
 	db, err := sqlM.ConnectDB()
 	if err != nil {
@@ -73,7 +73,7 @@ func connectMysql() (*store.Store, error) {
 	return store.PrepareDB(db)
 }
 
-func connectSQLite() (*store.DB, error) {
+func connectSQLite() (store.Store, error) {
 	db, err := sqlite.ConnectDB(viper.GetString("source"))
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func connectSQLite() (*store.DB, error) {
 	return store.PrepareDB(db)
 }
 
-func dataSource() *store.DB {
+func dataSource() store.Store {
 	return Idb
 }
 

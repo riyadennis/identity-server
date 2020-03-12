@@ -13,11 +13,10 @@ import (
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
 )
 
-const HOST = "http://localhost:8088"
+const HOST = "http://localhost:8095"
 
 var (
-	Idb    *store.DB
-	client *http.Client
+	Idb    store.Store
 )
 
 func FeatureContext(s *godog.Suite) {
@@ -54,7 +53,7 @@ func afterScenario(i interface{}, e error) {
 	}
 }
 
-func connectSQLite() (*store.DB, error) {
+func connectSQLite() (store.Store, error) {
 	viper.SetConfigFile("../etc/config_test.yaml")
 	err := viper.ReadInConfig()
 	if err != nil {

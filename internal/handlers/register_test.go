@@ -3,19 +3,42 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
+
+
+type MockIdb struct {
+	mock.Mock
+}
+
+func init(){
+	Idb = &MockIdb{}
+}
+
+func (id *MockIdb) Insert(u *store.User) error{
+	return nil
+}
+
+func (id *MockIdb) Read(email string) (*store.User, error){
+	return nil,nil
+}
+
+func (id *MockIdb) Authenticate(email, password string) (bool, error){
+	return true,nil
+}
+
+func (id *MockIdb) Delete(email string) (int64, error){
+	return 0,nil
+}
 
 func TestRegister(t *testing.T) {
 	scenarios := []struct {
@@ -31,43 +54,88 @@ func TestRegister(t *testing.T) {
 				"invalid-request"),
 		},
 		{
-			// one validation check
-			// rest of the rules are
-			// testing in TestValidate
 			name: "missing email",
-			req: func() *http.Request {
-				u := &store.User{
-					FirstName: "John",
-					LastName:  "Doe",
-					Email:     "",
-				}
-				req := httptest.NewRequest("POST", "/register",
-					registerPayLoad(t, u))
-				req.Header.Set("content-type", "application/json")
-				return req
-			}(),
+			req: registerPayLoad(t, &store.User{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "",
+			}),
 			expectedResponse: newResponse(400,
 				"missing email",
 				"invalid-user-data"),
+		},
+		{
+			name: "missing first name",
+			req: registerPayLoad(t,  &store.User{
+				FirstName: "",
+				LastName:  "Doe",
+				Email:     "joh@doe.com",
+			}),
+			expectedResponse: newResponse(400,
+				"missing first name",
+				"invalid-user-data"),
+		},
+		{
+			name: "missing last name",
+			req:registerPayLoad(t, &store.User{
+				FirstName: "John",
+				LastName:  "",
+				Email:     "joh@doe.com",
+			}),
+			expectedResponse: newResponse(400,
+				"missing first name",
+				"invalid-user-data"),
+		},
+		{
+			name: "missing terms",
+			req: registerPayLoad(t,  &store.User{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "joh@doe.com",
+			}),
+			expectedResponse: newResponse(400,
+				"missing terms",
+				"invalid-user-data"),
+		},
+		{
+			name: "invalid email",
+			req: func() *http.Request{
+				u := user(t)
+				u.Email = "joh@dom"
+				return registerPayLoad(t,u)
+			}(),
+			expectedResponse: newResponse(400,
+				"invalid email",
+				"invalid-user-data"),
+		},
+		{
+			name: "valid data",
+			req:registerPayLoad(t, user(t)),
+			expectedResponse: newResponse(200,
+				"your generated password : GeneratedPassword",
+				""),
 		},
 	}
 	w := httptest.NewRecorder()
 	for _, sc := range scenarios {
 		Register(w, sc.req, nil)
 		resp := responseFromHttp(t, w.Body)
-		if !cmp.Equal(resp, sc.expectedResponse) {
-			t.Errorf("unexpected response,got %v, want %v", resp,
-				sc.expectedResponse)
-		}
+		// TODO assert message also
+		assert.Equal(t,sc.expectedResponse.ErrorCode, resp.ErrorCode )
+		assert.Equal(t,sc.expectedResponse.Status, resp.Status)
 	}
 }
 
-func registerPayLoad(t *testing.T, u *store.User) io.Reader {
+
+func registerPayLoad(t *testing.T, u *store.User) *http.Request {
 	jB, err := json.Marshal(u)
 	if err != nil {
 		t.Error(err)
 	}
-	return bytes.NewReader(jB)
+	req := httptest.NewRequest("POST", "/register",
+		bytes.NewReader(jB))
+	req.Header.Set("content-type", "application/json")
+	return req
 }
 
 func responseFromHttp(t *testing.T, data io.Reader) *Response {
@@ -81,73 +149,6 @@ func responseFromHttp(t *testing.T, data io.Reader) *Response {
 		t.Error(err)
 	}
 	return resp
-}
-
-func TestValidateUser(t *testing.T) {
-	scenarios := []struct {
-		name        string
-		user        *store.User
-		expectedErr error
-	}{
-		{
-			name:        "nil user",
-			user:        nil,
-			expectedErr: errors.New("empty user details"),
-		},
-		{
-			name: "missing first name",
-			user: func() *store.User {
-				u := user(t)
-				u.FirstName = ""
-				return u
-			}(),
-			expectedErr: errors.New("missing first name"),
-		},
-		{
-			name: "missing last name",
-			user: func() *store.User {
-				u := user(t)
-				u.LastName = ""
-				return u
-			}(),
-			expectedErr: errors.New("missing last name"),
-		},
-		{
-			name: "missing email",
-			user: func() *store.User {
-				u := user(t)
-				u.Email = ""
-				return u
-			}(),
-			expectedErr: errors.New("missing email"),
-		},
-		{
-			name: "missing terms",
-			user: func() *store.User {
-				u := user(t)
-				u.Terms = false
-				return u
-			}(),
-			expectedErr: errors.New("missing terms"),
-		},
-		{
-			name: "invalid email",
-			user: func() *store.User {
-				u := user(t)
-				u.Email = "invalid"
-				return u
-			}(),
-			expectedErr: errors.New("invalid email"),
-		},
-	}
-
-	for _, sc := range scenarios {
-		t.Run(sc.name, func(t *testing.T) {
-			err := validateUser(sc.user)
-			assert.Equal(t, sc.expectedErr, err)
-		})
-	}
-
 }
 
 func TestGeneratePassword(t *testing.T) {
@@ -191,26 +192,12 @@ func TestUserDataFromRequest(t *testing.T) {
 			expectedUser:  nil,
 			expectedError: "unexpected end of JSON input",
 		},
-		{
-			name: "missing body",
-			request: func() *http.Request {
-				req := httptest.NewRequest("POST", "/register", nil)
-				req.Header.Set("content-type", "application/json")
-				return req
-			}(),
-			expectedUser:  nil,
-			expectedError: "unexpected end of JSON input",
-		},
 	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			u, err := userDataFromRequest(sc.request)
-			if !cmp.Equal(u, sc.expectedUser) {
-				t.Errorf("expected user %v, got %v", sc.expectedUser, u)
-			}
-			if !cmp.Equal(err.Error(), sc.expectedError) {
-				t.Errorf("expected error %v, got %v", sc.expectedError, err)
-			}
+			assert.Equal(t, sc.expectedUser, u)
+			assert.Equal(t, sc.expectedError, err.Error())
 		})
 	}
 }

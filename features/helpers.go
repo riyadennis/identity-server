@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 )
-
+var client *http.Client
 // response is the response we get back
 // from rest call to login endpoint
 type response struct {
@@ -32,7 +32,7 @@ func httpResponse(req *http.Request) (*response, error) {
 	if err != nil {
 		return nil, err
 	}
-	loginResp = &response{}
+	loginResp := &response{}
 	err = json.Unmarshal(body, loginResp)
 	if err != nil {
 		return nil, err
