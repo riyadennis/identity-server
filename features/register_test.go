@@ -35,7 +35,6 @@ func lastName(lastName string) error {
 }
 
 func thatUserRegister() error {
-	Idb.Delete(user.Email)
 	req, err := http.NewRequest("POST",
 		fmt.Sprintf("%s/register", HOST),
 		registerInput(user))

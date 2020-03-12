@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cucumber/godog"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 
 	"github.com/riyadennis/identity-server/internal/store"
@@ -99,16 +98,10 @@ func aRegisteredUserWithEmail(email string) error {
 	return nil
 }
 
-func passwordWithFirstNameAndLastName(password, firstName, lastName string) error {
-	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-	if err != nil {
-		return err
-	}
-	userPassword = password
-	user.Password = string(enPass)
+func passwordWithFirstNameAndLastName(firstName, lastName string) error {
 	user.FirstName = firstName
 	user.LastName = lastName
-	return Idb.Insert(user)
+	return thatUserRegister()
 }
 
 func thatUserLogin() error {
