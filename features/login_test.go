@@ -4,10 +4,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/cucumber/godog"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 
 	"github.com/riyadennis/identity-server/internal/store"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -17,11 +18,29 @@ var (
 	loginResp    *response
 )
 
-func aNotRegisteredEmail(arg1 string) error {
-	if arg1 == "" {
+func LoginFeatureContext(s *godog.Suite) {
+	s.BeforeScenario(beforeScenario)
+	s.Step(`^a not registered email "([^"]*)"$`, aNotRegisteredEmail)
+	s.Step(`^password "([^"]*)"$`, aNotRegisteredPassword)
+	s.Step(`^I login$`, iLogin)
+	s.Step(`^I should get error-code "([^"]*)"$`, iShouldGetErrorCode)
+	s.Step(`status code (\d+)$`, statusCode)
+	s.Step(`^message "([^"]*)"$`, message)
+
+	s.Step(`^a registered user with email "([^"]*)"$`, aRegisteredUserWithEmail)
+	s.Step(`^password "([^"]*)" with firstName "([^"]*)" and lastName "([^"]*)""$`, passwordWithFirstNameAndLastName)
+
+	s.Step(`^that user login$`, thatUserLogin)
+	s.Step(`^status code should be (\d+)$`, statusCode)
+
+	s.AfterScenario(afterScenario)
+}
+
+func aNotRegisteredEmail(email string) error {
+	if email == "" {
 		return errors.New("empty email")
 	}
-	userEmail = arg1
+	userEmail = email
 	return nil
 }
 

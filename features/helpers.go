@@ -49,11 +49,4 @@ func loginInput(email, password string) []byte {
 }`)
 }
 
-func registerInput(email, fname, lname string) []byte {
-	return []byte(`{
-	"first_name": "` + fname + `",
-	"last_name": "` + lname + `",
-	"email": "` + email + `",
-	"terms": true
-}`)
-}
+
