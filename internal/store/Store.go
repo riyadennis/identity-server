@@ -28,7 +28,7 @@ type DB struct {
 	Remove    *sql.Stmt
 }
 
-func PrepareDB(database *sql.DB) (*DB, error) {
+func PrepareDB(database *sql.DB) (Store, error) {
 	insert, err := database.Prepare(`INSERT INTO identity_users 
 (id, first_name, last_name,password,
  email, company, post_code, terms) 
