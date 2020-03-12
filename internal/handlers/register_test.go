@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"github.com/google/go-cmp/cmp"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -83,6 +86,61 @@ func TestGeneratePassword(t *testing.T) {
 	}
 	if pass == "" {
 		t.Error("empty password")
+	}
+}
+
+func TestUserDataFromRequest(t *testing.T){
+	scenarios := []struct{
+		name string
+		request *http.Request
+		expectedUser *store.User
+		expectedError string
+	}{
+		{
+			name: "empty request",
+			request: nil,
+			expectedUser: nil,
+			expectedError: "empty request",
+		},
+		{
+			name: "missing content type",
+			request: &http.Request{
+				Header: nil,
+			},
+			expectedUser: nil,
+			expectedError: "invalid content type",
+		},
+		{
+			name: "missing body",
+			request: func() *http.Request{
+				req := httptest.NewRequest("POST", "/register", nil )
+				req.Header.Set("content-type", "application/json" )
+				return req
+			}(),
+			expectedUser: nil,
+			expectedError: "unexpected end of JSON input",
+		},
+		{
+			name: "missing body",
+			request: func() *http.Request{
+				req := httptest.NewRequest("POST", "/register", nil )
+				req.Header.Set("content-type", "application/json" )
+				return req
+			}(),
+			expectedUser: nil,
+			expectedError: "unexpected end of JSON input",
+		},
+	}
+	for _, sc := range scenarios{
+		t.Run(sc.name, func(t *testing.T) {
+			u, err := userDataFromRequest(sc.request)
+			if !cmp.Equal(u, sc.expectedUser){
+				t.Errorf("expected user %v, got %v", sc.expectedUser, u)
+			}
+			if !cmp.Equal(err.Error(), sc.expectedError){
+				t.Errorf("expected error %v, got %v", sc.expectedError, err)
+			}
+		})
 	}
 }
 

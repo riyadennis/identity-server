@@ -36,7 +36,7 @@ func Delete(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 		return
 	}
 	if done == 0 {
-		logrus.Error("failed to delete :: %v")
+		logrus.Error("failed to delete")
 		errorResponse(w, http.StatusBadRequest,
 			NewCustomError(InvalidRequest, err))
 		return

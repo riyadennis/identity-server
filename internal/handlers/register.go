@@ -15,19 +15,8 @@ import (
 // Register is the handler function that will process
 // rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	w.Header().Set("Content-Type", "application/json")
-	data, err := requestBody(r)
-	if err != nil {
-		logrus.Errorf("failed to read request body :: %v", err)
-		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(InvalidRequest, err))
-		return
-	}
-
-	u := &store.User{}
-	err = json.Unmarshal(data, u)
-	if err != nil {
-		logrus.Errorf("failed to unmarshal :: %v", err)
+	u, err  := userDataFromRequest(r)
+	if err !=nil{
 		errorResponse(w, http.StatusBadRequest,
 			NewCustomError(InvalidRequest, err))
 		return
@@ -72,13 +61,31 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		errorResponse(w, http.StatusInternalServerError,
 			NewCustomError(DatabaseError, err))
 	}
-
+	w.Header().Set("Content-Type", "application/json")
 	err = jsonResponse(w, http.StatusOK,
 		fmt.Sprintf("your generated password : %s", password),
 		"")
 	if err != nil {
 		logrus.Error(err)
 	}
+}
+
+func userDataFromRequest(r *http.Request) (*store.User, error){
+	if r == nil{
+		return nil, errors.New("empty request")
+	}
+	data, err := requestBody(r)
+	if err != nil {
+		logrus.Errorf("failed to read request body :: %v", err)
+		return nil, err
+	}
+	u := &store.User{}
+	err = json.Unmarshal(data, u)
+	if err != nil {
+		logrus.Errorf("failed to unmarshal :: %v", err)
+		return nil, err
+	}
+	return u, nil
 }
 
 func errorResponse(w http.ResponseWriter, code int, customErr *CustomError) {

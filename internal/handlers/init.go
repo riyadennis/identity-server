@@ -125,8 +125,7 @@ func requestBody(r *http.Request) ([]byte, error) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		if err == io.EOF {
-			err := errors.New("empty content")
-			logrus.Errorf("empty request body", err)
+			err := errors.New("empty request body")
 			return nil, err
 		}
 		return nil, err
