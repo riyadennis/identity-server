@@ -1,4 +1,4 @@
-# identity-server
+# identity-server [![CircleCI](https://circleci.com/gh/riyadennis/identity-server.svg?style=svg)](https://circleci.com/gh/riyadennis/identity-server)
 
 Basic rest API for user authentication and registration.
 User attributes saved during the registration are:
