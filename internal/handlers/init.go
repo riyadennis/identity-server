@@ -25,7 +25,7 @@ var (
 
 const (
 	passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-	tokenTTL     = 120 * time.Second
+	tokenTTL     = 120 * time.Hour
 )
 
 type Response struct {

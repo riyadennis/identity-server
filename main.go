@@ -2,12 +2,11 @@ package main
 
 import (
 	"flag"
-	"os"
-
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
-
 	"github.com/sirupsen/logrus"
+	"os"
+
 	"github.com/spf13/viper"
 
 	"github.com/riyadennis/identity-server/internal"
@@ -19,7 +18,7 @@ var (
 		"path to config file")
 )
 
-func main() {
+func init() {
 	flag.Parse()
 	// if we are not running main through docker-compose we
 	// might not have environment variable set
@@ -30,10 +29,18 @@ func main() {
 	}
 	viper.SetConfigFile(cf)
 	viper.AutomaticEnv()
-	err := viper.ReadInConfig()
+	file, err := os.Create("identity.log")
+	if err != nil {
+		logrus.Fatalf("failed to create log file:: %v", err)
+	}
+	logrus.SetOutput(file)
+	err = viper.ReadInConfig()
 	if err != nil {
 		logrus.Fatalf("failed to read config :: %v", err)
 	}
+}
+
+func main() {
 	handlers.Init(viper.GetString("ENV"))
 	internal.Server(viper.GetString("port"))
 }
