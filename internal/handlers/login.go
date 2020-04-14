@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 type User struct {
@@ -85,12 +85,11 @@ func Login(w http.ResponseWriter,
 }
 
 func generateToken() (*Token, error) {
-	jwtConf := viper.GetStringMapString("jwt")
 	expiry := time.Now().UTC().Add(tokenTTL)
 	t, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp": expiry.Unix(),
-		"iss": jwtConf["issuer"],
-	}).SignedString([]byte(jwtConf["signing-key"]))
+		"iss": os.Getenv("ISSUER"),
+	}).SignedString([]byte(os.Getenv("KEY")))
 	if err != nil {
 		return nil, err
 	}

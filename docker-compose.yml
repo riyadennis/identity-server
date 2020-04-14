@@ -6,7 +6,7 @@ services:
     volumes:
       - code_volume:/identity-server
     ports:
-      - 8095:8081
+      - 8095:8095
     restart: on-failure
     depends_on:
       - mysql-development
@@ -14,17 +14,23 @@ services:
       - backend
     environment:
       ENV: "prod"
+      PORT: ":8095"
+      KEY: "this-should-be-secret-shared-only-to-client"
+      ISSUER: "riya-dennis"
   identity-server-test:
     build: .
     volumes:
       - code_volume:/identity-server
     ports:
-      - 8088:8081
+      - 8088:8088
     restart: on-failure
     networks:
       - backend
     environment:
       ENV: "test"
+      PORT: ":8095"
+      KEY: "this-should-be-secret-shared-only-to-client"
+      ISSUER: "riya-dennis"
 
   mysql-development:
     build: ./MySQL

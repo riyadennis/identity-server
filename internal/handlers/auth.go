@@ -3,12 +3,12 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const BearerSchema = "Bearer "
@@ -34,12 +34,11 @@ func Auth(next httprouter.Handle) httprouter.Handle {
 			})
 			return
 		}
-		jwtConf := viper.GetStringMapString("jwt")
 		t, err := jwt.ParseWithClaims(
 			headerToken[len(BearerSchema):],
 			jwt.MapClaims{
 				"exp": time.Now().UTC().Add(tokenTTL).Unix(),
-				"iss": jwtConf["issuer"],
+				"iss": os.Getenv("ISSUER"),
 			}, tokenHandler)
 		if err != nil || t == nil {
 			logrus.Errorf("unable to parse jwt :: %v", err)
