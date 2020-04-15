@@ -50,7 +50,7 @@ func Init(env string) {
 	}
 	Idb, err = connectMysql()
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Fatalf("failed to connect to mysql :: %v", err)
 	}
 }
 

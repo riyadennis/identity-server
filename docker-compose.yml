@@ -17,6 +17,11 @@ services:
       PORT: ":8095"
       KEY: "this-should-be-secret-shared-only-to-client"
       ISSUER: "riya-dennis"
+      MYSQL_USER: "root"
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "identity_db"
+      MYSQL_PORT: "3306"
+      MYSQL_HOST: "mysql-development"
   identity-server-test:
     build: .
     volumes:
@@ -28,10 +33,14 @@ services:
       - backend
     environment:
       ENV: "test"
-      PORT: ":8095"
+      PORT: ":8088"
       KEY: "this-should-be-secret-shared-only-to-client"
       ISSUER: "riya-dennis"
-
+      MYSQL_USER: "root"
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "identity_db"
+      MYSQL_PORT: "3306"
+      MYSQL_HOST: "mysql-development"
   mysql-development:
     build: ./MySQL
     environment:
