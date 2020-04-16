@@ -16,7 +16,7 @@ import (
 const HOST = "http://localhost:8095"
 
 var (
-	Idb    store.Store
+	Idb store.Store
 )
 
 func FeatureContext(s *godog.Suite) {

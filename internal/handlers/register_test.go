@@ -15,29 +15,28 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-
 type MockIdb struct {
 	mock.Mock
 }
 
-func init(){
+func init() {
 	Idb = &MockIdb{}
 }
 
-func (id *MockIdb) Insert(u *store.User) error{
+func (id *MockIdb) Insert(u *store.User) error {
 	return nil
 }
 
-func (id *MockIdb) Read(email string) (*store.User, error){
-	return nil,nil
+func (id *MockIdb) Read(email string) (*store.User, error) {
+	return nil, nil
 }
 
-func (id *MockIdb) Authenticate(email, password string) (bool, error){
-	return true,nil
+func (id *MockIdb) Authenticate(email, password string) (bool, error) {
+	return true, nil
 }
 
-func (id *MockIdb) Delete(email string) (int64, error){
-	return 0,nil
+func (id *MockIdb) Delete(email string) (int64, error) {
+	return 0, nil
 }
 
 func TestRegister(t *testing.T) {
@@ -66,7 +65,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing first name",
-			req: registerPayLoad(t,  &store.User{
+			req: registerPayLoad(t, &store.User{
 				FirstName: "",
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
@@ -77,7 +76,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing last name",
-			req:registerPayLoad(t, &store.User{
+			req: registerPayLoad(t, &store.User{
 				FirstName: "John",
 				LastName:  "",
 				Email:     "joh@doe.com",
@@ -88,7 +87,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			req: registerPayLoad(t,  &store.User{
+			req: registerPayLoad(t, &store.User{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
@@ -99,10 +98,10 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "invalid email",
-			req: func() *http.Request{
+			req: func() *http.Request {
 				u := user(t)
 				u.Email = "joh@dom"
-				return registerPayLoad(t,u)
+				return registerPayLoad(t, u)
 			}(),
 			expectedResponse: newResponse(400,
 				"invalid email",
@@ -110,7 +109,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "valid data",
-			req:registerPayLoad(t, user(t)),
+			req:  registerPayLoad(t, user(t)),
 			expectedResponse: newResponse(200,
 				"your generated password : GeneratedPassword",
 				""),
@@ -121,11 +120,10 @@ func TestRegister(t *testing.T) {
 		Register(w, sc.req, nil)
 		resp := responseFromHttp(t, w.Body)
 		// TODO assert message also
-		assert.Equal(t,sc.expectedResponse.ErrorCode, resp.ErrorCode )
-		assert.Equal(t,sc.expectedResponse.Status, resp.Status)
+		assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
+		assert.Equal(t, sc.expectedResponse.Status, resp.Status)
 	}
 }
-
 
 func registerPayLoad(t *testing.T, u *store.User) *http.Request {
 	jB, err := json.Marshal(u)

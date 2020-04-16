@@ -34,25 +34,25 @@ func PrepareDB(database *sql.DB) (Store, error) {
  email, company, post_code, terms) 
  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
-		logrus.Fatalf("%v", err)
+		logrus.Errorf("failed to prepare insert :: %v", err)
 		return nil, err
 	}
 	fetch, err := database.Prepare(`SELECT first_name, last_name, 
 											company, post_code FROM
 										    identity_users where email = ?`)
 	if err != nil {
-		logrus.Fatalf("%v", err)
+		logrus.Errorf("failed to prepare select :: %v", err)
 		return nil, err
 	}
 	login, err := database.Prepare(`SELECT  password FROM
 										    identity_users where email = ?`)
 	if err != nil {
-		logrus.Fatalf("%v", err)
+		logrus.Errorf("failed to prepare login :: %v", err)
 		return nil, err
 	}
 	delete, err := database.Prepare(`DELETE  FROM identity_users where email = ?`)
 	if err != nil {
-		logrus.Fatalf("%v", err)
+		logrus.Errorf("failed to delete :: %v", err)
 		return nil, err
 	}
 	return &DB{

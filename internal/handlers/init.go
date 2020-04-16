@@ -48,6 +48,7 @@ func Init(env string) {
 		}
 		return
 	}
+
 	Idb, err = connectMysql()
 	if err != nil {
 		logrus.Fatalf("failed to connect to mysql :: %v", err)
@@ -63,10 +64,9 @@ func NewCustomError(code string, err error) *CustomError {
 }
 
 func connectMysql() (store.Store, error) {
-	var err error
 	db, err := sqlM.ConnectDB()
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Errorf("unable to connect to db :: %v", err)
 		return nil, err
 	}
 	logrus.Infof("MYSQL db details %v", db.Stats())
