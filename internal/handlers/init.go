@@ -10,12 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/riyadennis/identity-server/internal/store/sqlM"
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -35,7 +34,7 @@ type Response struct {
 }
 
 // Init initialises and loads database settings
-func Init(env string) {
+func Init(env string) error {
 	var err error
 	// if environment is test
 	// we want to initialise sqlite
@@ -45,13 +44,16 @@ func Init(env string) {
 		Idb, err = connectSQLite()
 		if err != nil {
 			logrus.Fatal(err)
+			return err
 		}
-		return
+		return nil
 	}
 	Idb, err = connectMysql()
 	if err != nil {
 		logrus.Fatalf("failed to connect to mysql :: %v", err)
+		return err
 	}
+	return nil
 }
 
 // NewCustomError returns error with error code

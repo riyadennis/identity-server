@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +16,11 @@ import (
 // Register is the handler function that will process
 // rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	u, err := userDataFromRequest(r)
+	ctx := r.Context()
+	cctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	u, err := userDataFromRequest(cctx, r)
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest,
 			NewCustomError(InvalidRequest, err))
@@ -70,13 +75,14 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 }
 
-func userDataFromRequest(r *http.Request) (*store.User, error) {
+func userDataFromRequest(ctx context.Context, r *http.Request) (*store.User, error) {
+	reqID := ctx.Value("reqID")
 	if r == nil {
 		return nil, errors.New("empty request")
 	}
 	data, err := requestBody(r)
 	if err != nil {
-		logrus.Errorf("failed to read request body :: %v", err)
+		logrus.Errorf("requestID %s failed to read request body :: %v", reqID, err)
 		return nil, err
 	}
 	u := &store.User{}
