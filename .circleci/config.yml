@@ -3,7 +3,7 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.13 # The primary container where steps are run
-      - image: circleci/mysql:8.0.4
+      - image: circleci/mysql:5.7.18
         security_opt:
           - seccomp:unconfined
         environment:
