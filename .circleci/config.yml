@@ -2,18 +2,19 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.13
-      - image: circleci/mysql:8.0.3
+      - image: circleci/golang:1.13 # The primary container where steps are run
+      - image: circleci/mysql:8.0.4
         environment:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: identity_db
           MYSQL_USER: root
           MYSQL_PASSWORD: root
-          MYSQL_HOST: localhost
+
     steps:
       - checkout
       - run:
-        name: Waiting for MySQL to be ready
+          # Our primary container isn't MYSQL so run a sleep command until it's ready.
+          name: Waiting for MySQL to be ready
           command: |
             for i in `seq 1 10`;
             do
@@ -23,9 +24,11 @@ jobs:
             done
             echo Failed waiting for MySQL && exit 1
       - run:
-        name: Install MySQL CLI
-        command: |
-          sudo apt-get install default-mysql-client
+          name: Install MySQL CLI; Import dummy data; run an example query
+          command: |
+            sudo apt-get install default-mysql-client
+#            mysql -h 127.0.0.1 -u root -proot identity_db < sql-data/dummy.sql
+#            mysql -h 127.0.0.1 -u user -ppassw0rd --execute="SELECT * FROM test_db.Persons"
       - run: go get -v -t -d ./...
       - run: go test -v ./...
 workflows:
