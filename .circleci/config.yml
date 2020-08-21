@@ -7,9 +7,9 @@ jobs:
         security_opt:
           - seccomp:unconfined
         environment:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: secret
           MYSQL_DATABASE: identity_db
-          MYSQL_USER: root
+          MYSQL_USER: identity_user
           MYSQL_PASSWORD: root
 
     steps:
