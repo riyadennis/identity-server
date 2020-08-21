@@ -4,6 +4,8 @@ jobs:
     docker:
       - image: circleci/golang:1.13 # The primary container where steps are run
       - image: circleci/mysql:8.0.4
+        cap_add:
+          - SYS_NICE  # CAP_SYS_NICE
         environment:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: identity_db
