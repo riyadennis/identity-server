@@ -16,6 +16,11 @@ import (
 // Register is the handler function that will process
 // rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if r == nil {
+		errorResponse(w, http.StatusBadRequest,
+			NewCustomError(InvalidRequest, errors.New("empty request")))
+		return
+	}
 	ctx := r.Context()
 	cctx, cancel := context.WithCancel(ctx)
 	defer cancel()
