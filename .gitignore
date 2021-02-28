@@ -1,2 +1,3 @@
 MySQL/.env
 *.log
+.env

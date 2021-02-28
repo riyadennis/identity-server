@@ -4,11 +4,13 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/riyadennis/identity-server/internal/handlers"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/riyadennis/identity-server/internal/handlers"
 )
 
+// Server registers routes and starts web server
 func Server(port string) {
 	router := httprouter.New()
 	// register routes here
@@ -18,5 +20,5 @@ func Server(port string) {
 	router.GET(HomeEndPoint, handlers.Auth(handlers.Home))
 
 	handler := cors.Default().Handler(router)
-	logrus.Fatal(http.ListenAndServe(port, handler))
+	logrus.Fatal(http.ListenAndServe(":"+port, handler))
 }

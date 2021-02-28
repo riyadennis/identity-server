@@ -1,5 +1,0 @@
-env: "dev"
-port: ":8095"
-jwt:
-  signing-key: "this-should-be-secret-shared-only-to-client"
-  issuer: "name-of-the-organisation"

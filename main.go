@@ -1,30 +1,58 @@
 package main
 
 import (
+	"github.com/riyadennis/identity-server/internal/store"
 	"os"
 
+	// initialise mysql driver
 	_ "github.com/go-sql-driver/mysql"
+	// initialise sqllite driver
 	_ "github.com/mattn/go-sqlite3"
+	// initialise migration settings
+	_ "github.com/golang-migrate/migrate/source/file"
+
 	"github.com/sirupsen/logrus"
 
+	"github.com/joho/godotenv"
 	"github.com/riyadennis/identity-server/internal"
-	"github.com/riyadennis/identity-server/internal/handlers"
 )
 
 func init() {
+	err := godotenv.Load()
+	if err != nil {
+		logrus.Fatalf("failed to open env file: %v", err)
+	}
+
+	if os.Getenv("PORT") == "" {
+		logrus.Fatal("invalid setting no port number")
+	}
+
+	if os.Getenv("ENV") == ""{
+		logrus.Fatal("invalid setting no environment")
+	}
+
 	if os.Getenv("ENV") != "test" {
 		file, err := os.Create("identity.log")
 		if err != nil {
-			logrus.Fatalf("failed to create log file:: %v", err)
+			logrus.Fatalf("failed to create log file: %v", err)
 		}
+
 		logrus.SetOutput(file)
+	}
+
+	db, err := store.Connect()
+	if err != nil {
+		logrus.Fatalf("failed to connect to database: %v", err)
+	}
+
+	store.SetStore(db)
+
+	err = store.Migrate()
+	if err != nil {
+		logrus.Fatalf("migration failed: %v", err)
 	}
 }
 
 func main() {
-	if os.Getenv("ENV") == "" || os.Getenv("PORT") == "" {
-		logrus.Fatal("invalid setting no port number")
-	}
-	handlers.Init(os.Getenv("ENV"))
 	internal.Server(os.Getenv("PORT"))
 }

@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var SQLDB *sql.DB
+
 // User hold information needed to complete user registration
 type User struct {
 	FirstName        string `json:"first_name"`

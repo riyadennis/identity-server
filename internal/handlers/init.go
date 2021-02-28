@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -10,12 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/riyadennis/identity-server/internal/store"
-	"github.com/riyadennis/identity-server/internal/store/sqlM"
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/riyadennis/identity-server/internal/store"
 )
 
 var (
@@ -33,59 +32,12 @@ type Response struct {
 	ErrorCode string `json:"error-code"`
 }
 
-// Init initialises and loads database settings
-func Init(env string) error {
-	var err error
-	// if environment is test
-	// we want to initialise sqlite
-	// database.
-
-	if env == "test" {
-		Idb, err = connectSQLite()
-		if err != nil {
-			logrus.Fatal(err)
-			return err
-		}
-		return nil
-	}
-	Idb, err = connectMysql()
-	if err != nil {
-		logrus.Fatalf("failed to connect to mysql :: %v", err)
-		return err
-	}
-	return nil
-}
-
 // NewCustomError returns error with error code
 func NewCustomError(code string, err error) *CustomError {
 	return &CustomError{
 		Code: code,
 		Err:  err,
 	}
-}
-
-func connectMysql() (store.Store, error) {
-	var err error
-	db, err := sqlM.ConnectDB()
-	if err != nil {
-		logrus.Fatal(err)
-		return nil, err
-	}
-	logrus.Infof("MYSQL db details %v", db.Stats())
-	return store.PrepareDB(db)
-}
-
-func connectSQLite() (store.Store, error) {
-	db, err := sqlite.ConnectDB(viper.GetString("source"))
-	if err != nil {
-		return nil, err
-	}
-	err = sqlite.Setup(viper.GetString("source"))
-	if err != nil {
-		return nil, err
-	}
-	logrus.Infof("SQLite db details %#v", db.Stats().MaxOpenConnections)
-	return store.PrepareDB(db)
 }
 
 func dataSource() store.Store {
@@ -111,7 +63,7 @@ func generatePassword() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		s := string(num.Int64())
+		s := fmt.Sprintf("%d", num.Int64())
 		if strings.Contains(passwordSeed, s) {
 			result += s
 		}
