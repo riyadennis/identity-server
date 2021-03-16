@@ -27,7 +27,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	err = validation.ValidateUser(u)
 	if err != nil {
 		logrus.Errorf("validation failed :: %v", err)
-		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.InvalidUserData)
+		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.ValidationFailed)
 		return
 	}
 

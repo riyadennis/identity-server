@@ -7,12 +7,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Response is the response structure for error messages
+// and success messages
 type Response struct {
 	Status    int    `json:"status"`
 	Message   string `json:"message"`
 	ErrorCode string `json:"error-code"`
 }
 
+// ErrorResponse give details to the user about the error that occurred
 func ErrorResponse(w http.ResponseWriter, code int, errr error, customCode string) {
 	w.Header().Set("Content-Type", "application/json")
 	err := JSONResponse(w, code, errr.Error(), customCode)
@@ -21,6 +24,7 @@ func ErrorResponse(w http.ResponseWriter, code int, errr error, customCode strin
 	}
 }
 
+// JSONResponse converts response into a json
 func JSONResponse(w http.ResponseWriter, status int,
 	message, errCode string) error {
 	w.WriteHeader(status)
@@ -32,6 +36,7 @@ func JSONResponse(w http.ResponseWriter, status int,
 	return nil
 }
 
+// NewResponse creates an instance of response structure
 func NewResponse(status int, message, errCode string) *Response {
 	return &Response{
 		Status:    status,

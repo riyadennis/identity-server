@@ -7,19 +7,21 @@ import (
 	"os"
 	"time"
 
-	"github.com/riyadennis/identity-server/business/store"
-	"github.com/riyadennis/identity-server/foundation"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
+
+	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 )
 
-type User struct {
+// UserLogin have data needed for a user to login
+type UserLogin struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
+// Token have credentials present in a token
 type Token struct {
 	Status      int    `json:"status"`
 	AccessToken string `json:"access_token"`

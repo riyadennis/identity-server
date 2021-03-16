@@ -11,6 +11,7 @@ import (
 	"github.com/riyadennis/identity-server/business/store/sqlite"
 )
 
+// Connect opens DB connection using evn vars set during application initialisation
 func Connect() (*sql.DB, error) {
 	var db *sql.DB
 	var err error

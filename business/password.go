@@ -11,6 +11,7 @@ import (
 
 const passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
+// GeneratePassword wil create a password for user login
 func GeneratePassword() (string, error) {
 	result := ""
 	for {
@@ -28,6 +29,7 @@ func GeneratePassword() (string, error) {
 	}
 }
 
+// EncryptPassword will encrypt that for security
 func EncryptPassword(password string) (string, error) {
 	enPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {

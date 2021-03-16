@@ -1,21 +1,39 @@
 package foundation
 
 const (
-	InvalidUserData    = "invalid-user-data"
+	// ValidationFailed is the error code for
+	// validation failures in a POST request
+	ValidationFailed = "validation-failure"
+
+	// EmailAlreadyExists is error code for duplicate registration
 	EmailAlreadyExists = "email-already-exists"
-	DatabaseError      = "database-error"
-	PassWordError      = "password-error"
-	InvalidRequest     = "invalid-request"
-	TokenError         = "Token-error"
-	UnAuthorised       = "unauthorised"
-	UserDoNotExist     = "user-do-not-exist"
+
+	// DatabaseError is when there is issues with db connection
+	DatabaseError = "database-error"
+
+	// PassWordError is to tell the user that password generation failed
+	PassWordError = "password-error"
+
+	// InvalidRequest is returned if request is not a valid one
+	InvalidRequest = "invalid-request"
+
+	// TokenError is returned if we are not able to generate a token
+	TokenError = "Token-error"
+
+	// UnAuthorised is when a user have invalid or expired token
+	UnAuthorised = "unauthorised"
+
+	// UserDoNotExist is returned when search for an email in db fails
+	UserDoNotExist = "user-do-not-exist"
 )
 
+// CustomError holds error code and details about the error
 type CustomError struct {
 	Code string
 	Err  error
 }
 
+// Error returns just the error message for a custom error
 func (e *CustomError) Error() string {
 	return e.Err.Error()
 }

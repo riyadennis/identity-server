@@ -9,6 +9,8 @@ import (
 	"github.com/golang-migrate/migrate/database/mysql"
 )
 
+// Migrate runs migration on the db specified in the connection
+// will create all the tables in the migrations folder
 func Migrate(db *sql.DB) error {
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {

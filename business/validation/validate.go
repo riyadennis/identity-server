@@ -7,6 +7,7 @@ import (
 	"github.com/riyadennis/identity-server/business/store"
 )
 
+// ValidateUser checks registration request validity
 func ValidateUser(u *store.User) error {
 	if u == nil {
 		return errors.New("empty user details")

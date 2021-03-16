@@ -13,7 +13,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const BearerSchema = "Bearer "
+// BearerSchema is expected prefix for token from authorisation header
+const (
+	BearerSchema = "Bearer "
+
+	tokenTTL = 120 * time.Hour
+)
 
 // Auth is the wrapper that should be used for endpoints
 // that needs jwt Token authentication.

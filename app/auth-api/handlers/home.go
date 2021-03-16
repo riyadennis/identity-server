@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Home is the rest endpoint a logged in user with valid token can access
 func Home(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	err := foundation.JSONResponse(w, http.StatusOK,

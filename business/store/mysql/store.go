@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// ConnectDB opens a connection to mysql
 func ConnectDB() (*sql.DB, error) {
 	dsn := fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?parseTime=true",

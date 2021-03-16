@@ -22,10 +22,6 @@ type MockIdb struct {
 	mock.Mock
 }
 
-func init() {
-	Idb = &MockIdb{}
-}
-
 func (id *MockIdb) Insert(_ *store.User) error {
 	return nil
 }
@@ -121,7 +117,7 @@ func TestRegister(t *testing.T) {
 	w := httptest.NewRecorder()
 	for _, sc := range scenarios {
 		Register(w, sc.req, nil)
-		resp := responseFromHttp(t, w.Body)
+		resp := responseFromHTTP(t, w.Body)
 		// TODO assert message also
 		assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
 		assert.Equal(t, sc.expectedResponse.Status, resp.Status)
@@ -139,7 +135,7 @@ func registerPayLoad(t *testing.T, u *store.User) *http.Request {
 	return req
 }
 
-func responseFromHttp(t *testing.T, data io.Reader) *foundation.Response {
+func responseFromHTTP(t *testing.T, data io.Reader) *foundation.Response {
 	resp := &foundation.Response{}
 	b, err := ioutil.ReadAll(data)
 	if err != nil {

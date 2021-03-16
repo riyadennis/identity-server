@@ -22,16 +22,19 @@ type User struct {
 	RegistrationDate string
 }
 
+// DB implements store interface
 type DB struct {
 	Conn *sql.DB
 }
 
+// NewDB creates a new instance if the DB
 func NewDB(database *sql.DB) Store {
 	return &DB{
 		Conn: database,
 	}
 }
 
+// Store have CRUD functions for user management
 type Store interface {
 	Insert(ctx context.Context, u *User) error
 	Read(ctx context.Context, email string) (*User, error)
@@ -39,6 +42,7 @@ type Store interface {
 	Delete(email string) (int64, error)
 }
 
+// Insert creates a new user during registration
 func (id *DB) Insert(ctx context.Context, u *User) error {
 	uid := uuid.New()
 
@@ -60,6 +64,8 @@ func (id *DB) Insert(ctx context.Context, u *User) error {
 	return nil
 }
 
+// Read will fetch data from db for a user as per the email
+// will return nil if user is not found
 func (id *DB) Read(ctx context.Context, email string) (*User, error) {
 	fetch, err := id.Conn.Prepare(
 		"SELECT first_name, last_name,company, post_code FROM identity_users where email = ?")
@@ -87,6 +93,7 @@ func (id *DB) Read(ctx context.Context, email string) (*User, error) {
 	return u, nil
 }
 
+// Authenticate checks the validity of a given password for an email
 func (id *DB) Authenticate(email, password string) (bool, error) {
 	login, err := id.Conn.Prepare(`SELECT  password FROM
 										    identity_users where email = ?`)
@@ -109,6 +116,7 @@ func (id *DB) Authenticate(email, password string) (bool, error) {
 	return true, nil
 }
 
+// Delete removes an email from db
 func (id *DB) Delete(email string) (int64, error) {
 	remove, err := id.Conn.Prepare(`DELETE  FROM identity_users where email = ?`)
 	if err != nil {
