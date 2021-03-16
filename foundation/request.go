@@ -6,15 +6,12 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/sirupsen/logrus"
 )
 
 // RequestBody is used by POST end points to convert the request body to a struct
 func RequestBody(r *http.Request, resource interface{}) error {
 	if r.Header.Get("content-type") != "application/json" {
 		err := errors.New("invalid content type")
-		logrus.Errorf("content type is not json :: %v", err)
 		return err
 	}
 

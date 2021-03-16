@@ -3,8 +3,6 @@ package foundation
 import (
 	"encoding/json"
 	"net/http"
-
-	"github.com/sirupsen/logrus"
 )
 
 // Response is the response structure for error messages
@@ -18,10 +16,7 @@ type Response struct {
 // ErrorResponse give details to the user about the error that occurred
 func ErrorResponse(w http.ResponseWriter, code int, errr error, customCode string) {
 	w.Header().Set("Content-Type", "application/json")
-	err := JSONResponse(w, code, errr.Error(), customCode)
-	if err != nil {
-		logrus.Error(err)
-	}
+	_ = JSONResponse(w, code, errr.Error(), customCode)
 }
 
 // JSONResponse converts response into a json
