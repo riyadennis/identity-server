@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/riyadennis/identity-server/foundation"
 	"net/http"
+
+	"github.com/riyadennis/identity-server/foundation"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"

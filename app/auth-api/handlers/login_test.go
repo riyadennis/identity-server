@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/riyadennis/identity-server/foundation"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/riyadennis/identity-server/foundation"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"errors"
-	"github.com/riyadennis/identity-server/foundation"
 	"net/http"
+
+	"github.com/riyadennis/identity-server/foundation"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"

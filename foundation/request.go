@@ -3,10 +3,11 @@ package foundation
 import (
 	"encoding/json"
 	"errors"
-	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 func RequestBody(r *http.Request, resource interface{}) error {

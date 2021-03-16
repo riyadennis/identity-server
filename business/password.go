@@ -3,9 +3,10 @@ package business
 import (
 	"crypto/rand"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"math/big"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"

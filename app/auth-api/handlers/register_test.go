@@ -3,13 +3,14 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/riyadennis/identity-server/business"
-	"github.com/riyadennis/identity-server/foundation"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/riyadennis/identity-server/business"
+	"github.com/riyadennis/identity-server/foundation"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/riyadennis/identity-server/business/store"

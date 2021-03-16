@@ -2,8 +2,9 @@ package validation
 
 import (
 	"errors"
-	"github.com/riyadennis/identity-server/business/store"
 	"regexp"
+
+	"github.com/riyadennis/identity-server/business/store"
 )
 
 func ValidateUser(u *store.User) error {

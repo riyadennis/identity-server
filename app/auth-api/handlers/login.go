@@ -3,11 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"github.com/riyadennis/identity-server/business/store"
-	"github.com/riyadennis/identity-server/foundation"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"

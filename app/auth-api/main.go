@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/riyadennis/identity-server/app/auth-api/handlers"
-	"github.com/riyadennis/identity-server/business/store"
 	"os"
 
 	// initialise mysql driver
@@ -12,9 +10,11 @@ import (
 	// initialise migration settings
 	_ "github.com/golang-migrate/migrate/source/file"
 
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 
-	"github.com/joho/godotenv"
+	"github.com/riyadennis/identity-server/app/auth-api/handlers"
+	"github.com/riyadennis/identity-server/business/store"
 )
 
 func init() {

@@ -3,9 +3,10 @@ package store
 import (
 	"database/sql"
 	"errors"
+	"os"
+
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
-	"os"
 )
 
 func Migrate(db *sql.DB) error {
