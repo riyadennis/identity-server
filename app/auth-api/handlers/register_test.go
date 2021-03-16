@@ -3,10 +3,13 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/riyadennis/identity-server/business"
@@ -38,6 +41,16 @@ func (id *MockIdb) Delete(_ string) (int64, error) {
 	return 0, nil
 }
 
+func TestMain(m *testing.M) {
+	err := godotenv.Load("../../../.env_test")
+	if err != nil {
+		logrus.Fatalf("failed to open env file: %v", err)
+	}
+
+	os.Exit(m.Run())
+
+}
+
 func TestRegister(t *testing.T) {
 	scenarios := []struct {
 		name             string
@@ -60,7 +73,7 @@ func TestRegister(t *testing.T) {
 			}),
 			expectedResponse: foundation.NewResponse(400,
 				"missing email",
-				"invalid-user-data"),
+				foundation.ValidationFailed),
 		},
 		{
 			name: "missing first name",
@@ -71,7 +84,7 @@ func TestRegister(t *testing.T) {
 			}),
 			expectedResponse: foundation.NewResponse(400,
 				"missing first name",
-				"invalid-user-data"),
+				foundation.ValidationFailed),
 		},
 		{
 			name: "missing last name",
@@ -82,7 +95,7 @@ func TestRegister(t *testing.T) {
 			}),
 			expectedResponse: foundation.NewResponse(400,
 				"missing first name",
-				"invalid-user-data"),
+				foundation.ValidationFailed),
 		},
 		{
 			name: "missing terms",
@@ -93,7 +106,7 @@ func TestRegister(t *testing.T) {
 			}),
 			expectedResponse: foundation.NewResponse(400,
 				"missing terms",
-				"invalid-user-data"),
+				foundation.ValidationFailed),
 		},
 		{
 			name: "invalid email",
@@ -104,7 +117,7 @@ func TestRegister(t *testing.T) {
 			}(),
 			expectedResponse: foundation.NewResponse(400,
 				"invalid email",
-				"invalid-user-data"),
+				foundation.ValidationFailed),
 		},
 		{
 			name: "valid data",
@@ -114,13 +127,15 @@ func TestRegister(t *testing.T) {
 				""),
 		},
 	}
-	w := httptest.NewRecorder()
 	for _, sc := range scenarios {
-		Register(w, sc.req, nil)
-		resp := responseFromHTTP(t, w.Body)
-		// TODO assert message also
-		assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
-		assert.Equal(t, sc.expectedResponse.Status, resp.Status)
+		t.Run(sc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			Register(w, sc.req, nil)
+			resp := responseFromHTTP(t, w.Body)
+			// TODO assert message also
+			assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
+			assert.Equal(t, sc.expectedResponse.Status, resp.Status)
+		})
 	}
 }
 
