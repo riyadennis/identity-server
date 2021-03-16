@@ -1,78 +1,66 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/riyadennis/identity-server/internal/store"
 	"github.com/sirupsen/logrus"
+
+	"github.com/riyadennis/identity-server/business"
+	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/business/validation"
+	"github.com/riyadennis/identity-server/foundation"
 )
 
 // Register is the handler function that will process
 // rest call to register endpoint
 func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	if r == nil {
-		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(InvalidRequest, errors.New("empty request")))
-		return
-	}
-	ctx := r.Context()
-	cctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	u, err := userDataFromRequest(cctx, r)
+	u, err := userDataFromRequest(r)
 	if err != nil {
-		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(InvalidRequest, err))
+		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.InvalidRequest)
 		return
 	}
-	err = validateUser(u)
+
+	err = validation.ValidateUser(u)
 	if err != nil {
 		logrus.Errorf("validation failed :: %v", err)
-		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(InvalidUserData, err))
+		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.InvalidUserData)
 		return
 	}
+
 	exists, err := userExists(u.Email)
 	if err != nil {
-		//already logged
-		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(DatabaseError, err))
+		// already logged
+		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.DatabaseError)
 		return
 	}
 	if exists {
-		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(EmailAlreadyExists,
-				errors.New("email already exists")))
+		foundation.ErrorResponse(w, http.StatusBadRequest, errors.New("email already exists"), foundation.EmailAlreadyExists)
 		return
 	}
 
-	password, err := generatePassword()
+	password, err := business.GeneratePassword()
 	if err != nil {
-		errorResponse(w, http.StatusBadRequest,
-			NewCustomError(PassWordError, err))
+		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.PassWordError)
 		return
 	}
-	u.Password, err = encryptPassword(password)
+
+	u.Password, err = business.EncryptPassword(password)
 	if err != nil {
-		errorResponse(w, http.StatusInternalServerError,
-			NewCustomError(PassWordError, err))
+		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.PassWordError)
 		return
 	}
 
 	err = storeUser(u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
-		errorResponse(w, http.StatusInternalServerError,
-			NewCustomError(DatabaseError, err))
+		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	err = jsonResponse(w, http.StatusOK,
+	err = foundation.JSONResponse(w, http.StatusOK,
 		fmt.Sprintf("your generated password : %s", password),
 		"")
 	if err != nil {
@@ -80,50 +68,19 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 }
 
-func userDataFromRequest(ctx context.Context, r *http.Request) (*store.User, error) {
-	reqID := ctx.Value("reqID")
+func userDataFromRequest(r *http.Request) (*store.User, error) {
 	if r == nil {
 		return nil, errors.New("empty request")
 	}
-	data, err := requestBody(r)
+	reqID := r.Context().Value("reqID")
+	u := &store.User{}
+	err := foundation.RequestBody(r, u)
 	if err != nil {
 		logrus.Errorf("requestID %s failed to read request body :: %v", reqID, err)
 		return nil, err
 	}
-	u := &store.User{}
-	err = json.Unmarshal(data, u)
-	if err != nil {
-		logrus.Errorf("failed to unmarshal :: %v", err)
-		return nil, err
-	}
+
 	return u, nil
-}
-
-func errorResponse(w http.ResponseWriter, code int, customErr *CustomError) {
-	w.Header().Set("Content-Type", "application/json")
-	err := jsonResponse(w, code, customErr.Error(), customErr.Code)
-	if err != nil {
-		logrus.Error(err)
-	}
-}
-
-func jsonResponse(w http.ResponseWriter, status int,
-	message, errCode string) error {
-	w.WriteHeader(status)
-	res := newResponse(status, message, errCode)
-	err := json.NewEncoder(w).Encode(res)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func newResponse(status int, message, errCode string) *Response {
-	return &Response{
-		Status:    status,
-		Message:   message,
-		ErrorCode: errCode,
-	}
 }
 
 func storeUser(u *store.User) error {
@@ -145,27 +102,4 @@ func userExists(email string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
-}
-
-func validateUser(u *store.User) error {
-	if u == nil {
-		return errors.New("empty user details")
-	}
-	if u.FirstName == "" {
-		return errors.New("missing first name")
-	}
-	if u.LastName == "" {
-		return errors.New("missing last name")
-	}
-	if u.Email == "" {
-		return errors.New("missing email")
-	}
-	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	if !re.MatchString(u.Email) {
-		return errors.New("invalid email")
-	}
-	if u.Terms == false {
-		return errors.New("missing terms")
-	}
-	return nil
 }

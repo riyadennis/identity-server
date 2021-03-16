@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"github.com/riyadennis/identity-server/foundation"
 	"net/http"
 	"os"
 	"time"
@@ -21,17 +22,11 @@ func Auth(next httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		headerToken := req.Header.Get("Authorization")
 		if headerToken == "" {
-			errorResponse(w, http.StatusUnauthorized, &CustomError{
-				Code: UnAuthorised,
-				Err:  errors.New("missing Token"),
-			})
+			foundation.ErrorResponse(w, http.StatusUnauthorized, errors.New("missing Token"), foundation.UnAuthorised)
 			return
 		}
 		if headerToken[len(BearerSchema):] == "" {
-			errorResponse(w, http.StatusBadRequest, &CustomError{
-				Code: UnAuthorised,
-				Err:  errors.New("bearer Token not present"),
-			})
+			foundation.ErrorResponse(w, http.StatusBadRequest, errors.New("bearer Token not present"), foundation.UnAuthorised)
 			return
 		}
 		t, err := jwt.ParseWithClaims(
@@ -42,17 +37,11 @@ func Auth(next httprouter.Handle) httprouter.Handle {
 			}, tokenHandler)
 		if err != nil || t == nil {
 			logrus.Errorf("unable to parse jwt :: %v", err)
-			errorResponse(w, http.StatusUnauthorized, &CustomError{
-				Code: UnAuthorised,
-				Err:  err,
-			})
+			foundation.ErrorResponse(w, http.StatusUnauthorized, err, foundation.UnAuthorised)
 			return
 		}
 		if !t.Valid {
-			errorResponse(w, http.StatusUnauthorized, &CustomError{
-				Code: UnAuthorised,
-				Err:  errors.New("invalid Token"),
-			})
+			foundation.ErrorResponse(w, http.StatusUnauthorized, errors.New("invalid Token"), foundation.UnAuthorised)
 			return
 		}
 		next(w, req, p)

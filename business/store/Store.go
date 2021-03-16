@@ -52,7 +52,7 @@ func PrepareDB(database *sql.DB) (Store, error) {
 		logrus.Fatalf("%v", err)
 		return nil, err
 	}
-	delete, err := database.Prepare(`DELETE  FROM identity_users where email = ?`)
+	deleteUser, err := database.Prepare(`DELETE  FROM identity_users where email = ?`)
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return nil, err
@@ -61,7 +61,7 @@ func PrepareDB(database *sql.DB) (Store, error) {
 		InsertNew: insert,
 		Fetch:     fetch,
 		Login:     login,
-		Remove:    delete,
+		Remove:    deleteUser,
 	}, nil
 }
 

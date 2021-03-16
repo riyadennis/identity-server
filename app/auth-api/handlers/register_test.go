@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"github.com/riyadennis/identity-server/business"
+	"github.com/riyadennis/identity-server/foundation"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/riyadennis/identity-server/business/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -32,11 +33,11 @@ func (id *MockIdb) Read(_ string) (*store.User, error) {
 	return nil, nil
 }
 
-func (id *MockIdb) Authenticate(email, password string) (bool, error) {
+func (id *MockIdb) Authenticate(_, _ string) (bool, error) {
 	return true, nil
 }
 
-func (id *MockIdb) Delete(email string) (int64, error) {
+func (id *MockIdb) Delete(_ string) (int64, error) {
 	return 0, nil
 }
 
@@ -44,12 +45,12 @@ func TestRegister(t *testing.T) {
 	scenarios := []struct {
 		name             string
 		req              *http.Request
-		expectedResponse *Response
+		expectedResponse *foundation.Response
 	}{
 		{
 			name: "empty request",
 			req:  nil,
-			expectedResponse: newResponse(400,
+			expectedResponse: foundation.NewResponse(400,
 				"empty request",
 				"invalid-request"),
 		},
@@ -60,7 +61,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "Doe",
 				Email:     "",
 			}),
-			expectedResponse: newResponse(400,
+			expectedResponse: foundation.NewResponse(400,
 				"missing email",
 				"invalid-user-data"),
 		},
@@ -71,7 +72,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
 			}),
-			expectedResponse: newResponse(400,
+			expectedResponse: foundation.NewResponse(400,
 				"missing first name",
 				"invalid-user-data"),
 		},
@@ -82,7 +83,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "",
 				Email:     "joh@doe.com",
 			}),
-			expectedResponse: newResponse(400,
+			expectedResponse: foundation.NewResponse(400,
 				"missing first name",
 				"invalid-user-data"),
 		},
@@ -93,7 +94,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
 			}),
-			expectedResponse: newResponse(400,
+			expectedResponse: foundation.NewResponse(400,
 				"missing terms",
 				"invalid-user-data"),
 		},
@@ -104,14 +105,14 @@ func TestRegister(t *testing.T) {
 				u.Email = "joh@dom"
 				return registerPayLoad(t, u)
 			}(),
-			expectedResponse: newResponse(400,
+			expectedResponse: foundation.NewResponse(400,
 				"invalid email",
 				"invalid-user-data"),
 		},
 		{
 			name: "valid data",
 			req:  registerPayLoad(t, user(t)),
-			expectedResponse: newResponse(200,
+			expectedResponse: foundation.NewResponse(200,
 				"your generated password : GeneratedPassword",
 				""),
 		},
@@ -137,8 +138,8 @@ func registerPayLoad(t *testing.T, u *store.User) *http.Request {
 	return req
 }
 
-func responseFromHttp(t *testing.T, data io.Reader) *Response {
-	resp := &Response{}
+func responseFromHttp(t *testing.T, data io.Reader) *foundation.Response {
+	resp := &foundation.Response{}
 	b, err := ioutil.ReadAll(data)
 	if err != nil {
 		t.Error(err)
@@ -151,7 +152,7 @@ func responseFromHttp(t *testing.T, data io.Reader) *Response {
 }
 
 func TestGeneratePassword(t *testing.T) {
-	pass, err := generatePassword()
+	pass, err := business.GeneratePassword()
 	if err != nil {
 		t.Error(err)
 	}
@@ -192,10 +193,10 @@ func TestUserDataFromRequest(t *testing.T) {
 			expectedError: "unexpected end of JSON input",
 		},
 	}
-	ctx := context.Background()
+
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			u, err := userDataFromRequest(ctx, sc.request)
+			u, err := userDataFromRequest(sc.request)
 			assert.Equal(t, sc.expectedUser, u)
 			if err != nil {
 				assert.Equal(t, sc.expectedError, err.Error())

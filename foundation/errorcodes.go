@@ -1,4 +1,4 @@
-package handlers
+package foundation
 
 const (
 	InvalidUserData    = "invalid-user-data"

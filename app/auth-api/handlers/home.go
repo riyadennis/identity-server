@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/riyadennis/identity-server/foundation"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
@@ -10,15 +11,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Home(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func Home(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
-	err := jsonResponse(w, http.StatusOK,
+	err := foundation.JSONResponse(w, http.StatusOK,
 		"Authorised",
 		"")
 	if err != nil {
 		logrus.Error(err)
 	}
-
 }
 
 func tokenHandler(token *jwt.Token) (interface{}, error) {

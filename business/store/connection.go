@@ -7,8 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/riyadennis/identity-server/internal/store/mysql"
-	"github.com/riyadennis/identity-server/internal/store/sqlite"
+	"github.com/riyadennis/identity-server/business/store/mysql"
+	"github.com/riyadennis/identity-server/business/store/sqlite"
 )
 
 // SetStore set the store interface

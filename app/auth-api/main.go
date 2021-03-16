@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/riyadennis/identity-server/app/auth-api/handlers"
-	"github.com/riyadennis/identity-server/internal/store"
+	"github.com/riyadennis/identity-server/business/store"
 	"os"
 
 	// initialise mysql driver

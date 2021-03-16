@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/riyadennis/identity-server/foundation"
 	"net/http"
 	"os"
 	"time"
@@ -31,64 +32,50 @@ func Login(w http.ResponseWriter,
 	req *http.Request, _ httprouter.Params) {
 	email, password, ok := req.BasicAuth()
 	if !ok {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: InvalidRequest,
-			Err:  errors.New("empty login data"),
-		})
+		foundation.ErrorResponse(w, http.StatusBadRequest,
+			errors.New("empty login data"), foundation.InvalidRequest)
 		return
 	}
 	source := dataSource()
 	if source == nil {
-		errorResponse(w, http.StatusInternalServerError, &CustomError{
-			Code: DatabaseError,
-			Err:  errors.New("empty database connection"),
-		})
+		foundation.ErrorResponse(w, http.StatusInternalServerError,
+			errors.New("empty database connection"), foundation.DatabaseError)
 		return
 	}
 	u, err := source.Read(email)
 	if err != nil {
-		errorResponse(w, http.StatusInternalServerError, &CustomError{
-			Code: UserDoNotExist,
-			Err:  err,
-		})
+		foundation.ErrorResponse(w, http.StatusInternalServerError,
+			err, foundation.UserDoNotExist)
 		return
 	}
 	if u == nil {
-		errorResponse(w, http.StatusInternalServerError, &CustomError{
-			Code: UserDoNotExist,
-			Err:  errors.New("email not found"),
-		})
+		foundation.ErrorResponse(w, http.StatusInternalServerError,
+			errors.New("email not found"), foundation.UserDoNotExist)
 		return
 	}
 	valid, err := source.Authenticate(email, password)
 	if err != nil {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: InvalidRequest,
-			Err:  err,
-		})
+		foundation.ErrorResponse(w, http.StatusBadRequest,
+			errors.New("email not found"), foundation.InvalidRequest)
 		return
 	}
 	if !valid {
-		errorResponse(w, http.StatusBadRequest, &CustomError{
-			Code: UnAuthorised,
-			Err:  err,
-		})
+		foundation.ErrorResponse(w, http.StatusBadRequest,
+			err, foundation.UnAuthorised)
 		return
 	}
 	token, err := generateToken()
 	if err != nil {
-		errorResponse(w, http.StatusInternalServerError, &CustomError{
-			Code: TokenError,
-			Err:  err,
-		})
+		foundation.ErrorResponse(w, http.StatusInternalServerError,
+			err, foundation.TokenError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(token)
 	if err != nil {
 		logrus.Error(err)
 	}
-	return
 }
 
 func generateToken() (*Token, error) {

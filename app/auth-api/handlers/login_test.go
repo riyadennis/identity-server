@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
+	"github.com/riyadennis/identity-server/foundation"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -16,24 +17,24 @@ func TestLogin(t *testing.T) {
 	scenarios := []struct {
 		name     string
 		request  *http.Request
-		response *Response
+		response *foundation.Response
 	}{
 		{
 			name:    "empty request",
 			request: &http.Request{},
-			response: &Response{
+			response: &foundation.Response{
 				Status:    http.StatusBadRequest,
 				Message:   "empty login data",
-				ErrorCode: InvalidRequest,
+				ErrorCode: foundation.InvalidRequest,
 			},
 		},
 		{
 			name:    "missing email",
 			request: request(t, "/login", `{}`),
-			response: &Response{
+			response: &foundation.Response{
 				Status:    http.StatusBadRequest,
 				Message:   "empty login data",
-				ErrorCode: InvalidRequest,
+				ErrorCode: foundation.InvalidRequest,
 			},
 		},
 		{
@@ -41,10 +42,10 @@ func TestLogin(t *testing.T) {
 			request: request(t, "/login", `{
 	"email": "john4@gmail.com"
 }`),
-			response: &Response{
+			response: &foundation.Response{
 				Status:    http.StatusBadRequest,
 				Message:   "empty login data",
-				ErrorCode: InvalidRequest,
+				ErrorCode: foundation.InvalidRequest,
 			},
 		},
 	}
@@ -58,15 +59,15 @@ func TestLogin(t *testing.T) {
 	}
 }
 
-func response(t *testing.T, body *bytes.Buffer) *Response {
+func response(t *testing.T, body io.Reader) *foundation.Response {
 	t.Helper()
-	var re *Response
+	var re *foundation.Response
 	if body != nil {
 		data, err := ioutil.ReadAll(body)
 		if err != nil {
 			t.Error(err.Error())
 		}
-		re = &Response{}
+		re = &foundation.Response{}
 		err = json.Unmarshal(data, re)
 		if err != nil {
 			t.Error(err.Error())

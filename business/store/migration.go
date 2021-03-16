@@ -8,12 +8,12 @@ import (
 	"os"
 )
 
-func Migrate() error{
+func Migrate() error {
 	driver, err := mysql.WithInstance(GetStore(), &mysql.Config{})
 	if err != nil {
 		return err
 	}
-	if os.Getenv("MYSQL_DATABASE") == ""{
+	if os.Getenv("MYSQL_DATABASE") == "" {
 		return errors.New("no database set in .env")
 	}
 
@@ -26,10 +26,10 @@ func Migrate() error{
 	}
 
 	err = m.Up()
-	if err != nil{
-		if err == migrate.ErrNoChange{
+	if err != nil {
+		if errors.Is(err, migrate.ErrNoChange) {
 			logrus.Info("no migration to apply")
-		} else{
+		} else {
 			return err
 		}
 	}
