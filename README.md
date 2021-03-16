@@ -1,5 +1,5 @@
 # identity-server [![CircleCI](https://circleci.com/gh/riyadennis/identity-server.svg?style=svg)](https://circleci.com/gh/riyadennis/identity-server)
-
+[![Go Reference](https://pkg.go.dev/badge/github.com/riyadennis/identity-server.svg)](https://pkg.go.dev/github.com/riyadennis/identity-server)
 Basic rest API for user authentication and registration.
 User attributes saved during the registration are:
 
