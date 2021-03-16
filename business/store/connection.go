@@ -2,24 +2,13 @@ package store
 
 import (
 	"database/sql"
-	"os"
-
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"os"
 
 	"github.com/riyadennis/identity-server/business/store/mysql"
 	"github.com/riyadennis/identity-server/business/store/sqlite"
 )
-
-// SetStore set the store interface
-func SetStore(db *sql.DB) {
-	SQLDB = db
-}
-
-// GetStore fetch store interface
-func GetStore() *sql.DB {
-	return SQLDB
-}
 
 func Connect() (*sql.DB, error) {
 	var db *sql.DB

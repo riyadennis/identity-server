@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -8,8 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var SQLDB *sql.DB
 
 // User hold information needed to complete user registration
 type User struct {
@@ -24,70 +23,57 @@ type User struct {
 }
 
 type DB struct {
-	InsertNew *sql.Stmt
-	Fetch     *sql.Stmt
-	Login     *sql.Stmt
-	Remove    *sql.Stmt
+	Conn *sql.DB
 }
 
-func PrepareDB(database *sql.DB) (Store, error) {
-	insert, err := database.Prepare(`INSERT INTO identity_users 
-(id, first_name, last_name,password,
- email, company, post_code, terms) 
- VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
-	if err != nil {
-		logrus.Fatalf("%v", err)
-		return nil, err
-	}
-	fetch, err := database.Prepare(`SELECT first_name, last_name, 
-											company, post_code FROM
-										    identity_users where email = ?`)
-	if err != nil {
-		logrus.Fatalf("%v", err)
-		return nil, err
-	}
-	login, err := database.Prepare(`SELECT  password FROM
-										    identity_users where email = ?`)
-	if err != nil {
-		logrus.Fatalf("%v", err)
-		return nil, err
-	}
-	deleteUser, err := database.Prepare(`DELETE  FROM identity_users where email = ?`)
-	if err != nil {
-		logrus.Fatalf("%v", err)
-		return nil, err
-	}
+func NewDB(database *sql.DB) Store {
 	return &DB{
-		InsertNew: insert,
-		Fetch:     fetch,
-		Login:     login,
-		Remove:    deleteUser,
-	}, nil
+		Conn: database,
+	}
 }
 
 type Store interface {
-	Insert(u *User) error
-	Read(email string) (*User, error)
+	Insert(ctx context.Context, u *User) error
+	Read(ctx context.Context, email string) (*User, error)
 	Authenticate(email, password string) (bool, error)
 	Delete(email string) (int64, error)
 }
 
-func (id *DB) Insert(u *User) error {
+func (id *DB) Insert(ctx context.Context, u *User) error {
 	uid := uuid.New()
-	_, err := id.InsertNew.Exec(uid, u.FirstName, u.LastName,
+
+	insert, err := id.Conn.Prepare(`INSERT INTO identity_users 
+(id, first_name, last_name,password,
+ email, company, post_code, terms) 
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		logrus.Fatalf("failed to prepare user insert: %v", err)
+		return err
+	}
+
+	_, err = insert.ExecContext(ctx, uid, u.FirstName, u.LastName,
 		u.Password, u.Email, u.Company, u.PostCode, u.Terms)
 	if err != nil {
-		logrus.Errorf("failed to insert user data :: %v", err)
+		logrus.Errorf("failed to insert user data: %v", err)
 		return err
 	}
 	return nil
 }
 
-func (id *DB) Read(email string) (*User, error) {
-	rows := id.Fetch.QueryRow(email)
+func (id *DB) Read(ctx context.Context, email string) (*User, error) {
+	fetch, err := id.Conn.Prepare(
+		"SELECT first_name, last_name,company, post_code FROM identity_users where email = ?")
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := fetch.QueryContext(ctx, email)
+	if err != nil {
+		return nil, err
+	}
 
 	var fname, lname, post, company string
-	err := rows.Scan(&fname, &lname, &post, &company)
+	err = rows.Scan(&fname, &lname, &post, &company)
 	if errors.Is(err, sql.ErrNoRows) {
 		logrus.Infof("user not found :: %s", email)
 		return nil, nil
@@ -102,9 +88,15 @@ func (id *DB) Read(email string) (*User, error) {
 }
 
 func (id *DB) Authenticate(email, password string) (bool, error) {
-	rows := id.Login.QueryRow(email)
+	login, err := id.Conn.Prepare(`SELECT  password FROM
+										    identity_users where email = ?`)
+	if err != nil {
+		logrus.Fatalf("%v", err)
+		return false, err
+	}
+	rows := login.QueryRow(email)
 	var hashedPass string
-	err := rows.Scan(&hashedPass)
+	err = rows.Scan(&hashedPass)
 	if err != nil {
 		logrus.Errorf("%v", err)
 		return false, err
@@ -118,14 +110,12 @@ func (id *DB) Authenticate(email, password string) (bool, error) {
 }
 
 func (id *DB) Delete(email string) (int64, error) {
-	u, err := id.Read(email)
+	remove, err := id.Conn.Prepare(`DELETE  FROM identity_users where email = ?`)
 	if err != nil {
+		logrus.Fatalf("%v", err)
 		return 0, err
 	}
-	if u == nil {
-		return 0, errors.New("user not found")
-	}
-	result, err := id.Remove.Exec(email)
+	result, err := remove.Exec(email)
 	if err != nil {
 		return 0, err
 	}

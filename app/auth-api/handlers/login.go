@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 	"net/http"
 	"os"
@@ -29,20 +30,27 @@ type Token struct {
 // and password to get back a Token.
 // Which can be used to authenticate other requests.
 func Login(w http.ResponseWriter,
-	req *http.Request, _ httprouter.Params) {
-	email, password, ok := req.BasicAuth()
+	r *http.Request, _ httprouter.Params) {
+	email, password, ok := r.BasicAuth()
 	if !ok {
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errors.New("empty login data"), foundation.InvalidRequest)
 		return
 	}
-	source := dataSource()
+	ctx := r.Context()
+	db, err := store.Connect()
+	if err != nil {
+		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
+	}
+
+	source := store.NewDB(db)
 	if source == nil {
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
 			errors.New("empty database connection"), foundation.DatabaseError)
 		return
 	}
-	u, err := source.Read(email)
+
+	u, err := source.Read(ctx, email)
 	if err != nil {
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
 			err, foundation.UserDoNotExist)

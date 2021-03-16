@@ -45,9 +45,7 @@ func init() {
 		logrus.Fatalf("failed to connect to database: %v", err)
 	}
 
-	store.SetStore(db)
-
-	err = store.Migrate()
+	err = store.Migrate(db)
 	if err != nil {
 		logrus.Fatalf("migration failed: %v", err)
 	}

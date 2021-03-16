@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -30,7 +31,14 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	exists, err := userExists(u.Email)
+	ctx := r.Context()
+	db, err := store.Connect()
+	if err != nil {
+		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
+	}
+
+	dbStore := store.NewDB(db)
+	exists, err := userExists(ctx, dbStore, u.Email)
 	if err != nil {
 		// already logged
 		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.DatabaseError)
@@ -53,7 +61,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	err = storeUser(u)
+	err = storeUser(ctx, dbStore, u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
@@ -83,8 +91,8 @@ func userDataFromRequest(r *http.Request) (*store.User, error) {
 	return u, nil
 }
 
-func storeUser(u *store.User) error {
-	err := Idb.Insert(u)
+func storeUser(ctx context.Context, store store.Store, u *store.User) error {
+	err := store.Insert(ctx, u)
 	if err != nil {
 		logrus.Errorf("failed to register :: %v", err)
 		return err
@@ -92,14 +100,19 @@ func storeUser(u *store.User) error {
 	return nil
 }
 
-func userExists(email string) (bool, error) {
-	selectUser, err := Idb.Read(email)
+func userExists(ctx context.Context, store store.Store, email string) (bool, error) {
+	selectUser, err := store.Read(ctx, email)
 	if err != nil {
 		logrus.Errorf("failed to check for user in database :: %v", err)
 		return false, err
 	}
-	if selectUser == nil {
+
+	if selectUser != nil {
+		if selectUser.Email == email {
+			return true, nil
+		}
+
 		return false, nil
 	}
-	return true, nil
+	return false, nil
 }

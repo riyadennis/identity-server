@@ -1,15 +1,15 @@
 package store
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
-	"github.com/sirupsen/logrus"
 	"os"
 )
 
-func Migrate() error {
-	driver, err := mysql.WithInstance(GetStore(), &mysql.Config{})
+func Migrate(db *sql.DB) error {
+	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
 		return err
 	}
@@ -25,14 +25,7 @@ func Migrate() error {
 		return err
 	}
 
-	err = m.Up()
-	if err != nil {
-		if errors.Is(err, migrate.ErrNoChange) {
-			logrus.Info("no migration to apply")
-		} else {
-			return err
-		}
-	}
+	_ = m.Up()
 
 	return nil
 }
