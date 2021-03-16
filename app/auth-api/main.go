@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/riyadennis/identity-server/app/auth-api/handlers"
 	"github.com/riyadennis/identity-server/internal/store"
 	"os"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/joho/godotenv"
-	"github.com/riyadennis/identity-server/internal"
 )
 
 func init() {
@@ -27,7 +27,7 @@ func init() {
 		logrus.Fatal("invalid setting no port number")
 	}
 
-	if os.Getenv("ENV") == ""{
+	if os.Getenv("ENV") == "" {
 		logrus.Fatal("invalid setting no environment")
 	}
 
@@ -54,5 +54,5 @@ func init() {
 }
 
 func main() {
-	internal.Server(os.Getenv("PORT"))
+	handlers.Server(os.Getenv("PORT"))
 }

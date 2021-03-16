@@ -38,6 +38,13 @@ func Login(w http.ResponseWriter,
 		return
 	}
 	source := dataSource()
+	if source == nil {
+		errorResponse(w, http.StatusInternalServerError, &CustomError{
+			Code: DatabaseError,
+			Err:  errors.New("empty database connection"),
+		})
+		return
+	}
 	u, err := source.Read(email)
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError, &CustomError{

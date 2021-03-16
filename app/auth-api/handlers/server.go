@@ -1,4 +1,4 @@
-package internal
+package handlers
 
 import (
 	"net/http"
@@ -6,18 +6,16 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
-
-	"github.com/riyadennis/identity-server/internal/handlers"
 )
 
 // Server registers routes and starts web server
 func Server(port string) {
 	router := httprouter.New()
 	// register routes here
-	router.POST(RegisterEndpoint, handlers.Register)
-	router.POST(LoginEndPoint, handlers.Login)
-	router.POST(DeleteEndpoint, handlers.Auth(handlers.Delete))
-	router.GET(HomeEndPoint, handlers.Auth(handlers.Home))
+	router.POST(RegisterEndpoint, Register)
+	router.POST(LoginEndPoint, Login)
+	router.POST(DeleteEndpoint, Auth(Delete))
+	router.GET(HomeEndPoint, Auth(Home))
 
 	handler := cors.Default().Handler(router)
 	logrus.Fatal(http.ListenAndServe(":"+port, handler))

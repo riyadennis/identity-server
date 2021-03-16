@@ -1,4 +1,4 @@
-package sqlM
+package mysql
 
 import (
 	"database/sql"

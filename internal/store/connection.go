@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/riyadennis/identity-server/internal/store/sqlM"
+	"github.com/riyadennis/identity-server/internal/store/mysql"
 	"github.com/riyadennis/identity-server/internal/store/sqlite"
 )
 
@@ -41,7 +41,7 @@ func Connect() (*sql.DB, error) {
 }
 
 func connectMysql() (*sql.DB, error) {
-	db, err := sqlM.ConnectDB()
+	db, err := mysql.ConnectDB()
 	if err != nil {
 		return nil, err
 	}

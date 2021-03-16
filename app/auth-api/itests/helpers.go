@@ -1,11 +1,13 @@
-package features
+package itests
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 )
+
 var client *http.Client
+
 // response is the response we get back
 // from rest call to login endpoint
 type response struct {

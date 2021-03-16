@@ -50,7 +50,6 @@ func encryptPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(enPass), nil
-
 }
 
 func generatePassword() (string, error) {

@@ -1,4 +1,4 @@
-package features
+package itests
 
 import (
 	"encoding/base64"
