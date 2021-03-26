@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		logrus.Fatalf("failed to open env file: %v", err)
 	}
-	conn, err = store.Connect()
+	conn, err = store.Connect(store.NewENVConfig())
 	if err != nil {
 		logrus.Fatalf("failed to connect to db: %v", err)
 	}

@@ -40,7 +40,7 @@ func init() {
 }
 
 func main() {
-	db, err := store.Connect()
+	db, err := store.Connect(store.NewENVConfig())
 	if err != nil {
 		logrus.Errorf("failed to connect to database: %v", err)
 	}
