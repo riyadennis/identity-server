@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"errors"
-	"github.com/riyadennis/identity-server/business/store"
 	"net/http"
 
-	"github.com/riyadennis/identity-server/foundation"
-
 	"github.com/julienschmidt/httprouter"
+	"github.com/riyadennis/identity-server/foundation"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,7 +16,7 @@ type UserDelete struct {
 }
 
 // Delete is the handler for delete end point to remove a user from as per the email
-func Delete(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func (h *Handler) Delete(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 	ud := &UserDelete{}
 	err := foundation.RequestBody(req, ud)
@@ -27,12 +25,8 @@ func Delete(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 			err, foundation.InvalidRequest)
 		return
 	}
-	db, err := store.Connect()
-	if err != nil {
-		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
-	}
 
-	done, err := store.NewDB(db).Delete(ud.Email)
+	done, err := h.Store.Delete(ud.Email)
 	if err != nil {
 		logrus.Errorf("failed to delete :: %v", err)
 		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.InvalidRequest)

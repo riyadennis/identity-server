@@ -11,7 +11,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 
-	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 )
 
@@ -32,7 +31,7 @@ type Token struct {
 // Login endpoint where user enters his email
 // and password to get back a Token.
 // Which can be used to authenticate other requests.
-func Login(w http.ResponseWriter,
+func (h *Handler) Login(w http.ResponseWriter,
 	r *http.Request, _ httprouter.Params) {
 	email, password, ok := r.BasicAuth()
 	if !ok {
@@ -41,19 +40,8 @@ func Login(w http.ResponseWriter,
 		return
 	}
 	ctx := r.Context()
-	db, err := store.Connect()
-	if err != nil {
-		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
-	}
 
-	source := store.NewDB(db)
-	if source == nil {
-		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			errors.New("empty database connection"), foundation.DatabaseError)
-		return
-	}
-
-	u, err := source.Read(ctx, email)
+	u, err := h.Store.Read(ctx, email)
 	if err != nil {
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
 			err, foundation.UserDoNotExist)
@@ -64,7 +52,7 @@ func Login(w http.ResponseWriter,
 			errors.New("email not found"), foundation.UserDoNotExist)
 		return
 	}
-	valid, err := source.Authenticate(email, password)
+	valid, err := h.Store.Authenticate(email, password)
 	if err != nil {
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errors.New("email not found"), foundation.InvalidRequest)

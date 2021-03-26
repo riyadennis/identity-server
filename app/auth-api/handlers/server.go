@@ -61,8 +61,8 @@ func (s *Server) Run(conn *sql.DB) error {
 	router := httprouter.New()
 	// register routes here
 	router.POST(RegisterEndpoint, h.Register)
-	router.POST(LoginEndPoint, Login)
-	router.POST(DeleteEndpoint, Auth(Delete))
+	router.POST(LoginEndPoint, h.Login)
+	router.POST(DeleteEndpoint, Auth(h.Delete))
 	router.GET(HomeEndPoint, Auth(Home))
 
 	s.httpServer.Handler = cors.Default().Handler(router)
