@@ -24,6 +24,7 @@ var (
 	errPortBeyondRange     = errors.New("port is beyond the allowed range")
 )
 
+// Server have all the set up needed to run and shut down a http server
 type Server struct {
 	httpServer  http.Server
 	listenAddr  string
@@ -31,6 +32,7 @@ type Server struct {
 	shutDown    chan os.Signal
 }
 
+// NewServer creates a server instance with error and shutdown channels initialised
 func NewServer(addr string) *Server {
 	errChan := make(chan error, 1)
 	shutdown := make(chan os.Signal, 1)
@@ -52,7 +54,8 @@ func NewServer(addr string) *Server {
 	}
 }
 
-// Server registers routes and starts web server
+// Run registers routes and starts web server
+// and waits to receive from shutdown and error channels
 func (s *Server) Run(conn *sql.DB) error {
 	h := &Handler{
 		Store: store.NewDB(conn),

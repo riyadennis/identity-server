@@ -15,6 +15,8 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
+// Handler have common setup needed to run the handlers
+// its helps to reuse open db connection
 type Handler struct {
 	Store store.Store
 }
