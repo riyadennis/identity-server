@@ -33,6 +33,11 @@ func TestMain(m *testing.M) {
 		logrus.Fatalf("failed to connect to db: %v", err)
 	}
 
+	err = store.Migrate(conn)
+	if err != nil {
+		logrus.Fatalf("failed to run migration: %v", err)
+	}
+
 	os.Exit(m.Run())
 }
 
