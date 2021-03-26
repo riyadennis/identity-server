@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/riyadennis/identity-server/business/store"
 	"os"
 
 	// initialise mysql driver
@@ -14,7 +15,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/riyadennis/identity-server/app/auth-api/handlers"
-	"github.com/riyadennis/identity-server/business/store"
 )
 
 func init() {
@@ -39,19 +39,23 @@ func init() {
 
 		logrus.SetOutput(file)
 	}
-
-	db, err := store.Connect()
-	if err != nil {
-		logrus.Fatalf("failed to connect to database: %v", err)
-	}
-
-	err = store.Migrate(db)
-	if err != nil {
-		logrus.Fatalf("migration failed: %v", err)
-	}
 }
 
 func main() {
-	err := handlers.NewServer(os.Getenv("PORT")).Run()
-	logrus.Fatalf("error running server: %v", err)
+	db, err := store.Connect()
+	if err != nil {
+		logrus.Errorf("failed to connect to database: %v", err)
+	}
+
+	defer func() {
+		_ = db.Close()
+	}()
+
+	err = store.Migrate(db)
+	if err != nil {
+		logrus.Errorf("migration failed: %v", err)
+	}
+
+	err = handlers.NewServer(os.Getenv("PORT")).Run()
+	logrus.Errorf("error running server: %v", err)
 }
