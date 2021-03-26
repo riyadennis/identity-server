@@ -1,6 +1,7 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/go/src/github.com/riyadennis/identity-server
     docker:
       - image: circleci/golang:1.16 # The primary container where steps are run
       - image: circleci/mysql:5.7.18
