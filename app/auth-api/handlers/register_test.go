@@ -13,12 +13,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/riyadennis/identity-server/business"
-	"github.com/riyadennis/identity-server/foundation"
+	// initialise mysql driver
+	_ "github.com/go-sql-driver/mysql"
+	// initialise migration settings
+	_ "github.com/golang-migrate/migrate/source/file"
 
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/riyadennis/identity-server/business/store"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/riyadennis/identity-server/business"
+	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 )
 
 var conn *sql.DB

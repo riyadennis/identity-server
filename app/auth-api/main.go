@@ -6,8 +6,6 @@ import (
 
 	// initialise mysql driver
 	_ "github.com/go-sql-driver/mysql"
-	// initialise sqllite driver
-	_ "github.com/mattn/go-sqlite3"
 	// initialise migration settings
 	_ "github.com/golang-migrate/migrate/source/file"
 
