@@ -15,9 +15,13 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
+type Handler struct {
+	Store store.Store
+}
+
 // Register is the handler function that will process
 // rest call to register endpoint
-func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	u, err := userDataFromRequest(r)
 	if err != nil {
 		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.InvalidRequest)
@@ -31,17 +35,18 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	ctx := r.Context()
-	db, err := store.Connect()
-	if err != nil {
-		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
+	if h.Store == nil {
+		logrus.Error("invalid db connection")
+		foundation.ErrorResponse(w, http.StatusInternalServerError,
+			errors.New("invalid db connection"), foundation.DatabaseError)
+		return
 	}
 
-	dbStore := store.NewDB(db)
-	exists, err := userExists(ctx, dbStore, u.Email)
+	ctx := r.Context()
+	exists, err := userExists(ctx, h.Store, u.Email)
 	if err != nil {
 		// already logged
-		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.DatabaseError)
+		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 		return
 	}
 	if exists {
@@ -61,7 +66,7 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	err = storeUser(ctx, dbStore, u)
+	err = storeUser(ctx, h.Store, u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)

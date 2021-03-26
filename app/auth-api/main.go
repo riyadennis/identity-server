@@ -56,6 +56,6 @@ func main() {
 		logrus.Errorf("migration failed: %v", err)
 	}
 
-	err = handlers.NewServer(os.Getenv("PORT")).Run()
+	err = handlers.NewServer(os.Getenv("PORT")).Run(db)
 	logrus.Errorf("error running server: %v", err)
 }

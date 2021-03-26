@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -18,49 +19,34 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-type MockIdb struct {
-	mock.Mock
-}
-
-func (id *MockIdb) Insert(_ *store.User) error {
-	return nil
-}
-
-func (id *MockIdb) Read(_ string) (*store.User, error) {
-	return nil, nil
-}
-
-func (id *MockIdb) Authenticate(_, _ string) (bool, error) {
-	return true, nil
-}
-
-func (id *MockIdb) Delete(_ string) (int64, error) {
-	return 0, nil
-}
+var conn *sql.DB
 
 func TestMain(m *testing.M) {
 	err := godotenv.Load("../../../.env_test")
 	if err != nil {
 		logrus.Fatalf("failed to open env file: %v", err)
 	}
+	conn, err = store.Connect()
+	if err != nil {
+		logrus.Fatalf("failed to connect to db: %v", err)
+	}
 
 	os.Exit(m.Run())
-
 }
 
 func TestRegister(t *testing.T) {
 	scenarios := []struct {
 		name             string
 		req              *http.Request
+		conn             *sql.DB
 		expectedResponse *foundation.Response
 	}{
 		{
 			name: "empty request",
 			req:  nil,
-			expectedResponse: foundation.NewResponse(400,
+			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"empty request",
 				"invalid-request"),
 		},
@@ -71,7 +57,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "Doe",
 				Email:     "",
 			}),
-			expectedResponse: foundation.NewResponse(400,
+			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"missing email",
 				foundation.ValidationFailed),
 		},
@@ -82,7 +68,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
 			}),
-			expectedResponse: foundation.NewResponse(400,
+			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"missing first name",
 				foundation.ValidationFailed),
 		},
@@ -93,7 +79,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "",
 				Email:     "joh@doe.com",
 			}),
-			expectedResponse: foundation.NewResponse(400,
+			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"missing first name",
 				foundation.ValidationFailed),
 		},
@@ -104,7 +90,7 @@ func TestRegister(t *testing.T) {
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
 			}),
-			expectedResponse: foundation.NewResponse(400,
+			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"missing terms",
 				foundation.ValidationFailed),
 		},
@@ -115,22 +101,37 @@ func TestRegister(t *testing.T) {
 				u.Email = "joh@dom"
 				return registerPayLoad(t, u)
 			}(),
-			expectedResponse: foundation.NewResponse(400,
+			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"invalid email",
 				foundation.ValidationFailed),
 		},
 		{
-			name: "valid data",
+			name: "valid data empty connection",
 			req:  registerPayLoad(t, user(t)),
-			expectedResponse: foundation.NewResponse(200,
+			expectedResponse: foundation.NewResponse(http.StatusInternalServerError,
 				"your generated password : GeneratedPassword",
-				""),
+				foundation.DatabaseError),
+		},
+		{
+			name: "valid data empty connection",
+			req:  registerPayLoad(t, user(t)),
+			conn: nil,
+			expectedResponse: foundation.NewResponse(http.StatusInternalServerError,
+				"your generated password : GeneratedPassword",
+				foundation.DatabaseError),
+		},
+		{
+			name:             "valid data valid connection",
+			req:              registerPayLoad(t, user(t)),
+			conn:             conn,
+			expectedResponse: foundation.NewResponse(http.StatusOK, "", ""),
 		},
 	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			Register(w, sc.req, nil)
+			h := &Handler{store.NewDB(sc.conn)}
+			h.Register(w, sc.req, nil)
 			resp := responseFromHTTP(t, w.Body)
 			// TODO assert message also
 			assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)

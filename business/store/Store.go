@@ -28,7 +28,7 @@ type DB struct {
 }
 
 // NewDB creates a new instance if the DB
-func NewDB(database *sql.DB) Store {
+func NewDB(database *sql.DB) *DB {
 	return &DB{
 		Conn: database,
 	}
@@ -67,6 +67,10 @@ func (id *DB) Insert(ctx context.Context, u *User) error {
 // Read will fetch data from db for a user as per the email
 // will return nil if user is not found
 func (id *DB) Read(ctx context.Context, email string) (*User, error) {
+	if id.Conn == nil {
+		return nil, errors.New("empty db connection")
+	}
+
 	fetch, err := id.Conn.Prepare(
 		"SELECT first_name, last_name,company, post_code FROM identity_users where email = ?")
 	if err != nil {

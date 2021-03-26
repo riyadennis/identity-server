@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"github.com/riyadennis/identity-server/business/store"
 	"log"
 	"net/http"
 	"os"
@@ -16,7 +18,6 @@ import (
 const timeOut = 5 * time.Second
 
 var (
-	errInvalidHandler      = errors.New("invalid handler")
 	errEmptyPort           = errors.New("port number empty")
 	errPortNotAValidNumber = errors.New("port number is not a valid number")
 	errPortReserved        = errors.New("port is a reserved number")
@@ -52,10 +53,14 @@ func NewServer(addr string) *Server {
 }
 
 // Server registers routes and starts web server
-func (s *Server) Run() error {
+func (s *Server) Run(conn *sql.DB) error {
+	h := &Handler{
+		Store: store.NewDB(conn),
+	}
+
 	router := httprouter.New()
 	// register routes here
-	router.POST(RegisterEndpoint, Register)
+	router.POST(RegisterEndpoint, h.Register)
 	router.POST(LoginEndPoint, Login)
 	router.POST(DeleteEndpoint, Auth(Delete))
 	router.GET(HomeEndPoint, Auth(Home))
