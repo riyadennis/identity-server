@@ -52,5 +52,6 @@ func init() {
 }
 
 func main() {
-	handlers.Server(os.Getenv("PORT"))
+	err := handlers.NewServer(os.Getenv("PORT")).Run()
+	logrus.Fatalf("error running server: %v", err)
 }
