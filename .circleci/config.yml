@@ -2,10 +2,8 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.13 # The primary container where steps are run
+      - image: circleci/golang:1.16 # The primary container where steps are run
       - image: circleci/mysql:5.7.18
-        security_opt:
-          - seccomp:unconfined
         environment:
           MYSQL_ROOT_PASSWORD: secret
           MYSQL_DATABASE: identity_db
@@ -26,14 +24,12 @@ jobs:
           name: Install MySQL CLI; Import dummy data; run an example query
           command: |
             sudo apt-get install default-mysql-client
-#            mysql -h 127.0.0.1 -u root -proot identity_db < sql-data/dummy.sql
-#            mysql -h 127.0.0.1 -u user -ppassw0rd --execute="SELECT * FROM test_db.Persons"
       - run: go get -v -t -d ./...
       - run: go test -v ./...
       - run:
           name: Running web server
-            background: true
-            command: |
+          background: true
+          command: |
               printenv | grep MYSQL > .env
               go run main.go
 workflows:
