@@ -21,7 +21,7 @@ func Migrate(db *sql.DB) error {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		"file://"+os.Getenv("BASE_PATH")+"migrations",
 		os.Getenv("MYSQL_DATABASE"),
 		driver)
 	if err != nil {
