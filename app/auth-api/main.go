@@ -55,5 +55,8 @@ func main() {
 	}
 
 	err = handlers.NewServer(os.Getenv("PORT")).Run(db)
-	logrus.Errorf("error running server: %v", err)
+	if err != nil {
+		logrus.Errorf("error running server: %v", err)
+	}
+
 }
