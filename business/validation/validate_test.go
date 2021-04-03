@@ -55,6 +55,16 @@ func TestValidateUser(t *testing.T) {
 			},
 			expectedError: errTermsMissing,
 		},
+		{
+			name: "missing terms",
+			user: &store.User{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john.doe@test.com",
+				Terms:     true,
+			},
+			expectedError: nil,
+		},
 	}
 
 	for _, sc := range scenarios {
