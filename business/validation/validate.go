@@ -7,28 +7,38 @@ import (
 	"github.com/riyadennis/identity-server/business/store"
 )
 
+var (
+	errEmptyUser        = errors.New("empty user details")
+	errMissingFirstName = errors.New("missing first name")
+	errMissingLastName  = errors.New("missing last name")
+	errMissingEmail     = errors.New("missing email")
+	errInvalidEmail     = errors.New("invalid email")
+	errTermsMissing     = errors.New("please select terms")
+)
+
 // ValidateUser checks registration request validity
 func ValidateUser(u *store.User) error {
 	if u == nil {
-		return errors.New("empty user details")
+		return errEmptyUser
 	}
 	if u.FirstName == "" {
-		return errors.New("missing first name")
+		return errMissingFirstName
 	}
 	if u.LastName == "" {
-		return errors.New("missing last name")
+		return errMissingLastName
 	}
 	if u.Email == "" {
-		return errors.New("missing email")
+		return errMissingEmail
 	}
 
 	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	if !re.MatchString(u.Email) {
-		return errors.New("invalid email")
+		return errInvalidEmail
 	}
 
 	if !u.Terms {
-		return errors.New("please select terms")
+		return errTermsMissing
 	}
+
 	return nil
 }
