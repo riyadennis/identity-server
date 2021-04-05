@@ -3,26 +3,25 @@ package store
 import (
 	"database/sql"
 	"errors"
-	"os"
-
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
 )
 
 // Migrate runs migration on the db specified in the connection
 // will create all the tables in the migrations folder
-func Migrate(db *sql.DB) error {
+func Migrate(db *sql.DB, dbName, basePath string) error {
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
 		return err
 	}
-	if os.Getenv("MYSQL_DATABASE") == "" {
-		return errors.New("no database set in .env")
+
+	if dbName == "" {
+		return errors.New("no database set in  config")
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+os.Getenv("BASE_PATH")+"migrations",
-		os.Getenv("MYSQL_DATABASE"),
+		"file://"+basePath+"migrations",
+		dbName,
 		driver)
 	if err != nil {
 		return err

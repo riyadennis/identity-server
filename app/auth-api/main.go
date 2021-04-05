@@ -40,7 +40,8 @@ func init() {
 }
 
 func main() {
-	db, err := store.Connect(store.NewENVConfig())
+	cfg := store.NewENVConfig()
+	db, err := store.Connect(cfg.DB)
 	if err != nil {
 		logrus.Errorf("failed to connect to database: %v", err)
 	}
@@ -49,7 +50,7 @@ func main() {
 		_ = db.Close()
 	}()
 
-	err = store.Migrate(db)
+	err = store.Migrate(db, cfg.DB.Database, cfg.BasePath)
 	if err != nil {
 		logrus.Errorf("migration failed: %v", err)
 	}

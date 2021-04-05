@@ -32,12 +32,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		logrus.Fatalf("failed to open env file: %v", err)
 	}
-	conn, err = store.Connect(store.NewENVConfig())
+	cfg := store.NewENVConfig()
+	conn, err = store.Connect(cfg.DB)
 	if err != nil {
 		logrus.Fatalf("failed to connect to db: %v", err)
 	}
 
-	err = store.Migrate(conn)
+	err = store.Migrate(conn, cfg.DB.Database, cfg.BasePath)
 	if err != nil {
 		logrus.Fatalf("failed to run migration: %v", err)
 	}
