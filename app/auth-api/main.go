@@ -41,6 +41,7 @@ func init() {
 
 func main() {
 	cfg := store.NewENVConfig()
+
 	db, err := store.Connect(cfg.DB)
 	if err != nil {
 		logrus.Errorf("failed to connect to database: %v", err)
@@ -59,5 +60,4 @@ func main() {
 	if err != nil {
 		logrus.Errorf("error running server: %v", err)
 	}
-
 }
