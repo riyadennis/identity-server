@@ -3,6 +3,7 @@ module github.com/riyadennis/identity-server
 go 1.16
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/containerd/containerd v1.4.4 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

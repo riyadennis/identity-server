@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 
@@ -99,7 +101,7 @@ func userDataFromRequest(r *http.Request) (*store.User, error) {
 }
 
 func storeUser(ctx context.Context, store store.Store, u *store.User) error {
-	err := store.Insert(ctx, u)
+	err := store.Insert(ctx, u, uuid.New().String())
 	if err != nil {
 		logrus.Errorf("failed to register :: %v", err)
 		return err

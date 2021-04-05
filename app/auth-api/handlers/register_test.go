@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	// initialise mysql driver
 	_ "github.com/go-sql-driver/mysql"
@@ -131,7 +132,7 @@ func TestRegister(t *testing.T) {
 				foundation.DatabaseError),
 		},
 		{
-			name:             "valid data valid connection",
+			name:             "success",
 			req:              registerPayLoad(t, user(t)),
 			conn:             conn,
 			expectedResponse: foundation.NewResponse(http.StatusOK, "", ""),
@@ -155,8 +156,7 @@ func registerPayLoad(t *testing.T, u *store.User) *http.Request {
 	if err != nil {
 		t.Error(err)
 	}
-	req := httptest.NewRequest("POST", "/register",
-		bytes.NewReader(jB))
+	req := httptest.NewRequest("POST", "/register", bytes.NewReader(jB))
 	req.Header.Set("content-type", "application/json")
 	return req
 }

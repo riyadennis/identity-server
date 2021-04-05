@@ -5,9 +5,13 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	errEmptyUser   = errors.New("empty user")
+	errEmptyUserID = errors.New("empty user id")
 )
 
 // User hold information needed to complete user registration
@@ -36,22 +40,32 @@ func NewDB(database *sql.DB) *DB {
 
 // Store have CRUD functions for user management
 type Store interface {
-	Insert(ctx context.Context, u *User) error
+	Insert(ctx context.Context, u *User, uid string) error
 	Read(ctx context.Context, email string) (*User, error)
 	Authenticate(email, password string) (bool, error)
 	Delete(email string) (int64, error)
 }
 
 // Insert creates a new user during registration
-func (id *DB) Insert(ctx context.Context, u *User) error {
-	uid := uuid.New()
+func (d *DB) Insert(ctx context.Context, u *User, uid string) error {
+	if d.Conn == nil {
+		return errEmptyDBConnection
+	}
 
-	insert, err := id.Conn.Prepare(`INSERT INTO identity_users 
+	if u == nil {
+		return errEmptyUser
+	}
+
+	if uid == "" {
+		return errEmptyUserID
+	}
+
+	insert, err := d.Conn.Prepare(`INSERT INTO identity_users 
 (id, first_name, last_name,password,
  email, company, post_code, terms) 
  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
-		logrus.Fatalf("failed to prepare user insert: %v", err)
+		logrus.Errorf("failed to prepare user insert: %v", err)
 		return err
 	}
 
@@ -61,17 +75,18 @@ func (id *DB) Insert(ctx context.Context, u *User) error {
 		logrus.Errorf("failed to insert user data: %v", err)
 		return err
 	}
+
 	return nil
 }
 
 // Read will fetch data from db for a user as per the email
 // will return nil if user is not found
-func (id *DB) Read(ctx context.Context, email string) (*User, error) {
-	if id.Conn == nil {
-		return nil, errors.New("empty db connection")
+func (d *DB) Read(ctx context.Context, email string) (*User, error) {
+	if d.Conn == nil {
+		return nil, errEmptyDBConnection
 	}
 
-	fetch, err := id.Conn.Prepare(
+	fetch, err := d.Conn.Prepare(
 		"SELECT first_name, last_name,company, post_code FROM identity_users where email = ?")
 	if err != nil {
 		return nil, err
@@ -98,8 +113,8 @@ func (id *DB) Read(ctx context.Context, email string) (*User, error) {
 }
 
 // Authenticate checks the validity of a given password for an email
-func (id *DB) Authenticate(email, password string) (bool, error) {
-	login, err := id.Conn.Prepare(`SELECT  password FROM
+func (d *DB) Authenticate(email, password string) (bool, error) {
+	login, err := d.Conn.Prepare(`SELECT  password FROM
 										    identity_users where email = ?`)
 	if err != nil {
 		logrus.Fatalf("%v", err)
@@ -121,8 +136,8 @@ func (id *DB) Authenticate(email, password string) (bool, error) {
 }
 
 // Delete removes an email from db
-func (id *DB) Delete(email string) (int64, error) {
-	remove, err := id.Conn.Prepare(`DELETE  FROM identity_users where email = ?`)
+func (d *DB) Delete(email string) (int64, error) {
+	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users where email = ?`)
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return 0, err
