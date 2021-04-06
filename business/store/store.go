@@ -97,19 +97,14 @@ func (d *DB) Read(ctx context.Context, email string) (*User, error) {
 		return nil, err
 	}
 
-	var fname, lname, post, company string
-	err = rows.Scan(&fname, &lname, &post, &company)
+	user := &User{}
+	err = rows.Scan(&user.FirstName, &user.LastName, &user.PostCode, &user.Company)
 	if errors.Is(err, sql.ErrNoRows) {
 		logrus.Infof("user not found :: %s", email)
 		return nil, nil
 	}
-	u := &User{
-		FirstName: fname,
-		LastName:  lname,
-		Company:   company,
-		PostCode:  post,
-	}
-	return u, nil
+
+	return user, nil
 }
 
 // Authenticate checks the validity of a given password for an email
