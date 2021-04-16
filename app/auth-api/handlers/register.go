@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
-
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 
@@ -70,7 +68,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 		return
 	}
 
-	err = storeUser(ctx, h.Store, u)
+	err = h.Store.Insert(ctx, u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
@@ -85,12 +83,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 	}
 }
 
-func userDataFromRequest(r *http.Request) (*store.User, error) {
+func userDataFromRequest(r *http.Request) (*store.UserRequest, error) {
 	if r == nil {
 		return nil, errors.New("empty request")
 	}
 	reqID := r.Context().Value("reqID")
-	u := &store.User{}
+	u := &store.UserRequest{}
 	err := foundation.RequestBody(r, u)
 	if err != nil {
 		logrus.Errorf("requestID %s failed to read request body :: %v", reqID, err)
@@ -98,15 +96,6 @@ func userDataFromRequest(r *http.Request) (*store.User, error) {
 	}
 
 	return u, nil
-}
-
-func storeUser(ctx context.Context, store store.Store, u *store.User) error {
-	err := store.Insert(ctx, u, uuid.New().String())
-	if err != nil {
-		logrus.Errorf("failed to register :: %v", err)
-		return err
-	}
-	return nil
 }
 
 func userExists(ctx context.Context, store store.Store, email string) (bool, error) {

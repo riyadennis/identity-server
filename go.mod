@@ -17,6 +17,7 @@ require (
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
+	github.com/google/jsonapi v1.0.0 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/joho/godotenv v1.3.0
 	github.com/jpoles1/gopherbadger v2.4.0+incompatible // indirect

@@ -2,14 +2,15 @@ package validation
 
 import (
 	"errors"
-	"github.com/riyadennis/identity-server/business/store"
 	"testing"
+
+	"github.com/riyadennis/identity-server/business/store"
 )
 
 func TestValidateUser(t *testing.T) {
 	scenarios := []struct {
 		name          string
-		user          *store.User
+		user          *store.UserRequest
 		expectedError error
 	}{
 		{
@@ -19,19 +20,19 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name:          "missing first name",
-			user:          &store.User{},
+			user:          &store.UserRequest{},
 			expectedError: errMissingFirstName,
 		},
 		{
 			name: "missing last name",
-			user: &store.User{
+			user: &store.UserRequest{
 				FirstName: "John",
 			},
 			expectedError: errMissingLastName,
 		},
 		{
 			name: "missing email",
-			user: &store.User{
+			user: &store.UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 			},
@@ -39,7 +40,7 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name: "invalid email",
-			user: &store.User{
+			user: &store.UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "INVALID",
@@ -48,7 +49,7 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			user: &store.User{
+			user: &store.UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john.doe@test.com",
@@ -57,7 +58,7 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			user: &store.User{
+			user: &store.UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john.doe@test.com",

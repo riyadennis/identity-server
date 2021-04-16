@@ -9,7 +9,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/google/jsonapi"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -63,7 +66,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing email",
-			req: registerPayLoad(t, &store.User{
+			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "",
@@ -74,7 +77,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing first name",
-			req: registerPayLoad(t, &store.User{
+			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "",
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
@@ -85,7 +88,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing last name",
-			req: registerPayLoad(t, &store.User{
+			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "John",
 				LastName:  "",
 				Email:     "joh@doe.com",
@@ -96,7 +99,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			req: registerPayLoad(t, &store.User{
+			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "joh@doe.com",
@@ -151,12 +154,15 @@ func TestRegister(t *testing.T) {
 	}
 }
 
-func registerPayLoad(t *testing.T, u *store.User) *http.Request {
-	jB, err := json.Marshal(u)
+func registerPayLoad(t *testing.T, u *store.UserRequest) *http.Request {
+	var buff bytes.Buffer
+
+	err := jsonapi.MarshalPayload(&buff, u)
 	if err != nil {
 		t.Error(err)
 	}
-	req := httptest.NewRequest("POST", "/register", bytes.NewReader(jB))
+
+	req := httptest.NewRequest("POST", "/register", strings.NewReader(buff.String()))
 	req.Header.Set("content-type", "application/json")
 	return req
 }
@@ -188,7 +194,7 @@ func TestUserDataFromRequest(t *testing.T) {
 	scenarios := []struct {
 		name          string
 		request       *http.Request
-		expectedUser  *store.User
+		expectedUser  *store.UserRequest
 		expectedError string
 	}{
 		{
@@ -213,7 +219,7 @@ func TestUserDataFromRequest(t *testing.T) {
 				return req
 			}(),
 			expectedUser:  nil,
-			expectedError: "unexpected end of JSON input",
+			expectedError: "EOF",
 		},
 	}
 
@@ -228,17 +234,16 @@ func TestUserDataFromRequest(t *testing.T) {
 	}
 }
 
-func user(t *testing.T) *store.User {
+func user(t *testing.T) *store.UserRequest {
 	t.Helper()
-	u := &store.User{
-		FirstName:        "John",
-		LastName:         "Doe",
-		Email:            "joh@doe.com",
-		Password:         "testPassword",
-		Company:          "testCompany",
-		PostCode:         "E112QD",
-		Terms:            true,
-		RegistrationDate: "",
+	u := &store.UserRequest{
+		FirstName: "John",
+		LastName:  "Doe",
+		Email:     "joh@doe.com",
+		Password:  "testPassword",
+		Company:   "testCompany",
+		PostCode:  "E112QD",
+		Terms:     true,
 	}
 	return u
 }

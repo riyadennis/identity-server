@@ -17,7 +17,7 @@ var (
 )
 
 // ValidateUser checks registration request validity
-func ValidateUser(u *store.User) error {
+func ValidateUser(u *store.UserRequest) error {
 	if u == nil {
 		return errEmptyUser
 	}

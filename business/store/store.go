@@ -5,25 +5,39 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/google/uuid"
+
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	errEmptyUser   = errors.New("empty user")
-	errEmptyUserID = errors.New("empty user id")
+	errEmptyUser = errors.New("empty user")
 )
 
-// User hold information needed to complete user registration
-type User struct {
-	FirstName        string `json:"first_name"`
-	LastName         string `json:"last_name"`
-	Email            string `json:"email"`
-	Password         string `json:"password"`
-	Company          string `json:"company"`
-	PostCode         string `json:"post_code"`
-	Terms            bool   `json:"terms"`
-	RegistrationDate string
+// UserRequest hold data from registration request body
+type UserRequest struct {
+	FirstName string `jsonapi:"attr,first_name"`
+	LastName  string `jsonapi:"attr,last_name"`
+	Email     string `jsonapi:"attr,email"`
+	Password  string `jsonapi:"attr,password"`
+	Company   string `jsonapi:"attr,company"`
+	PostCode  string `jsonapi:"attr,post_code"`
+	Terms     bool   `jsonapi:"attr,terms"`
+}
+
+// UserResource hold data about user in the database
+type UserResource struct {
+	ID        string `jsonapi:"attr,id"`
+	FirstName string `jsonapi:"attr,first_name"`
+	LastName  string `jsonapi:"attr,last_name"`
+	Email     string `jsonapi:"attr,email"`
+	Password  string `jsonapi:"attr,password"`
+	Company   string `jsonapi:"attr,company"`
+	PostCode  string `jsonapi:"attr,post_code"`
+	Terms     bool   `jsonapi:"attr,terms"`
+	CreatedAt string `jsonapi:"attr,created_at"`
+	UpdatedAt string `jsonapi:"attr,updated_at"`
 }
 
 // DB implements store interface
@@ -40,14 +54,14 @@ func NewDB(database *sql.DB) *DB {
 
 // Store have CRUD functions for user management
 type Store interface {
-	Insert(ctx context.Context, u *User, uid string) error
-	Read(ctx context.Context, email string) (*User, error)
+	Insert(ctx context.Context, u *UserRequest) error
+	Read(ctx context.Context, email string) (*UserResource, error)
 	Authenticate(email, password string) (bool, error)
 	Delete(email string) (int64, error)
 }
 
 // Insert creates a new user during registration
-func (d *DB) Insert(ctx context.Context, u *User, uid string) error {
+func (d *DB) Insert(ctx context.Context, u *UserRequest) error {
 	if d.Conn == nil {
 		return errEmptyDBConnection
 	}
@@ -56,9 +70,7 @@ func (d *DB) Insert(ctx context.Context, u *User, uid string) error {
 		return errEmptyUser
 	}
 
-	if uid == "" {
-		return errEmptyUserID
-	}
+	id := uuid.New().String()
 
 	insert, err := d.Conn.Prepare(`INSERT INTO identity_users 
 (id, first_name, last_name,password,
@@ -69,7 +81,7 @@ func (d *DB) Insert(ctx context.Context, u *User, uid string) error {
 		return err
 	}
 
-	_, err = insert.ExecContext(ctx, uid, u.FirstName, u.LastName,
+	_, err = insert.ExecContext(ctx, id, u.FirstName, u.LastName,
 		u.Password, u.Email, u.Company, u.PostCode, u.Terms)
 	if err != nil {
 		logrus.Errorf("failed to insert user data: %v", err)
@@ -79,15 +91,23 @@ func (d *DB) Insert(ctx context.Context, u *User, uid string) error {
 	return nil
 }
 
-// Read will fetch data from db for a user as per the email
+// Retrieve will fetch data from db for a user as per the id
 // will return nil if user is not found
-func (d *DB) Read(ctx context.Context, email string) (*User, error) {
+func (d *DB) Retrieve(ctx context.Context, email string) (*UserResource, error) {
 	if d.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
 
 	fetch, err := d.Conn.Prepare(
-		"SELECT first_name, last_name,company, post_code FROM identity_users where email = ?")
+		`SELECT id,
+       first_name,
+       last_name,
+       company,
+       post_code,
+       created_at,
+       updated_at,
+		FROM identity_users 
+		where email = ?`)
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +117,62 @@ func (d *DB) Read(ctx context.Context, email string) (*User, error) {
 		return nil, err
 	}
 
-	user := &User{}
-	err = rows.Scan(&user.FirstName, &user.LastName, &user.PostCode, &user.Company)
+	user := &UserResource{}
+	err = rows.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.PostCode,
+		&user.Company,
+		&user.PostCode,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		logrus.Infof("user not found :: %s", email)
+		return nil, nil
+	}
+
+	return user, nil
+}
+
+// Read will fetch data from db for a user as per the email
+// will return nil if user is not found
+func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
+	if d.Conn == nil {
+		return nil, errEmptyDBConnection
+	}
+
+	fetch, err := d.Conn.Prepare(
+		`SELECT id,
+       first_name,
+       last_name,
+       company,
+       post_code,
+       created_at,
+       updated_at
+		FROM identity_users 
+		where email = ?`)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := fetch.QueryContext(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	user := &UserResource{}
+	err = rows.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.PostCode,
+		&user.Company,
+		&user.PostCode,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
 	if errors.Is(err, sql.ErrNoRows) {
 		logrus.Infof("user not found :: %s", email)
 		return nil, nil

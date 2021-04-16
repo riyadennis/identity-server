@@ -14,7 +14,7 @@ func TestDBInsertSuccess(t *testing.T) {
 	scenarios := []struct {
 		name        string
 		db          *DB
-		user        *User
+		user        *UserRequest
 		uid         string
 		expectedErr error
 	}{
@@ -30,21 +30,9 @@ func TestDBInsertSuccess(t *testing.T) {
 			expectedErr: errEmptyUser,
 		},
 		{
-			name: "empty uuid",
-			db:   &DB{Conn: conn},
-			user: &User{
-				FirstName: "John",
-				LastName:  "Doe",
-				Email:     "john.doe@test.com",
-				Password:  "check",
-				Terms:     true,
-			},
-			expectedErr: errEmptyUserID,
-		},
-		{
 			name: "success",
 			db:   &DB{Conn: conn},
-			user: &User{
+			user: &UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john.doe@test.com",
@@ -58,7 +46,7 @@ func TestDBInsertSuccess(t *testing.T) {
 
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			err := sc.db.Insert(context.Background(), sc.user, sc.uid)
+			err := sc.db.Insert(context.Background(), sc.user)
 			if !errors.Is(err, sc.expectedErr) {
 				t.Fatalf("unexpected error, wanted %v, got %v", sc.expectedErr, err)
 			}
@@ -72,7 +60,7 @@ func TestDBInsertExecuteFail(t *testing.T) {
 		t.Fatalf("mock initailisation failed: %v", err)
 	}
 	uid := uuid.New().String()
-	user := &User{
+	user := &UserRequest{
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     "john.doe@test.com",
@@ -83,7 +71,7 @@ func TestDBInsertExecuteFail(t *testing.T) {
 		WithArgs(uid, user.FirstName, user.LastName, user.Password,
 			user.Email, user.Company, user.PostCode, user.Terms).
 		WillReturnResult(nil)
-	err = NewDB(conn).Insert(context.Background(), user, uid)
+	err = NewDB(conn).Insert(context.Background(), user)
 	if err == nil {
 		t.Fail()
 	}
@@ -94,8 +82,8 @@ func TestDBInsertPrepareFail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("mock initailisation failed: %v", err)
 	}
-	uid := uuid.New().String()
-	user := &User{
+
+	user := &UserRequest{
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     "john.doe@test.com",
@@ -103,7 +91,7 @@ func TestDBInsertPrepareFail(t *testing.T) {
 		Terms:     true,
 	}
 	mock.ExpectPrepare("INSERT INTO identity_users").WillReturnError(mysql.ErrNoDatabaseName)
-	err = NewDB(conn).Insert(context.Background(), user, uid)
+	err = NewDB(conn).Insert(context.Background(), user)
 	if err == nil {
 		t.Fail()
 	}

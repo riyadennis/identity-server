@@ -1,11 +1,10 @@
 package foundation
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
-	"io/ioutil"
 	"net/http"
+
+	"github.com/google/jsonapi"
 )
 
 // RequestBody is used by POST end points to convert the request body to a struct
@@ -15,16 +14,7 @@ func RequestBody(r *http.Request, resource interface{}) error {
 		return err
 	}
 
-	data, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		if err == io.EOF {
-			err := errors.New("empty request body")
-			return err
-		}
-		return err
-	}
-
-	err = json.Unmarshal(data, resource)
+	err := jsonapi.UnmarshalPayload(r.Body, resource)
 	if err != nil {
 		return err
 	}
