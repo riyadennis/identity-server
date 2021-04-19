@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -68,19 +67,15 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 		return
 	}
 
-	err = h.Store.Insert(ctx, u)
+	resource, err := h.Store.Insert(ctx, u)
 	if err != nil {
 		logrus.Errorf("failed to save user  :: %v", err)
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	err = foundation.JSONResponse(w, http.StatusOK,
-		fmt.Sprintf("your generated password : %s", password),
-		"")
-	if err != nil {
-		logrus.Error(err)
-	}
+	resource.Password = password
+
+	_ = foundation.Resource(w, http.StatusCreated, resource)
 }
 
 func userDataFromRequest(r *http.Request) (*store.UserRequest, error) {

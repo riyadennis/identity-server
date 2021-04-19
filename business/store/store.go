@@ -17,6 +17,7 @@ var (
 
 // UserRequest hold data from registration request body
 type UserRequest struct {
+	ID        string `jsonapi:"primary,user"`
 	FirstName string `jsonapi:"attr,first_name"`
 	LastName  string `jsonapi:"attr,last_name"`
 	Email     string `jsonapi:"attr,email"`
@@ -28,7 +29,7 @@ type UserRequest struct {
 
 // UserResource hold data about user in the database
 type UserResource struct {
-	ID        string `jsonapi:"attr,id"`
+	ID        string `jsonapi:"primary,user"`
 	FirstName string `jsonapi:"attr,first_name"`
 	LastName  string `jsonapi:"attr,last_name"`
 	Email     string `jsonapi:"attr,email"`
@@ -54,20 +55,20 @@ func NewDB(database *sql.DB) *DB {
 
 // Store have CRUD functions for user management
 type Store interface {
-	Insert(ctx context.Context, u *UserRequest) error
+	Insert(ctx context.Context, u *UserRequest) (*UserResource, error)
 	Read(ctx context.Context, email string) (*UserResource, error)
 	Authenticate(email, password string) (bool, error)
 	Delete(email string) (int64, error)
 }
 
 // Insert creates a new user during registration
-func (d *DB) Insert(ctx context.Context, u *UserRequest) error {
+func (d *DB) Insert(ctx context.Context, u *UserRequest) (*UserResource, error) {
 	if d.Conn == nil {
-		return errEmptyDBConnection
+		return nil, errEmptyDBConnection
 	}
 
 	if u == nil {
-		return errEmptyUser
+		return nil, errEmptyUser
 	}
 
 	id := uuid.New().String()
@@ -78,61 +79,61 @@ func (d *DB) Insert(ctx context.Context, u *UserRequest) error {
  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		logrus.Errorf("failed to prepare user insert: %v", err)
-		return err
+		return nil, err
 	}
 
 	_, err = insert.ExecContext(ctx, id, u.FirstName, u.LastName,
 		u.Password, u.Email, u.Company, u.PostCode, u.Terms)
 	if err != nil {
 		logrus.Errorf("failed to insert user data: %v", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return d.Retrieve(ctx, id)
 }
 
 // Retrieve will fetch data from db for a user as per the id
 // will return nil if user is not found
-func (d *DB) Retrieve(ctx context.Context, email string) (*UserResource, error) {
+func (d *DB) Retrieve(ctx context.Context, id string) (*UserResource, error) {
 	if d.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
 
 	fetch, err := d.Conn.Prepare(
-		`SELECT id,
+		`SELECT
        first_name,
        last_name,
+       email,
        company,
        post_code,
        created_at,
-       updated_at,
+       updated_at
 		FROM identity_users 
-		where email = ?`)
+		where id = ? limit 1`)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := fetch.QueryContext(ctx, email)
-	if err != nil {
-		return nil, err
-	}
-
+	row := fetch.QueryRowContext(ctx, id)
 	user := &UserResource{}
-	err = rows.Scan(
-		&user.ID,
+	err = row.Scan(
 		&user.FirstName,
 		&user.LastName,
-		&user.PostCode,
+		&user.Email,
 		&user.Company,
 		&user.PostCode,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	if errors.Is(err, sql.ErrNoRows) {
-		logrus.Infof("user not found :: %s", email)
-		return nil, nil
-	}
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logrus.Infof("user not found :: %s", id)
+			return nil, nil
+		}
 
+		return nil, err
+	}
+	user.ID = id
 	return user, nil
 }
 

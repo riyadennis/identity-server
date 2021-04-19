@@ -3,6 +3,8 @@ package foundation
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/google/jsonapi"
 )
 
 // Response is the response structure for error messages
@@ -38,4 +40,13 @@ func NewResponse(status int, message, errCode string) *Response {
 		Message:   message,
 		ErrorCode: errCode,
 	}
+}
+
+// Resource writes a JSON API compliant resource response
+// More here: https://jsonapi.org/format/#document-resource-objects
+func Resource(w http.ResponseWriter, status int, resource interface{}) error {
+	w.Header().Set("Content-Type", jsonapi.MediaType)
+	w.WriteHeader(status)
+
+	return jsonapi.MarshalPayload(w, resource)
 }

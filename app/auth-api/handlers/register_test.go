@@ -138,7 +138,7 @@ func TestRegister(t *testing.T) {
 			name:             "success",
 			req:              registerPayLoad(t, user(t)),
 			conn:             conn,
-			expectedResponse: foundation.NewResponse(http.StatusOK, "", ""),
+			expectedResponse: foundation.NewResponse(http.StatusCreated, "", ""),
 		},
 	}
 	for _, sc := range scenarios {
@@ -149,7 +149,7 @@ func TestRegister(t *testing.T) {
 			resp := responseFromHTTP(t, w.Body)
 			// TODO assert message also
 			assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
-			assert.Equal(t, sc.expectedResponse.Status, resp.Status)
+			assert.Equal(t, sc.expectedResponse.Status, w.Code)
 		})
 	}
 }

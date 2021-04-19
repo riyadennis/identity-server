@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -46,9 +47,12 @@ func TestDBInsertSuccess(t *testing.T) {
 
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			err := sc.db.Insert(context.Background(), sc.user)
+			re, err := sc.db.Insert(context.Background(), sc.user)
 			if !errors.Is(err, sc.expectedErr) {
 				t.Fatalf("unexpected error, wanted %v, got %v", sc.expectedErr, err)
+			}
+			if re != nil {
+				assert.Equal(t, re.Email, sc.user.Email)
 			}
 		})
 	}
@@ -71,7 +75,7 @@ func TestDBInsertExecuteFail(t *testing.T) {
 		WithArgs(uid, user.FirstName, user.LastName, user.Password,
 			user.Email, user.Company, user.PostCode, user.Terms).
 		WillReturnResult(nil)
-	err = NewDB(conn).Insert(context.Background(), user)
+	_, err = NewDB(conn).Insert(context.Background(), user)
 	if err == nil {
 		t.Fail()
 	}
@@ -91,7 +95,7 @@ func TestDBInsertPrepareFail(t *testing.T) {
 		Terms:     true,
 	}
 	mock.ExpectPrepare("INSERT INTO identity_users").WillReturnError(mysql.ErrNoDatabaseName)
-	err = NewDB(conn).Insert(context.Background(), user)
+	_, err = NewDB(conn).Insert(context.Background(), user)
 	if err == nil {
 		t.Fail()
 	}
