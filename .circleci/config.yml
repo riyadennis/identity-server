@@ -64,8 +64,11 @@ jobs:
             go test -v ./... -count=1
       - run:
           name: Build
+          environment:
+            CGO_ENABLED:0
+            GOOS:linux
           command: |
-            RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -o /tmp/build/identity
+            go build -mod=readonly -v -o /tmp/build/identity
       - run:
           name: Running web server
           background: true
