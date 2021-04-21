@@ -53,14 +53,17 @@ jobs:
           name: Install MySQL CLI; Import dummy data; run an example query
           command: |
             sudo apt-get update && sudo apt-get install libxml2-dev default-mysql-client
-      - run: Pull dependencies
-         command: |
-          go get -v -t -d ./...
-      - run: Unit test
+      - run:
+          name: Pull dependencies
+          command: |
+            go get -v -t -d ./...
+      - run:
+          name: Unit test
           command: |
             printenv | grep MYSQL > .env_test
             go test -v ./... -count=1
-      - run: Build
+      - run:
+          name: Build
           command: |
             RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -o /tmp/build/identity
       - run:
