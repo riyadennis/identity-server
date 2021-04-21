@@ -69,6 +69,7 @@ jobs:
             GOOS: "linux"
           command: |
             GOOS=linux go build -o main app/auth-api/main.go
+      - run: docker cp main /tmp/main
       - run:
           name: Running web server
           background: true
