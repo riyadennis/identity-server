@@ -2,6 +2,7 @@ version: 2
 jobs:
   build:
     working_directory: ~/go/src/github.com/riyadennis/identity-server
+    parallelism: 2
     docker:
       - image: circleci/golang:1.16 # The primary container where steps are run
       - image: circleci/mysql:5.7.18
@@ -57,6 +58,7 @@ jobs:
           command: |
             printenv | grep MYSQL > .env_test
             go test -v ./... -count=1
+      - run: make
       - run:
           name: Running web server
           background: true

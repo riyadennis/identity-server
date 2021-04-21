@@ -1,6 +1,8 @@
 FROM golang:latest
-RUN mkdir identity-server
-ADD .  /identity-server/
+COPY go.* /identity-server
 WORKDIR /identity-server
+
+RUN go mod download
+
 RUN go build -o identity-server .
 CMD ["./identity-server"]
