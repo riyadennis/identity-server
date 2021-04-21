@@ -65,10 +65,10 @@ jobs:
       - run:
           name: Build
           environment:
-            CGO_ENABLED:0
-            GOOS:linux
+            CGO_ENABLED: "0"
+            GOOS: "linux"
           command: |
-            go build -mod=readonly -v -o /tmp/build/identity
+            GOOS=linux go build -o main app/auth-api/main.go
       - run:
           name: Running web server
           background: true
@@ -80,7 +80,6 @@ jobs:
     steps:
       - checkout
       - run: docker build -t riyadennis/identity-server:$CIRCLE_BRANCH .
-
       - run: docker push riyadennis/identity-server:$CIRCLE_BRANCH
 workflows:
   version: 2
