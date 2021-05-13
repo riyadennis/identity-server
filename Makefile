@@ -2,7 +2,8 @@ docker-build:
 	docker build -t riyadennis/identity-server .
 
 docker-push:
-	docker push riyadennis/identity-server:latest
+	# need to do the push with a new tag
+	docker push riyadennis/identity-server:1.0.2
 
 helm-install:
 	helm install identity ./zarf/identity
