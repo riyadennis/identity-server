@@ -76,16 +76,9 @@ jobs:
           command: |
               printenv | grep MYSQL > .env
               go run main.go
-  build_docker:
-    machine: true
-    steps:
-      - checkout
-      - run: docker build -t riyadennis/identity-server:$CIRCLE_BRANCH .
-      - run: docker push riyadennis/identity-server:$CIRCLE_BRANCH
 workflows:
   version: 2
   build-deploy:
     jobs:
       - build
-      - build_docker
 

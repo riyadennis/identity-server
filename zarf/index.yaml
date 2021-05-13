@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  identity:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2021-05-13T10:31:06.121138+01:00"
+    description: A Helm chart for Kubernetes
+    digest: 667922a67ab5f2334e26a33d5d54f6c492117846655cfa2ec675e03f96193aa3
+    name: identity
+    type: application
+    urls:
+    - https://riyadennis.github.io/identity-server/identity-0.1.0.tgz
+    version: 0.1.0
+generated: "2021-05-13T10:31:06.118985+01:00"
