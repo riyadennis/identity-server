@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/riyadennis/identity-server/business/store"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/riyadennis/identity-server/business/store"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
@@ -56,10 +57,8 @@ func NewServer(addr string) *Server {
 
 // Run registers routes and starts web server
 // and waits to receive from shutdown and error channels
-func (s *Server) Run(conn *sql.DB) error {
-	h := &Handler{
-		Store: store.NewDB(conn),
-	}
+func (s *Server) Run(conn *sql.DB, logger *log.Logger) error {
+	h := NewHandler(store.NewDB(conn), logger)
 
 	router := httprouter.New()
 	// register routes here

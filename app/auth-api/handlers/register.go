@@ -3,10 +3,10 @@ package handlers
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/sirupsen/logrus"
 
 	"github.com/riyadennis/identity-server/business"
 	"github.com/riyadennis/identity-server/business/store"
@@ -17,59 +17,73 @@ import (
 // Handler have common setup needed to run the handlers
 // its helps to reuse open db connection
 type Handler struct {
-	Store store.Store
+	Store  *store.DB
+	Logger *log.Logger
+}
+
+func NewHandler(store *store.DB, logger *log.Logger) *Handler {
+	return &Handler{
+		Store:  store,
+		Logger: logger,
+	}
 }
 
 // Register is the handler function that will process
 // rest call to register endpoint
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	u, err := userDataFromRequest(r)
+	u := &store.UserRequest{}
+
+	err := foundation.RequestBody(r, u)
 	if err != nil {
+		h.Logger.Printf("invalid data in request: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.InvalidRequest)
 		return
 	}
 
 	err = validation.ValidateUser(u)
 	if err != nil {
-		logrus.Errorf("validation failed :: %v", err)
-		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.ValidationFailed)
-		return
-	}
+		h.Logger.Printf("validation failed:%v", err)
 
-	if h.Store == nil {
-		logrus.Error("invalid db connection")
-		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			errors.New("invalid db connection"), foundation.DatabaseError)
+		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.ValidationFailed)
 		return
 	}
 
 	ctx := r.Context()
 	exists, err := userExists(ctx, h.Store, u.Email)
 	if err != nil {
-		// already logged
+		h.Logger.Println("failed to check user in database: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 		return
 	}
 	if exists {
+		h.Logger.Println("user already exists: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusBadRequest, errors.New("email already exists"), foundation.EmailAlreadyExists)
 		return
 	}
 
 	password, err := business.GeneratePassword()
 	if err != nil {
+		h.Logger.Println("failed to generate password: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.PassWordError)
 		return
 	}
 
 	u.Password, err = business.EncryptPassword(password)
 	if err != nil {
+		h.Logger.Println("password encryption failed: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.PassWordError)
 		return
 	}
 
 	resource, err := h.Store.Insert(ctx, u)
 	if err != nil {
-		logrus.Errorf("failed to save user  :: %v", err)
+		h.Logger.Println("failed to save user: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 	}
 
@@ -79,14 +93,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 }
 
 func userDataFromRequest(r *http.Request) (*store.UserRequest, error) {
-	if r == nil {
-		return nil, errors.New("empty request")
-	}
-	reqID := r.Context().Value("reqID")
 	u := &store.UserRequest{}
 	err := foundation.RequestBody(r, u)
 	if err != nil {
-		logrus.Errorf("requestID %s failed to read request body :: %v", reqID, err)
 		return nil, err
 	}
 
@@ -96,7 +105,6 @@ func userDataFromRequest(r *http.Request) (*store.UserRequest, error) {
 func userExists(ctx context.Context, store store.Store, email string) (bool, error) {
 	selectUser, err := store.Read(ctx, email)
 	if err != nil {
-		logrus.Errorf("failed to check for user in database :: %v", err)
 		return false, err
 	}
 

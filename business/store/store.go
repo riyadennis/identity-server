@@ -153,7 +153,7 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
        created_at,
        updated_at
 		FROM identity_users 
-		where email = ?`)
+		where email = ? limit 1`)
 	if err != nil {
 		return nil, err
 	}

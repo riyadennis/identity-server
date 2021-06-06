@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -144,7 +145,7 @@ func TestRegister(t *testing.T) {
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			h := &Handler{store.NewDB(sc.conn)}
+			h := NewHandler(store.NewDB(sc.conn), &log.Logger{})
 			h.Register(w, sc.req, nil)
 			resp := responseFromHTTP(t, w.Body)
 			// TODO assert message also
@@ -187,50 +188,6 @@ func TestGeneratePassword(t *testing.T) {
 	}
 	if pass == "" {
 		t.Error("empty password")
-	}
-}
-
-func TestUserDataFromRequest(t *testing.T) {
-	scenarios := []struct {
-		name          string
-		request       *http.Request
-		expectedUser  *store.UserRequest
-		expectedError string
-	}{
-		{
-			name:          "empty request",
-			request:       nil,
-			expectedUser:  nil,
-			expectedError: "empty request",
-		},
-		{
-			name: "missing content type",
-			request: &http.Request{
-				Header: nil,
-			},
-			expectedUser:  nil,
-			expectedError: "invalid content type",
-		},
-		{
-			name: "missing body",
-			request: func() *http.Request {
-				req := httptest.NewRequest("POST", "/register", nil)
-				req.Header.Set("content-type", "application/json")
-				return req
-			}(),
-			expectedUser:  nil,
-			expectedError: "EOF",
-		},
-	}
-
-	for _, sc := range scenarios {
-		t.Run(sc.name, func(t *testing.T) {
-			u, err := userDataFromRequest(sc.request)
-			assert.Equal(t, sc.expectedUser, u)
-			if err != nil {
-				assert.Equal(t, sc.expectedError, err.Error())
-			}
-		})
 	}
 }
 
