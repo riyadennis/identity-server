@@ -1,4 +1,3 @@
-MySQL/.env
 .env_test
 *.log
 .env
