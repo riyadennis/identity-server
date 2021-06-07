@@ -56,7 +56,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 	}
 
 	if userExists.Email == u.Email {
-		h.Logger.Printf("email already exists: %#v", userExists)
+		h.Logger.Printf("email already exists: %#v", userExists.Email)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest, errors.New("email already exists"), foundation.EmailAlreadyExists)
 		return
