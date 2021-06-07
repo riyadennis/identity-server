@@ -19,3 +19,9 @@ docker-run-test:
 	docker run -d --rm -e ENV='test' -e PORT=":8095" -e KEY="this-should-be-secret-shared-only-to-client" \
     -e ISSUER="riya-dennis" -p 8088:8088 --name identity-server-test --network backend riyadennis/identity-server
 
+tag:
+	git tag -a v0.1.4 -m "fix for duplicate entries"
+	git push origin v0.1.4
+
+githubToken:
+	export GITLAB_TOKEN="your token"
