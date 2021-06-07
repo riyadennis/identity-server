@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,7 +52,7 @@ func TestLogin(t *testing.T) {
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
-			h := &Handler{store.NewDB(conn)}
+			h := NewHandler(dbConn, testLogger)
 			h.Login(rr, sc.request, nil)
 			re := response(t, rr.Body)
 			assert.Equal(t, sc.response, re)

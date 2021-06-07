@@ -30,15 +30,21 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
-var conn *sql.DB
+var (
+	dbConn     *store.DB
+	testLogger *log.Logger
+	testEmail  string
+)
 
 func TestMain(m *testing.M) {
 	err := godotenv.Load("../../../.env_test")
 	if err != nil {
 		logrus.Fatalf("failed to open env file: %v", err)
 	}
+
 	cfg := store.NewENVConfig()
-	conn, err = store.Connect(cfg.DB)
+
+	conn, err := store.Connect(cfg.DB)
 	if err != nil {
 		logrus.Fatalf("failed to connect to db: %v", err)
 	}
@@ -48,7 +54,18 @@ func TestMain(m *testing.M) {
 		logrus.Fatalf("failed to run migration: %v", err)
 	}
 
-	os.Exit(m.Run())
+	dbConn = store.NewDB(conn)
+	testLogger = log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	testEmail = "joh@doe.com"
+
+	code := m.Run()
+
+	_, err = dbConn.Delete(testEmail)
+	if err != nil {
+		logrus.Fatalf("failed to connect to db: %v", err)
+	}
+
+	os.Exit(code)
 }
 
 func TestRegister(t *testing.T) {
@@ -81,7 +98,7 @@ func TestRegister(t *testing.T) {
 			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "",
 				LastName:  "Doe",
-				Email:     "joh@doe.com",
+				Email:     testEmail,
 			}),
 			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"missing first name",
@@ -92,7 +109,7 @@ func TestRegister(t *testing.T) {
 			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "John",
 				LastName:  "",
-				Email:     "joh@doe.com",
+				Email:     testEmail,
 			}),
 			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"missing first name",
@@ -103,7 +120,7 @@ func TestRegister(t *testing.T) {
 			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
-				Email:     "joh@doe.com",
+				Email:     testEmail,
 			}),
 			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
 				"missing terms",
@@ -121,31 +138,16 @@ func TestRegister(t *testing.T) {
 				foundation.ValidationFailed),
 		},
 		{
-			name: "valid data empty connection",
-			req:  registerPayLoad(t, user(t)),
-			expectedResponse: foundation.NewResponse(http.StatusInternalServerError,
-				"your generated password : GeneratedPassword",
-				foundation.DatabaseError),
-		},
-		{
-			name: "valid data empty connection",
-			req:  registerPayLoad(t, user(t)),
-			conn: nil,
-			expectedResponse: foundation.NewResponse(http.StatusInternalServerError,
-				"your generated password : GeneratedPassword",
-				foundation.DatabaseError),
-		},
-		{
 			name:             "success",
 			req:              registerPayLoad(t, user(t)),
-			conn:             conn,
+			conn:             dbConn.Conn,
 			expectedResponse: foundation.NewResponse(http.StatusCreated, "", ""),
 		},
 	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			h := NewHandler(store.NewDB(sc.conn), &log.Logger{})
+			h := NewHandler(store.NewDB(sc.conn), testLogger)
 			h.Register(w, sc.req, nil)
 			resp := responseFromHTTP(t, w.Body)
 			// TODO assert message also
@@ -169,6 +171,8 @@ func registerPayLoad(t *testing.T, u *store.UserRequest) *http.Request {
 }
 
 func responseFromHTTP(t *testing.T, data io.Reader) *foundation.Response {
+	t.Helper()
+
 	resp := &foundation.Response{}
 	b, err := ioutil.ReadAll(data)
 	if err != nil {
@@ -178,10 +182,13 @@ func responseFromHTTP(t *testing.T, data io.Reader) *foundation.Response {
 	if err != nil {
 		t.Error(err)
 	}
+
 	return resp
 }
 
 func TestGeneratePassword(t *testing.T) {
+	t.Helper()
+
 	pass, err := business.GeneratePassword()
 	if err != nil {
 		t.Error(err)
@@ -193,10 +200,11 @@ func TestGeneratePassword(t *testing.T) {
 
 func user(t *testing.T) *store.UserRequest {
 	t.Helper()
+
 	u := &store.UserRequest{
 		FirstName: "John",
 		LastName:  "Doe",
-		Email:     "joh@doe.com",
+		Email:     testEmail,
 		Password:  "testPassword",
 		Company:   "testCompany",
 		PostCode:  "E112QD",

@@ -140,12 +140,7 @@ func (d *DB) Retrieve(ctx context.Context, id string) (*UserResource, error) {
 // Read will fetch data from db for a user as per the email
 // will return nil if user is not found
 func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
-	if d.Conn == nil {
-		return nil, errEmptyDBConnection
-	}
-
-	fetch, err := d.Conn.Prepare(
-		`SELECT id,
+	query := `SELECT id,
        first_name,
        last_name,
        company,
@@ -153,30 +148,34 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
        created_at,
        updated_at
 		FROM identity_users 
-		where email = ? limit 1`)
-	if err != nil {
-		return nil, err
-	}
+		where email = ?`
 
-	rows, err := fetch.QueryContext(ctx, email)
+	rows, err := d.Conn.QueryContext(ctx, query, email)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	user := &UserResource{}
-	err = rows.Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.PostCode,
-		&user.Company,
-		&user.PostCode,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-	if errors.Is(err, sql.ErrNoRows) {
-		logrus.Infof("user not found :: %s", email)
-		return nil, nil
+	for rows.Next() {
+		err := rows.Scan(
+			&user.ID,
+			&user.FirstName,
+			&user.LastName,
+			&user.Company,
+			&user.PostCode,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				logrus.Infof("user not found :: %s", email)
+				return nil, nil
+			}
+
+			return nil, err
+		}
 	}
 
 	return user, nil
@@ -212,9 +211,11 @@ func (d *DB) Delete(email string) (int64, error) {
 		logrus.Fatalf("%v", err)
 		return 0, err
 	}
+
 	result, err := remove.Exec(email)
 	if err != nil {
 		return 0, err
 	}
+
 	return result.RowsAffected()
 }

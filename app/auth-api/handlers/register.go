@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -28,8 +27,7 @@ func NewHandler(store *store.DB, logger *log.Logger) *Handler {
 	}
 }
 
-// Register is the handler function that will process
-// rest call to register endpoint
+// Register is the handler function that will process rest call to register endpoint
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	u := &store.UserRequest{}
 
@@ -43,22 +41,22 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 	err = validation.ValidateUser(u)
 	if err != nil {
-		h.Logger.Printf("validation failed:%v", err)
+		h.Logger.Printf("validation failed: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.ValidationFailed)
 		return
 	}
 
-	ctx := r.Context()
-	exists, err := userExists(ctx, h.Store, u.Email)
+	userExists, err := h.Store.Read(r.Context(), u.Email)
 	if err != nil {
-		h.Logger.Println("failed to check user in database: %v", err)
+		h.Logger.Printf("failed to read from database: %v", err)
 
-		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
+		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.ValidationFailed)
 		return
 	}
-	if exists {
-		h.Logger.Println("user already exists: %v", err)
+
+	if userExists.Email == u.Email {
+		h.Logger.Printf("email already exists: %#v", userExists)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest, errors.New("email already exists"), foundation.EmailAlreadyExists)
 		return
@@ -66,7 +64,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 	password, err := business.GeneratePassword()
 	if err != nil {
-		h.Logger.Println("failed to generate password: %v", err)
+		h.Logger.Printf("failed to generate password: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.PassWordError)
 		return
@@ -74,15 +72,15 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 	u.Password, err = business.EncryptPassword(password)
 	if err != nil {
-		h.Logger.Println("password encryption failed: %v", err)
+		h.Logger.Printf("password encryption failed: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.PassWordError)
 		return
 	}
 
-	resource, err := h.Store.Insert(ctx, u)
+	resource, err := h.Store.Insert(r.Context(), u)
 	if err != nil {
-		h.Logger.Println("failed to save user: %v", err)
+		h.Logger.Printf("failed to save user: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 	}
@@ -90,30 +88,4 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 	resource.Password = password
 
 	_ = foundation.Resource(w, http.StatusCreated, resource)
-}
-
-func userDataFromRequest(r *http.Request) (*store.UserRequest, error) {
-	u := &store.UserRequest{}
-	err := foundation.RequestBody(r, u)
-	if err != nil {
-		return nil, err
-	}
-
-	return u, nil
-}
-
-func userExists(ctx context.Context, store store.Store, email string) (bool, error) {
-	selectUser, err := store.Read(ctx, email)
-	if err != nil {
-		return false, err
-	}
-
-	if selectUser != nil {
-		if selectUser.Email == email {
-			return true, nil
-		}
-
-		return false, nil
-	}
-	return false, nil
 }
