@@ -11,6 +11,6 @@ const (
 	LoginEndPoint = "/login"
 
 	// HomeEndPoint is the details end point that a
-	//logged in user with valid token can access
+	// logged in user with valid token can access
 	HomeEndPoint = "/home"
 )
