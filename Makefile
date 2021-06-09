@@ -24,4 +24,4 @@ tag:
 	git push origin v0.1.4
 
 githubToken:
-	export GITLAB_TOKEN="your token"
+	export GITHUB_TOKEN="your token"
