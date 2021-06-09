@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go/v4"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 
@@ -58,11 +58,13 @@ func (h *Handler) Login(w http.ResponseWriter,
 			errors.New("email not found"), foundation.InvalidRequest)
 		return
 	}
+
 	if !valid {
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			err, foundation.UnAuthorised)
 		return
 	}
+
 	token, err := generateToken()
 	if err != nil {
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
