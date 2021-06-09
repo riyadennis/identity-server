@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/riyadennis/identity-server/business/store"
-
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
+
+	"github.com/riyadennis/identity-server/business/store"
 )
 
 const timeOut = 5 * time.Second
@@ -64,14 +64,14 @@ func (s *Server) Run(conn *sql.DB, logger *log.Logger) error {
 	// register routes here
 	router.POST(RegisterEndpoint, h.Register)
 	router.POST(LoginEndPoint, h.Login)
-	router.POST(DeleteEndpoint, Auth(h.Delete))
-	router.GET(HomeEndPoint, Auth(Home))
+	router.POST(DeleteEndpoint, Auth(h.Delete, logger))
+	router.GET(HomeEndPoint, Auth(Home, logger))
 
 	s.httpServer.Handler = cors.Default().Handler(router)
 
 	// Start the service
 	go func() {
-		log.Printf("server running on port %s", s.httpServer.Addr)
+		logger.Printf("server running on port %s", s.httpServer.Addr)
 		s.serverError <- s.httpServer.ListenAndServe()
 	}()
 
@@ -79,7 +79,7 @@ func (s *Server) Run(conn *sql.DB, logger *log.Logger) error {
 	case err := <-s.serverError:
 		return err
 	case sig := <-s.shutDown:
-		log.Printf("main: %v: Start shutdown", sig)
+		logger.Printf("main: %v: Start shutdown", sig)
 		// Give outstanding requests a deadline for completion.
 		ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 		defer cancel()

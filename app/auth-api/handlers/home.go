@@ -26,6 +26,7 @@ func tokenHandler(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf("unable to handle Token")
 	}
+
 	// TODO add correct key
 	return []byte("key"), nil
 }
