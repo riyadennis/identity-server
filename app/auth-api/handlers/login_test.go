@@ -6,8 +6,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
+
+	"github.com/riyadennis/identity-server/business/store"
 
 	"github.com/riyadennis/identity-server/foundation"
 	"github.com/stretchr/testify/assert"
@@ -52,7 +55,10 @@ func TestLogin(t *testing.T) {
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
-			h := NewHandler(dbConn, testLogger)
+			h := NewHandler(dbConn, &store.TokenConfig{
+				Issuer:  "TEST",
+				KeyPath: os.Getenv("KEY_PATH"),
+			}, testLogger)
 			h.Login(rr, sc.request, nil)
 			re := response(t, rr.Body)
 			assert.Equal(t, sc.response, re)

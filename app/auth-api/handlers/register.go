@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/google/jsonapi"
+
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/riyadennis/identity-server/business"
@@ -33,7 +35,7 @@ func NewHandler(store *store.DB, tc *store.TokenConfig, logger *log.Logger) *Han
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	u := &store.UserRequest{}
 
-	err := foundation.RequestBody(r, u)
+	err := jsonapi.UnmarshalPayload(r.Body, u)
 	if err != nil {
 		h.Logger.Printf("invalid data in request: %v", err)
 

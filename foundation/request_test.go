@@ -22,7 +22,7 @@ func TestRequestBody(t *testing.T) {
 				Header: nil,
 			},
 			expectedUser:  nil,
-			expectedError: "invalid content type",
+			expectedError: errMissingContentType.Error(),
 		},
 		{
 			name: "missing body",

@@ -76,13 +76,6 @@ func TestRegister(t *testing.T) {
 		expectedResponse *foundation.Response
 	}{
 		{
-			name: "empty request",
-			req:  nil,
-			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
-				"empty request",
-				"invalid-request"),
-		},
-		{
 			name: "missing email",
 			req: registerPayLoad(t, &store.UserRequest{
 				FirstName: "John",
@@ -137,18 +130,18 @@ func TestRegister(t *testing.T) {
 				"invalid email",
 				foundation.ValidationFailed),
 		},
-		{
-			name:             "success",
-			req:              registerPayLoad(t, user(t)),
-			conn:             dbConn.Conn,
-			expectedResponse: foundation.NewResponse(http.StatusCreated, "", ""),
-		},
 	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			h := NewHandler(store.NewDB(sc.conn), testLogger)
+			db := store.NewDB(sc.conn)
+			h := NewHandler(db,
+				&store.TokenConfig{
+					Issuer:  "TEST",
+					KeyPath: os.Getenv("KEY_PATH"),
+				}, testLogger)
 			h.Register(w, sc.req, nil)
+			assert.Equal(t, sc.expectedResponse.Status, w.Code)
 			resp := responseFromHTTP(t, w.Body)
 			// TODO assert message also
 			assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
@@ -183,7 +176,11 @@ func responseFromHTTP(t *testing.T, data io.Reader) *foundation.Response {
 		t.Error(err)
 	}
 
-	return resp
+	if resp.Message != "" {
+		return resp
+	}
+
+	return nil
 }
 
 func TestGeneratePassword(t *testing.T) {
