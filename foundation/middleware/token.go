@@ -1,4 +1,4 @@
-package handlers
+package middleware
 
 import (
 	"errors"
@@ -9,8 +9,8 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go/v4"
-	"github.com/julienschmidt/httprouter"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 )
@@ -19,8 +19,8 @@ const (
 	// BearerSchema is expected prefix for token from authorisation header
 	BearerSchema = "Bearer "
 
-	// tokenTTL is the expiry time for a token
-	tokenTTL = 120 * time.Hour
+	// TokenTTL is the expiry time for a token
+	TokenTTL = 120 * time.Hour
 )
 
 var (
@@ -49,7 +49,7 @@ func Auth(next httprouter.Handle, tc *store.TokenConfig, logger *log.Logger) htt
 		t, err := jwt.ParseWithClaims(
 			headerToken[len(BearerSchema):],
 			jwt.MapClaims{
-				"exp": time.Now().UTC().Add(tokenTTL).Unix(),
+				"exp": time.Now().UTC().Add(TokenTTL).Unix(),
 				"iss": tc.Issuer,
 			}, fetchKey(tc.KeyPath+foundation.PublicKeyFileName))
 

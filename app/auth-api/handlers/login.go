@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/riyadennis/identity-server/foundation/middleware"
+
 	jwt "github.com/dgrijalva/jwt-go/v4"
 	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/foundation"
@@ -116,7 +118,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 }
 
 func generateToken(logger *log.Logger, issuer string, key []byte) (*Token, error) {
-	expiry := time.Now().UTC().Add(tokenTTL)
+	expiry := time.Now().UTC().Add(middleware.TokenTTL)
 
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {

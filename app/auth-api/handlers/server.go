@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
-	"github.com/rs/cors"
+	"github.com/riyadennis/identity-server/foundation/middleware"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/business/store"
 )
 
@@ -62,13 +62,12 @@ func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) er
 
 	router := httprouter.New()
 	// register routes here
-	router.POST(RegisterEndpoint, h.Register)
-	router.POST(LoginEndPoint, h.Login)
-	router.DELETE(DeleteEndpoint, Auth(h.Delete, tc, logger))
-	router.GET(HomeEndPoint, Auth(Home, tc, logger))
+	router.POST(RegisterEndpoint, middleware.CORS(h.Register, []string{"*"}))
+	router.POST(LoginEndPoint, middleware.CORS(h.Login, []string{"*"}))
+	router.DELETE(DeleteEndpoint, middleware.CORS(middleware.Auth(h.Delete, tc, logger), []string{"*"}))
+	router.GET(HomeEndPoint, middleware.CORS(middleware.Auth(Home, tc, logger), []string{"*"}))
 
-	s.httpServer.Handler = cors.Default().Handler(router)
-
+	s.httpServer.Handler = router
 	// Start the service
 	go func() {
 		logger.Printf("server running on port %s", s.httpServer.Addr)
