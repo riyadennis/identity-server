@@ -10,9 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/riyadennis/identity-server/foundation/middleware"
-
-	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/business/store"
 )
 
@@ -58,16 +55,7 @@ func NewServer(addr string) *Server {
 // Run registers routes and starts web server
 // and waits to receive from shutdown and error channels
 func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) error {
-	h := NewHandler(store.NewDB(conn), tc, logger)
-
-	router := httprouter.New()
-	// register routes here
-	router.POST(RegisterEndpoint, middleware.CORS(h.Register, []string{"*"}))
-	router.POST(LoginEndPoint, middleware.CORS(h.Login, []string{"*"}))
-	router.DELETE(DeleteEndpoint, middleware.CORS(middleware.Auth(h.Delete, tc, logger), []string{"*"}))
-	router.GET(HomeEndPoint, middleware.CORS(middleware.Auth(Home, tc, logger), []string{"*"}))
-
-	s.httpServer.Handler = router
+	s.httpServer.Handler = loadRoutes(conn, tc, logger)
 	// Start the service
 	go func() {
 		logger.Printf("server running on port %s", s.httpServer.Addr)
