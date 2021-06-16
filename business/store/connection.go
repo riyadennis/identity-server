@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -21,6 +22,12 @@ var (
 type Config struct {
 	BasePath string
 	DB       *DBConnection
+	Token    *TokenConfig
+}
+
+type TokenConfig struct {
+	Issuer  string
+	KeyPath string
 }
 
 type DBConnection struct {
@@ -43,6 +50,10 @@ func NewENVConfig() *Config {
 			Database:  os.Getenv("MYSQL_DATABASE"),
 			Port:      os.Getenv("MYSQL_PORT"),
 			ParseTime: true,
+		},
+		Token: &TokenConfig{
+			Issuer:  os.Getenv("ISSUER"),
+			KeyPath: os.Getenv("KEY_PATH"),
 		},
 	}
 }

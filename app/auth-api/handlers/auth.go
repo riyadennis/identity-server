@@ -2,14 +2,16 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go/v4"
 	"github.com/julienschmidt/httprouter"
 
+	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 )
 
@@ -27,7 +29,7 @@ var (
 
 // Auth is the middleware that should be used for endpoints that needs jwt Token authentication.
 // if Token is not present or is invalid then user is denied access to wrapped endpoint.
-func Auth(next httprouter.Handle, logger *log.Logger) httprouter.Handle {
+func Auth(next httprouter.Handle, tc *store.TokenConfig, logger *log.Logger) httprouter.Handle {
 	return func(w http.ResponseWriter, req *http.Request, p httprouter.Params) {
 		headerToken := req.Header.Get("Authorization")
 		if headerToken == "" {
@@ -48,8 +50,8 @@ func Auth(next httprouter.Handle, logger *log.Logger) httprouter.Handle {
 			headerToken[len(BearerSchema):],
 			jwt.MapClaims{
 				"exp": time.Now().UTC().Add(tokenTTL).Unix(),
-				"iss": os.Getenv("ISSUER"),
-			}, tokenHandler)
+				"iss": tc.Issuer,
+			}, fetchKey(tc.KeyPath+foundation.PublicKeyFileName))
 
 		if err != nil || t == nil {
 			logger.Printf("failed to parse the token: %v", err)
@@ -66,5 +68,25 @@ func Auth(next httprouter.Handle, logger *log.Logger) httprouter.Handle {
 		}
 
 		next(w, req, p)
+	}
+}
+
+func fetchKey(keyPath string) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("unable to handle Token")
+		}
+
+		key, err := ioutil.ReadFile(keyPath)
+		if err != nil {
+			return nil, fmt.Errorf("unable to handle Token")
+		}
+
+		publicKey, e := jwt.ParseRSAPublicKeyFromPEM(key)
+		if e != nil {
+			panic(e.Error())
+		}
+
+		return publicKey, nil
 	}
 }

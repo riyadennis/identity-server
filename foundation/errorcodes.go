@@ -20,6 +20,10 @@ const (
 	// TokenError is returned if we are not able to generate a token
 	TokenError = "Token-error"
 
+	// KeyNotFound is returned if we are not able to find key
+	// that we need to encrypt and decrypt tokens
+	KeyNotFound = "Key-not-found"
+
 	// UnAuthorised is when a user have invalid or expired token
 	UnAuthorised = "unauthorised"
 

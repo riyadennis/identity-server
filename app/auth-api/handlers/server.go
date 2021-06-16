@@ -57,15 +57,15 @@ func NewServer(addr string) *Server {
 
 // Run registers routes and starts web server
 // and waits to receive from shutdown and error channels
-func (s *Server) Run(conn *sql.DB, logger *log.Logger) error {
-	h := NewHandler(store.NewDB(conn), logger)
+func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) error {
+	h := NewHandler(store.NewDB(conn), tc, logger)
 
 	router := httprouter.New()
 	// register routes here
 	router.POST(RegisterEndpoint, h.Register)
 	router.POST(LoginEndPoint, h.Login)
-	router.POST(DeleteEndpoint, Auth(h.Delete, logger))
-	router.GET(HomeEndPoint, Auth(Home, logger))
+	router.POST(DeleteEndpoint, Auth(h.Delete, tc, logger))
+	router.GET(HomeEndPoint, Auth(Home, tc, logger))
 
 	s.httpServer.Handler = cors.Default().Handler(router)
 

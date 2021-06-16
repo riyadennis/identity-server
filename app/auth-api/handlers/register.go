@@ -16,14 +16,16 @@ import (
 // Handler have common setup needed to run the handlers
 // its helps to reuse open db connection
 type Handler struct {
-	Store  *store.DB
-	Logger *log.Logger
+	Store       *store.DB
+	Logger      *log.Logger
+	TokenConfig *store.TokenConfig
 }
 
-func NewHandler(store *store.DB, logger *log.Logger) *Handler {
+func NewHandler(store *store.DB, tc *store.TokenConfig, logger *log.Logger) *Handler {
 	return &Handler{
-		Store:  store,
-		Logger: logger,
+		Store:       store,
+		Logger:      logger,
+		TokenConfig: tc,
 	}
 }
 

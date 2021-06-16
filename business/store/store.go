@@ -57,7 +57,7 @@ func NewDB(database *sql.DB) *DB {
 type Store interface {
 	Insert(ctx context.Context, u *UserRequest) (*UserResource, error)
 	Read(ctx context.Context, email string) (*UserResource, error)
-	Authenticate(email, password string) (bool, error)
+	CheckInDB(email, password string) (bool, error)
 	Delete(email string) (int64, error)
 }
 
@@ -188,21 +188,21 @@ func (d *DB) Authenticate(email, password string) (bool, error) {
 	login, err := d.Conn.Prepare(`SELECT  password FROM
 										    identity_users where email = ?`)
 	if err != nil {
-		logrus.Fatalf("%v", err)
 		return false, err
 	}
-	rows := login.QueryRow(email)
+
+	row := login.QueryRow(email)
 	var hashedPass string
-	err = rows.Scan(&hashedPass)
+
+	err = row.Scan(&hashedPass)
 	if err != nil {
-		logrus.Errorf("%v", err)
 		return false, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
 	if err != nil {
-		logrus.Errorf("invalid password :: %v", err)
 		return false, err
 	}
+
 	return true, nil
 }
 

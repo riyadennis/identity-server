@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -10,6 +12,11 @@ import (
 	jwt "github.com/dgrijalva/jwt-go/v4"
 	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/foundation"
+)
+
+var (
+	errEmailNotFound   = errors.New("email not found")
+	errTokenGeneration = errors.New("key not found")
 )
 
 // UserLogin have data needed for a user to login
@@ -47,30 +54,57 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	}
 
 	if u == nil {
+		h.Logger.Printf("failed to find user in DB: %v", r)
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			errors.New("email not found"), foundation.UserDoNotExist)
+			errEmailNotFound, foundation.UserDoNotExist)
 		return
 	}
 
 	valid, err := h.Store.Authenticate(email, password)
 	if err != nil {
+		h.Logger.Printf("failed to find user in DB: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusBadRequest,
-			errors.New("email not found"), foundation.InvalidRequest)
+			errEmailNotFound, foundation.InvalidRequest)
 		return
 	}
 
 	if !valid {
+		h.Logger.Printf("failed to find user in DB: %v", err)
+
 		foundation.ErrorResponse(w, http.StatusBadRequest,
-			err, foundation.UnAuthorised)
+			errEmailNotFound, foundation.UnAuthorised)
 		return
 	}
 
-	token, err := generateToken()
+	if _, err := os.Stat(h.TokenConfig.KeyPath + foundation.PublicKeyFileName); os.IsNotExist(err) {
+		err := foundation.GenerateKeys(h.TokenConfig.KeyPath)
+		if err != nil {
+			h.Logger.Printf("failed to create keys: %v", err)
+
+			foundation.ErrorResponse(w, http.StatusInternalServerError,
+				errTokenGeneration, foundation.KeyNotFound)
+
+			return
+		}
+	}
+
+	key, err := ioutil.ReadFile(h.TokenConfig.KeyPath + foundation.PrivateKeyFileName)
+	if err != nil {
+		h.Logger.Printf("failed to fetch keys: %v", err)
+
+		foundation.ErrorResponse(w, http.StatusInternalServerError,
+			errTokenGeneration, foundation.KeyNotFound)
+
+		return
+	}
+
+	token, err := generateToken(h.Logger, h.TokenConfig.Issuer, key)
 	if err != nil {
 		h.Logger.Printf("token generation failed: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			err, foundation.TokenError)
+			errTokenGeneration, foundation.TokenError)
 		return
 	}
 
@@ -81,14 +115,21 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	}
 }
 
-func generateToken() (*Token, error) {
+func generateToken(logger *log.Logger, issuer string, key []byte) (*Token, error) {
 	expiry := time.Now().UTC().Add(tokenTTL)
 
-	t, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp": expiry.Unix(),
-		"iss": os.Getenv("ISSUER"),
-	}).SignedString([]byte(os.Getenv("KEY")))
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {
+		logger.Printf("failed to parser private key: %v", err)
+		return nil, err
+	}
+
+	t, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"exp": expiry.Unix(),
+		"iss": issuer,
+	}).SignedString(privateKey)
+	if err != nil {
+		logger.Printf("failed to sign using private key: %v", err)
 		return nil, err
 	}
 

@@ -59,7 +59,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "IDENTITY : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 
-	err = handlers.NewServer(os.Getenv("PORT")).Run(db, logger)
+	err = handlers.NewServer(os.Getenv("PORT")).Run(db, cfg.Token, logger)
 	if err != nil {
 		logrus.Errorf("error running server: %v", err)
 	}
