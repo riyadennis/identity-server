@@ -64,7 +64,7 @@ func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) er
 	// register routes here
 	router.POST(RegisterEndpoint, h.Register)
 	router.POST(LoginEndPoint, h.Login)
-	router.POST(DeleteEndpoint, Auth(h.Delete, tc, logger))
+	router.DELETE(DeleteEndpoint, Auth(h.Delete, tc, logger))
 	router.GET(HomeEndPoint, Auth(Home, tc, logger))
 
 	s.httpServer.Handler = cors.Default().Handler(router)

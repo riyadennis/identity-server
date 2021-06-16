@@ -5,43 +5,31 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+
 	"github.com/riyadennis/identity-server/foundation"
-	"github.com/sirupsen/logrus"
 )
 
-// UserDelete is the request structure for delete end point
-// we need only email now.
-type UserDelete struct {
-	Email string `json:"email"`
-}
+var (
+	errInvalidID    = errors.New("invalid userID in request")
+	errDeleteFailed = errors.New("failed to remove user")
+)
 
 // Delete is the handler for delete end point to remove a user from as per the email
-func (h *Handler) Delete(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
-	w.Header().Set("Content-Type", "application/json")
-	ud := &UserDelete{}
-	err := foundation.RequestBody(req, ud)
-	if err != nil {
+func (h *Handler) Delete(w http.ResponseWriter, _ *http.Request, params httprouter.Params) {
+	id := params.ByName("id")
+	if id == "" {
 		foundation.ErrorResponse(w, http.StatusBadRequest,
-			err, foundation.InvalidRequest)
+			errInvalidID, foundation.InvalidRequest)
 		return
 	}
 
-	done, err := h.Store.Delete(ud.Email)
+	_, err := h.Store.Delete(id)
 	if err != nil {
-		logrus.Errorf("failed to delete :: %v", err)
-		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.InvalidRequest)
-		return
+		h.Logger.Printf("user deletion failed: %v", err)
+
+		foundation.ErrorResponse(w, http.StatusBadRequest,
+			errDeleteFailed, foundation.DatabaseError)
 	}
-	if done == 0 {
-		logrus.Error("failed to delete")
-		foundation.ErrorResponse(w, http.StatusBadRequest, errors.New("failed to delete"), foundation.InvalidRequest)
-		return
-	}
-	logrus.Infof("user %s deleted for :: %d records", ud.Email, done)
-	err = foundation.JSONResponse(w, http.StatusOK,
-		"account deleted",
-		"")
-	if err != nil {
-		logrus.Error(err)
-	}
+
+	_ = foundation.JSONResponse(w, http.StatusNoContent, "", "")
 }

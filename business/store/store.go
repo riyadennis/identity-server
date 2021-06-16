@@ -57,8 +57,8 @@ func NewDB(database *sql.DB) *DB {
 type Store interface {
 	Insert(ctx context.Context, u *UserRequest) (*UserResource, error)
 	Read(ctx context.Context, email string) (*UserResource, error)
-	CheckInDB(email, password string) (bool, error)
-	Delete(email string) (int64, error)
+	Authenticate(email, password string) (bool, error)
+	Delete(id string) (int64, error)
 }
 
 // Insert creates a new user during registration
@@ -206,15 +206,15 @@ func (d *DB) Authenticate(email, password string) (bool, error) {
 	return true, nil
 }
 
-// Delete removes an email from db
-func (d *DB) Delete(email string) (int64, error) {
-	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users where email = ?`)
+// Delete removes a user from db as per the ID
+func (d *DB) Delete(id string) (int64, error) {
+	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users where id = ?`)
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return 0, err
 	}
 
-	result, err := remove.Exec(email)
+	result, err := remove.Exec(id)
 	if err != nil {
 		return 0, err
 	}

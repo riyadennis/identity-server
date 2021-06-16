@@ -4,8 +4,8 @@ const (
 	// RegisterEndpoint is to create a new user
 	RegisterEndpoint = "/register"
 
-	// DeleteEndpoint is to delete a new user
-	DeleteEndpoint = "/delete"
+	// DeleteEndpoint is to delete a user
+	DeleteEndpoint = "/delete/:id"
 
 	// LoginEndPoint creates a token for the  user of credentials are valid
 	LoginEndPoint = "/login"
