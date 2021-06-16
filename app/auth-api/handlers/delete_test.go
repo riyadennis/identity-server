@@ -6,12 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/riyadennis/identity-server/foundation"
-
 	"github.com/stretchr/testify/assert"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 )
 
 func TestHandlerDelete(t *testing.T) {
