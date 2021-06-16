@@ -1,0 +1,70 @@
+package handlers
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
+	"github.com/riyadennis/identity-server/foundation"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/riyadennis/identity-server/business/store"
+)
+
+func TestHandlerDelete(t *testing.T) {
+	scenarios := []struct {
+		name             string
+		params           httprouter.Params
+		expectedStatus   int
+		expectedResponse *foundation.Response
+	}{
+		{
+			name:           "no id",
+			params:         nil,
+			expectedStatus: http.StatusBadRequest,
+			expectedResponse: &foundation.Response{
+				Status:    http.StatusBadRequest,
+				Message:   errInvalidID.Error(),
+				ErrorCode: foundation.InvalidRequest,
+			},
+		},
+		{
+			name: "invalid id",
+			params: httprouter.Params{
+				{
+					Key:   "id",
+					Value: "INVALID",
+				},
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedResponse: &foundation.Response{
+				Status:    http.StatusBadRequest,
+				Message:   errDeleteFailed.Error(),
+				ErrorCode: foundation.UserDoNotExist,
+			},
+		},
+	}
+
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+
+			NewHandler(dbConn,
+				&store.TokenConfig{
+					Issuer:  "TEST",
+					KeyPath: os.Getenv("KEY_PATH"),
+				}, testLogger).
+				Delete(w, nil, sc.params)
+
+			assert.Equal(t, w.Code, sc.expectedStatus)
+
+			resp := responseFromHTTP(t, w.Body)
+
+			assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
+			assert.Equal(t, sc.expectedResponse.Status, w.Code)
+		})
+	}
+}

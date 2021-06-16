@@ -23,7 +23,7 @@ func (h *Handler) Delete(w http.ResponseWriter, _ *http.Request, params httprout
 		return
 	}
 
-	_, err := h.Store.Delete(id)
+	deleted, err := h.Store.Delete(id)
 	if err != nil {
 		h.Logger.Printf("user deletion failed: %v", err)
 
@@ -31,5 +31,10 @@ func (h *Handler) Delete(w http.ResponseWriter, _ *http.Request, params httprout
 			errDeleteFailed, foundation.DatabaseError)
 	}
 
+	if deleted == 0 {
+		foundation.ErrorResponse(w, http.StatusBadRequest,
+			errDeleteFailed, foundation.UserDoNotExist)
+		return
+	}
 	_ = foundation.JSONResponse(w, http.StatusNoContent, "", "")
 }
