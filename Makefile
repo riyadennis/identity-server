@@ -1,3 +1,6 @@
+minikube-start:
+	minikube start --vm-driver=virtualbox --disk-size=30g
+
 docker-build:
 	docker build -t riyadennis/identity-server .
 
