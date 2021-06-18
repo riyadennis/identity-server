@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -16,13 +17,19 @@ import (
 )
 
 func main() {
-	cfg := store.NewENVConfig()
+	envFilePtr := flag.String("envFile", "true",
+		"if this is set true we will load environment vars from a .env file")
+
 	logger := log.New(os.Stdout, "IDENTITY : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 
-	err := godotenv.Load()
-	if err != nil {
-		logger.Fatalf("failed to open env file: %v", err)
+	if *envFilePtr == "true" {
+		err := godotenv.Load()
+		if err != nil {
+			logger.Fatalf("failed to open env file: %v", err)
+		}
 	}
+
+	cfg := store.NewENVConfig()
 
 	db, err := store.Connect(cfg.DB)
 	if err != nil {

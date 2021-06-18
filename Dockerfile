@@ -31,4 +31,4 @@ USER webuser
 COPY --from=builder /identity/server /home/webuser/server 
 
 # Run the web service on container startup.
-CMD ["/home/webuser/server"]
+CMD ["/home/webuser/server -envFile=false"]
