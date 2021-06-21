@@ -2,17 +2,21 @@ minikube-start:
 	minikube start --vm-driver=virtualbox --disk-size=30g
 
 docker-build:
-	docker build -t riyadennis/identity-server:1.2.0 .
+	docker build -t riyadennis/identity-server:1.3.0 .
 
 docker-push:
 	# need to do the push with a new tag
-	docker push riyadennis/identity-server:1.2.0
+	docker push riyadennis/identity-server:1.3.0
 
 helm-install:
 	helm install identity ./zarf/identity
 
 helm-uninstall:
 	helm uninstall identity
+
+#helps to fetch service URL to access the pod
+minikube-services:
+	minikube service list
 
 mysql-install:
 	helm install my-sql -f mysql-chart/values.yaml bitnami/mysql
