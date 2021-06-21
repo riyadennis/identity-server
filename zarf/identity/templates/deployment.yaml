@@ -33,6 +33,19 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: "PORT"
+              value: "8089"
+            - name: "MYSQL_DATABASE"
+              value: "identity"
+            - name: "MYSQL_USERNAME"
+              value: "testuser"
+            - name:  "MYSQL_PASSWORD"
+              value: "password"
+            - name: "MYSQL_PORT"
+              value: "3306"
+            - name: "MYSQL_HOST"
+              value: "127.0.0.1"
           ports:
             - name: http
               containerPort: 80
