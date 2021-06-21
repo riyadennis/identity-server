@@ -28,7 +28,7 @@ func main() {
 			logger.Fatalf("failed to open env file: %v", err)
 		}
 	}
-
+	logger.Printf("env file switch value %v", *envFilePtr)
 	cfg := store.NewENVConfig()
 
 	db, err := store.Connect(cfg.DB)
