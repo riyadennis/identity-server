@@ -22,8 +22,8 @@ func ErrorResponse(w http.ResponseWriter, code int, errr error, customCode strin
 }
 
 // JSONResponse converts response into a json
-func JSONResponse(w http.ResponseWriter, status int,
-	message, errCode string) error {
+func JSONResponse(w http.ResponseWriter, status int, message, errCode string) error {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	res := NewResponse(status, message, errCode)
 	err := json.NewEncoder(w).Encode(res)
