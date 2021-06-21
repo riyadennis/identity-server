@@ -2,17 +2,20 @@ minikube-start:
 	minikube start --vm-driver=virtualbox --disk-size=30g
 
 docker-build:
-	docker build -t riyadennis/identity-server:1.1.0 .
+	docker build -t riyadennis/identity-server:1.2.0 .
 
 docker-push:
 	# need to do the push with a new tag
-	docker push riyadennis/identity-server:1.0.8
+	docker push riyadennis/identity-server:1.2.0
 
 helm-install:
 	helm install identity ./zarf/identity
 
 helm-uninstall:
 	helm uninstall identity
+
+mysql-install:
+	helm install my-sql -f mysql-chart/values.yaml bitnami/mysql
 
 docker-run:
 	docker run -d --rm -e ENV='prod' -e PORT=":8095" -e KEY="this-should-be-secret-shared-only-to-client" \

@@ -19,7 +19,7 @@ import (
 func main() {
 	useEnvFile := os.Args[1]
 
-	logger := log.New(os.Stdout, "IDENTITY : ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
+	logger := log.New(os.Stdout, "IDENTITY: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 
 	fmt.Printf("args: %s", useEnvFile)
 

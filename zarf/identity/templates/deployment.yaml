@@ -39,24 +39,26 @@ spec:
             - name: "MYSQL_DATABASE"
               value: "identity"
             - name: "MYSQL_USERNAME"
-              value: "testuser"
+              value: "root"
             - name:  "MYSQL_PASSWORD"
-              value: "password"
+              value: "localdev"
             - name: "MYSQL_PORT"
-              value: "3306"
+              value: "32676"
             - name: "MYSQL_HOST"
-              value: "127.0.0.1"
+              value: "192.168.99.111"
+            - name: "BASE_PATH"
+              value: "/home/webuser/"
           ports:
             - name: http
               containerPort: 80
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /liveness
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /readiness
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
