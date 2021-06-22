@@ -51,7 +51,7 @@ func Auth(next httprouter.Handle, tc *store.TokenConfig, logger *log.Logger) htt
 			jwt.MapClaims{
 				"exp": time.Now().UTC().Add(TokenTTL).Unix(),
 				"iss": tc.Issuer,
-			}, fetchKey(tc.KeyPath+foundation.PublicKeyFileName))
+			}, fetchKey(tc.KeyPath+tc.PublicKeyName))
 
 		if err != nil || t == nil {
 			logger.Printf("failed to parse the token: %v", err)

@@ -9,13 +9,11 @@ import (
 )
 
 const (
-	PrivateKey         = "RSA PRIVATE KEY"
-	PublicKey          = "PUBLIC KEY"
-	PrivateKeyFileName = "private.pem"
-	PublicKeyFileName  = "public.pem"
+	PrivateKey = "RSA PRIVATE KEY"
+	PublicKey  = "PUBLIC KEY"
 )
 
-func GenerateKeys(path string) error {
+func GenerateKeys(privateKeyPath, publicKeyPath string) error {
 	privateKey, keyErr := rsa.GenerateKey(rand.Reader, 2048)
 	if keyErr != nil {
 		return keyErr
@@ -27,7 +25,7 @@ func GenerateKeys(path string) error {
 		Bytes: privateKeyBytes,
 	}
 
-	privatePem, err := os.Create(path + PrivateKeyFileName)
+	privatePem, err := os.Create(privateKeyPath)
 	if err != nil {
 		return err
 	}
@@ -47,7 +45,7 @@ func GenerateKeys(path string) error {
 		Bytes: publicKeyBytes,
 	}
 
-	publicPem, err := os.Create(path + PublicKeyFileName)
+	publicPem, err := os.Create(publicKeyPath)
 	if err != nil {
 		return err
 	}

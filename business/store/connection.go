@@ -26,8 +26,10 @@ type Config struct {
 }
 
 type TokenConfig struct {
-	Issuer  string
-	KeyPath string
+	Issuer         string
+	KeyPath        string
+	PrivateKeyName string
+	PublicKeyName  string
 }
 
 type DBConnection struct {
@@ -52,8 +54,10 @@ func NewENVConfig() *Config {
 			ParseTime: true,
 		},
 		Token: &TokenConfig{
-			Issuer:  os.Getenv("ISSUER"),
-			KeyPath: os.Getenv("KEY_PATH"),
+			Issuer:         os.Getenv("ISSUER"),
+			KeyPath:        os.Getenv("KEY_PATH"),
+			PrivateKeyName: "private.pem",
+			PublicKeyName:  "public.pem",
 		},
 	}
 }

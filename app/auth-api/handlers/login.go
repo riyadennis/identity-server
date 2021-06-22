@@ -62,7 +62,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 		return
 	}
 
-	valid, err := h.Store.Authenticate(email, password)
+	valid, err := h.Authenticator.Authenticate(email, password)
 	if err != nil {
 		h.Logger.Printf("failed to find user in DB: %v", err)
 
@@ -72,26 +72,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	}
 
 	if !valid {
-		h.Logger.Printf("failed to find user in DB: %v", err)
+		h.Logger.Printf("failed to authenticate user: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errEmailNotFound, foundation.UnAuthorised)
 		return
 	}
 
-	if _, err := os.Stat(h.TokenConfig.KeyPath + foundation.PublicKeyFileName); os.IsNotExist(err) {
-		err := foundation.GenerateKeys(h.TokenConfig.KeyPath)
-		if err != nil {
-			h.Logger.Printf("failed to create keys: %v", err)
-
-			foundation.ErrorResponse(w, http.StatusInternalServerError,
-				errTokenGeneration, foundation.KeyNotFound)
-
-			return
-		}
-	}
-
-	key, err := ioutil.ReadFile(h.TokenConfig.KeyPath + foundation.PrivateKeyFileName)
+	key, err := fetchPrivateKey(h.TokenConfig.KeyPath+h.TokenConfig.PrivateKeyName, h.TokenConfig.KeyPath+h.TokenConfig.PublicKeyName)
 	if err != nil {
 		h.Logger.Printf("failed to fetch keys: %v", err)
 
@@ -115,6 +103,17 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	if err != nil {
 		h.Logger.Printf("json encoding failed: %v", err)
 	}
+}
+
+func fetchPrivateKey(privateKeyPath, publicKeyPath string) ([]byte, error) {
+	if _, err := os.Stat(privateKeyPath); os.IsNotExist(err) {
+		err := foundation.GenerateKeys(privateKeyPath, publicKeyPath)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return ioutil.ReadFile(privateKeyPath)
 }
 
 func generateToken(logger *log.Logger, issuer string, key []byte) (*Token, error) {
