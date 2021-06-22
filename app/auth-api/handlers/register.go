@@ -18,16 +18,18 @@ import (
 // Handler have common setup needed to run the handlers
 // its helps to reuse open db connection
 type Handler struct {
-	Store       *store.DB
-	Logger      *log.Logger
-	TokenConfig *store.TokenConfig
+	Store         store.Store
+	Authenticator store.Authenticator
+	Logger        *log.Logger
+	TokenConfig   *store.TokenConfig
 }
 
 func NewHandler(store *store.DB, tc *store.TokenConfig, logger *log.Logger) *Handler {
 	return &Handler{
-		Store:       store,
-		Logger:      logger,
-		TokenConfig: tc,
+		Store:         store,
+		Authenticator: store,
+		Logger:        logger,
+		TokenConfig:   tc,
 	}
 }
 

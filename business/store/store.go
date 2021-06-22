@@ -8,12 +8,18 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
 	errEmptyUser = errors.New("empty user")
 )
+
+// Store have CRUD functions for user management
+type Store interface {
+	Insert(ctx context.Context, u *UserRequest) (*UserResource, error)
+	Read(ctx context.Context, email string) (*UserResource, error)
+	Delete(id string) (int64, error)
+}
 
 // UserRequest hold data from registration request body
 type UserRequest struct {
@@ -51,14 +57,6 @@ func NewDB(database *sql.DB) *DB {
 	return &DB{
 		Conn: database,
 	}
-}
-
-// Store have CRUD functions for user management
-type Store interface {
-	Insert(ctx context.Context, u *UserRequest) (*UserResource, error)
-	Read(ctx context.Context, email string) (*UserResource, error)
-	Authenticate(email, password string) (bool, error)
-	Delete(id string) (int64, error)
 }
 
 // Insert creates a new user during registration
@@ -181,29 +179,6 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
 	}
 
 	return user, nil
-}
-
-// Authenticate checks the validity of a given password for an email
-func (d *DB) Authenticate(email, password string) (bool, error) {
-	login, err := d.Conn.Prepare(`SELECT  password FROM
-										    identity_users where email = ?`)
-	if err != nil {
-		return false, err
-	}
-
-	row := login.QueryRow(email)
-	var hashedPass string
-
-	err = row.Scan(&hashedPass)
-	if err != nil {
-		return false, err
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
 }
 
 // Delete removes a user from db as per the ID
