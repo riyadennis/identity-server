@@ -18,6 +18,10 @@ helm-uninstall:
 minikube-services:
 	minikube service list
 
+service-url:
+	minikube service identity --url
+
+
 mysql-install:
 	helm install my-sql -f mysql-chart/values.yaml bitnami/mysql
 
