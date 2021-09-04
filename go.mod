@@ -1,11 +1,10 @@
 module github.com/riyadennis/identity-server
 
-go 1.16
+go 1.17
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/containerd/containerd v1.4.4 // indirect
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v20.10.5+incompatible // indirect
@@ -28,4 +27,14 @@ require (
 	google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+)
+
+require (
+	github.com/containerd/containerd v1.4.8 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang/protobuf v1.3.2 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
