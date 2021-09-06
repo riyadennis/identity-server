@@ -69,6 +69,13 @@ jobs:
             GOOS: "linux"
           command: |
             GOOS=linux go build -o main app/auth-api/main.go
+  tag:
+    steps:
+      - git tag | sort -V | tail -1
+    filters:
+      branches:
+        only:
+          - master
   release:
     docker:
         - image: circleci/golang:1.17
@@ -85,5 +92,6 @@ workflows:
   build-deploy:
     jobs:
       - build
+      - tag
       - release
 
