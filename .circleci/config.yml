@@ -86,7 +86,7 @@ jobs:
       - run:
           name: increment version
           command: |
-            autotag
+            autotag --scheme=conventional
       - run:
           name: build and push releases
           command: |
