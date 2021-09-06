@@ -86,7 +86,7 @@ jobs:
       - run:
           name: increment version
           command: |
-            autotag --scheme=conventional
+            autotag --branch=${CIRCLE_BRANCH} --scheme=conventional --pre-release-name="auto" -v
       - run:
           name: build and push releases
           command: |
