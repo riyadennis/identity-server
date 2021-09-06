@@ -74,6 +74,11 @@ jobs:
       - image: buildpack-deps:trusty
     steps:
       - run:
+          name: install git
+          command: |
+            apt-get update -y
+            apt-get install -y git curl
+      - run:
           name: install autotag binary
           command: |
             curl -sL https://git.io/autotag-install | sudo sh -s -- -b /usr/bin
