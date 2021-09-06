@@ -69,29 +69,32 @@ jobs:
             GOOS: "linux"
           command: |
             GOOS=linux go build -o main app/auth-api/main.go
-  tag:
-    steps:
-      - git tag | sort -V | tail -1
-    filters:
-      branches:
-        only:
-          - master
   release:
     docker:
-        - image: circleci/golang:1.17
+      - image: circleci/golang:1.17
     steps:
-      - checkout
-      - run: curl -sL https://git.io/goreleaser | bash
-    filters:
-      branches:
-        ignore: /.*/
-      tags:
-        only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - run:
+          name: install autotag binary
+          command: |
+            curl -sL https://git.io/autotag-install | sudo sh -s -- -b /usr/bin
+      - run:
+          name: increment version
+          command: |
+            autotag
+      - run:
+          name: build and push releases
+          command: |
+            curl -sL https://git.io/goreleaser | bash -s -- --parallelism=2 --rm-dist
 workflows:
   version: 2
   build-deploy:
     jobs:
       - build
-      - tag
-      - release
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
 
