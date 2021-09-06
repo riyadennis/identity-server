@@ -74,9 +74,7 @@ jobs:
         - image: circleci/golang:1.17
     steps:
       - checkout
-      - run:
-          export GITHUB_TOKEN=${GITHUB_TOKEN}
-          curl -sL https://git.io/goreleaser | bash
+      - run: curl -sL https://git.io/goreleaser | bash
     filters:
       branches:
         ignore: /.*/
