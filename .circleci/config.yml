@@ -71,7 +71,7 @@ jobs:
             GOOS=linux go build -o main app/auth-api/main.go
   release:
     docker:
-      - image: circleci/golang:1.17
+      - image: buildpack-deps:trusty
     steps:
       - run:
           name: install autotag binary
