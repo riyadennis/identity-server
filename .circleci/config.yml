@@ -78,6 +78,7 @@ jobs:
           command: |
             apt-get update -y
             apt-get install -y git curl
+            git init
       - run:
           name: install autotag binary
           command: |
