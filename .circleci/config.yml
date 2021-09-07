@@ -83,6 +83,7 @@ jobs:
           name: install autotag binary
           command: |
             curl -sL https://git.io/autotag-install | sudo sh -s -- -b /usr/bin
+      - checkout
       - run:
           name: increment version
           command: |
