@@ -11,7 +11,7 @@ import (
 
 	"github.com/riyadennis/identity-server/foundation/middleware"
 
-	jwt "github.com/dgrijalva/jwt-go/v4"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/foundation"
 )
