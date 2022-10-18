@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -17,20 +16,13 @@ import (
 )
 
 func main() {
-	useEnvFile := os.Args[1]
-
 	logger := log.New(os.Stdout, "IDENTITY: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 
-	fmt.Printf("args: %s", useEnvFile)
-
-	if useEnvFile == "true" {
-		err := godotenv.Load()
-		if err != nil {
-			logger.Fatalf("failed to open env file: %v", err)
-		}
+	err := godotenv.Load()
+	if err != nil {
+		logger.Fatalf("failed to open env file: %v", err)
 	}
 
-	logger.Printf("env file switch value %v", useEnvFile)
 	cfg := store.NewENVConfig()
 
 	db, err := store.Connect(cfg.DB)

@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: identity-server
+  labels:
+   tier: backend
+   name: identity-server
+spec:
+  containers:
+    - name: identity-server
+      image: riyadennis/identity-server
+      ports:
+        - containerPort: 8090
+      env:
+        - name: PORT
+          value: "8090"
+        - name: ISSUER
+          value: "open source"
+        - name: KEY_PATH
+          value: "/tmp/keys"
+        - name: MYSQL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: username
+              optional: false
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: password
+              optional: false
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: host
+              optional: false
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: database
+              optional: false
+        - name: MYSQL_PORT
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: port
+              optional: false

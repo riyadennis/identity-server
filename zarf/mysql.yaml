@@ -1,0 +1,12 @@
+kind: Pod
+metadata:
+  name: mysql
+  labels:
+    name: mysql
+    tier: db
+spec:
+  containers:
+    - name: mysql
+      image: mysql
+      ports:
+        - containerPort: 8090
