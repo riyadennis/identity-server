@@ -1,4 +1,4 @@
-FROM golang:1.16 as builder
+FROM golang:1.23 as builder
 WORKDIR /identity
 # Copy local code to the container image.
 COPY  .  ./
