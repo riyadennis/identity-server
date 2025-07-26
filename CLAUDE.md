@@ -22,7 +22,7 @@ A Go-based identity management server providing user registration, authenticatio
 - MySQL database integration
 
 ## Technology Stack
-- **Language**: Go 1.23
+- **Language**: Go 1.24
 - **Database**: MySQL
 - **Authentication**: JWT tokens with RSA key pairs
 - **HTTP Router**: julienschmidt/httprouter
@@ -91,15 +91,6 @@ MYSQL_PORT="3306"
 MYSQL_HOST="127.0.0.1"
 BASE_PATH="/"
 
-# Test (.env_test)
-PORT="8089"
-ENV="test"
-MYSQL_DATABASE="test"
-MYSQL_USERNAME="newuser"
-MYSQL_PASSWORD="password"
-MYSQL_PORT="3306"
-MYSQL_HOST="127.0.0.1"
-BASE_PATH="/"
 
 # Additional Production Variables
 ISSUER="riya-dennis"
