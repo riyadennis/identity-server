@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 )
