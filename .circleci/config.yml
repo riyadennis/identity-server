@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/go/src/github.com/riyadennis/identity-server
     parallelism: 2
     docker:
-      - image: circleci/golang:1.17 # The primary container where steps are run
+      - image: circleci/golang:1.23 # The primary container where steps are run
       - image: circleci/mysql:5.7.18
         environment:
           MYSQL_ROOT_PASSWORD: secret
