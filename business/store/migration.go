@@ -17,22 +17,23 @@ var (
 
 // Migrate runs migration on the db specified in the connection
 // will create all the tables in the migrations folder
-func Migrate(db *sql.DB, dbName, basePath string) error {
+func Migrate(db *sql.DB, dbName, migrationPath string) error {
 	if db == nil {
 		return errEmptyDBConnection
 	}
-
-	driver, err := mysql.WithInstance(db, &mysql.Config{})
-	if err != nil {
-		return err
-	}
-
 	if dbName == "" {
 		return errEmptyDatabaseName
 	}
 
+	driver, err := mysql.WithInstance(db, &mysql.Config{
+		DatabaseName: dbName,
+	})
+	if err != nil {
+		return err
+	}
+
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+basePath+"migrations",
+		"file://"+migrationPath,
 		dbName,
 		driver)
 	if err != nil {

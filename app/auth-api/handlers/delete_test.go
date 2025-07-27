@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -46,7 +47,7 @@ func TestHandlerDelete(t *testing.T) {
 			},
 		},
 	}
-
+	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -55,7 +56,7 @@ func TestHandlerDelete(t *testing.T) {
 				&store.TokenConfig{
 					Issuer:  "TEST",
 					KeyPath: os.Getenv("KEY_PATH"),
-				}, testLogger).
+				}, logger).
 				Delete(w, nil, sc.params)
 
 			assert.Equal(t, w.Code, sc.expectedStatus)

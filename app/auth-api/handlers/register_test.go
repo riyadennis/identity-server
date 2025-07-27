@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -14,15 +13,6 @@ import (
 	"testing"
 
 	"github.com/google/jsonapi"
-
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
-
-	// initialise mysql driver
-	_ "github.com/go-sql-driver/mysql"
-	// initialise migration settings
-	_ "github.com/golang-migrate/migrate/source/file"
-
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business"
@@ -35,38 +25,6 @@ var (
 	testLogger *log.Logger
 	testEmail  string
 )
-
-func TestMain(m *testing.M) {
-	err := godotenv.Load("../../../.env_test")
-	if err != nil {
-		logrus.Fatalf("failed to open env file: %v", err)
-	}
-
-	cfg := store.NewENVConfig()
-
-	conn, err := store.Connect(cfg.DB)
-	if err != nil {
-		logrus.Fatalf("failed to connect to db: %v", err)
-	}
-
-	err = store.Migrate(conn, cfg.DB.Database, cfg.BasePath)
-	if err != nil {
-		logrus.Fatalf("failed to run migration: %v", err)
-	}
-
-	dbConn = store.NewDB(conn)
-	testLogger = log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
-	testEmail = "joh@doe.com"
-
-	code := m.Run()
-
-	_, err = dbConn.Delete(testEmail)
-	if err != nil {
-		logrus.Fatalf("failed to connect to db: %v", err)
-	}
-
-	os.Exit(code)
-}
 
 func TestRegister(t *testing.T) {
 	scenarios := []struct {
@@ -131,6 +89,7 @@ func TestRegister(t *testing.T) {
 				foundation.ValidationFailed),
 		},
 	}
+	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -139,7 +98,7 @@ func TestRegister(t *testing.T) {
 				&store.TokenConfig{
 					Issuer:  "TEST",
 					KeyPath: os.Getenv("KEY_PATH"),
-				}, testLogger)
+				}, logger)
 			h.Register(w, sc.req, nil)
 			assert.Equal(t, sc.expectedResponse.Status, w.Code)
 			resp := responseFromHTTP(t, w.Body)
@@ -167,7 +126,7 @@ func responseFromHTTP(t *testing.T, data io.Reader) *foundation.Response {
 	t.Helper()
 
 	resp := &foundation.Response{}
-	b, err := ioutil.ReadAll(data)
+	b, err := io.ReadAll(data)
 	if err != nil {
 		t.Error(err)
 	}
