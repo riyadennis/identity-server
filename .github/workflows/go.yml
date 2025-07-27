@@ -13,6 +13,17 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      MYSQL_USERNAME: 'identity-server'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_DATABASE: 'identity-server'
+      MYSQL_PORT: '3306'
+      MYSQL_HOST: '127.0.0.1'
+      MIGRATION_PATH: 'migrations'
+      ENV: 'test'
+      PORT: '8089'
+      KEY: 'this-should-be-secret-shared-only-to-client'
+      ISSUER: 'github-actions'
     steps:
     - uses: actions/checkout@v4
 
@@ -24,6 +35,18 @@ jobs:
 
     - name: Build
       run: go build -v ./...
+    
+    - name: Shutdown Ubuntu MySQL (SUDO)
+      run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+
+    - name: Set up MySQL
+      uses: mirromutth/mysql-action@v1.1
+      with:
+        mysql version: '8.0'
+        mysql database: 'identity-server'
+        mysql root password: 'root'
+        mysql user: 'identity-server'
+        mysql password: 'password'
 
     - name: Test
       run: go test -v ./...

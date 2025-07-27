@@ -47,17 +47,15 @@ func TestHandlerDelete(t *testing.T) {
 			},
 		},
 	}
+
+	db := setupDB(t)
 	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
+			handler := NewHandler(db, &store.TokenConfig{}, logger)
 
-			NewHandler(dbConn,
-				&store.TokenConfig{
-					Issuer:  "TEST",
-					KeyPath: os.Getenv("KEY_PATH"),
-				}, logger).
-				Delete(w, nil, sc.params)
+			handler.Delete(w, nil, sc.params)
 
 			assert.Equal(t, w.Code, sc.expectedStatus)
 

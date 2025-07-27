@@ -3,17 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/riyadennis/identity-server/business/store"
-
-	"github.com/riyadennis/identity-server/foundation"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 )
 
 func TestLogin(t *testing.T) {
@@ -52,10 +51,11 @@ func TestLogin(t *testing.T) {
 			},
 		},
 	}
+	db := setupDB(t)
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
-			h := NewHandler(dbConn, &store.TokenConfig{
+			h := NewHandler(db, &store.TokenConfig{
 				Issuer:  "TEST",
 				KeyPath: os.Getenv("KEY_PATH"),
 			}, testLogger)
@@ -70,7 +70,7 @@ func response(t *testing.T, body io.Reader) *foundation.Response {
 	t.Helper()
 	var re *foundation.Response
 	if body != nil {
-		data, err := ioutil.ReadAll(body)
+		data, err := io.ReadAll(body)
 		if err != nil {
 			t.Error(err.Error())
 		}
@@ -93,4 +93,15 @@ func request(t *testing.T, endpoint, content string) *http.Request {
 	}
 	req.Header.Set("content-type", "application/json")
 	return req
+}
+
+func setupDB(t *testing.T) *store.DB {
+	t.Helper()
+	cfg := store.NewENVConfig()
+	conn, err := store.Connect(cfg.DB)
+	assert.NoError(t, err)
+	db := &store.DB{
+		Conn: conn,
+	}
+	return db
 }
