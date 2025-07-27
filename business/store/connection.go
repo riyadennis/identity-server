@@ -33,25 +33,27 @@ type TokenConfig struct {
 }
 
 type DBConnection struct {
-	User      string
-	Password  string
-	Host      string
-	Name      string
-	Database  string
-	Port      string
-	ParseTime bool
+	User          string
+	Password      string
+	Host          string
+	Name          string
+	Database      string
+	Port          string
+	ParseTime     bool
+	MigrationPath string
 }
 
 func NewENVConfig() *Config {
 	return &Config{
 		BasePath: os.Getenv("BASE_PATH"),
 		DB: &DBConnection{
-			User:      os.Getenv("MYSQL_USERNAME"),
-			Password:  os.Getenv("MYSQL_PASSWORD"),
-			Host:      os.Getenv("MYSQL_HOST"),
-			Database:  os.Getenv("MYSQL_DATABASE"),
-			Port:      os.Getenv("MYSQL_PORT"),
-			ParseTime: true,
+			User:          os.Getenv("MYSQL_USERNAME"),
+			Password:      os.Getenv("MYSQL_PASSWORD"),
+			Host:          os.Getenv("MYSQL_HOST"),
+			Database:      os.Getenv("MYSQL_DATABASE"),
+			Port:          os.Getenv("MYSQL_PORT"),
+			ParseTime:     true,
+			MigrationPath: os.Getenv("MIGRATION_PATH"),
 		},
 		Token: &TokenConfig{
 			Issuer:         os.Getenv("ISSUER"),

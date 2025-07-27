@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
-
 	// initialise mysql driver
-	_ "github.com/go-sql-driver/mysql"
 	// initialise migration settings
+
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/joho/godotenv"
 
 	"github.com/riyadennis/identity-server/app/auth-api/handlers"
 	"github.com/riyadennis/identity-server/business/store"
@@ -34,7 +34,7 @@ func main() {
 		_ = db.Close()
 	}()
 
-	err = store.Migrate(db, cfg.DB.Database, cfg.BasePath)
+	err = store.Migrate(db, cfg.DB.Database, cfg.DB.MigrationPath)
 	if err != nil {
 		logger.Panicf("migration failed: %v", err)
 	}
