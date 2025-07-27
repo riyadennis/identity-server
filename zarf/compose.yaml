@@ -1,0 +1,21 @@
+name: identity-server
+
+services:
+  go-server:
+    build: 
+      context: ../
+      dockerfile: Dockerfile
+    ports:
+      - 8095:8095
+    environment:
+      - ENV=prod
+      - PORT=:8095
+  mysql-server:
+    image: mysql:8.0
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=identity-server
+      - MYSQL_USER=identity-server
+      - MYSQL_PASSWORD=password
