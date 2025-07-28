@@ -97,7 +97,7 @@ func Connect(dbCfg *DBConnection) (*sql.DB, error) {
 		dbCfg.Database,
 		dbCfg.ParseTime,
 	)
-	logrus.Infof("dsn: %s", dsn)
+
 	conn, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, err

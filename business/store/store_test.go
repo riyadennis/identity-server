@@ -2,13 +2,16 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"github.com/stretchr/testify/assert"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDBInsertSuccess(t *testing.T) {
@@ -26,18 +29,32 @@ func TestDBInsertSuccess(t *testing.T) {
 		},
 		{
 			name:        "empty user",
-			db:          &DB{Conn: conn},
+			db:          &DB{Conn: &sql.DB{}},
 			user:        nil,
 			expectedErr: errEmptyUser,
 		},
 		{
 			name: "success",
-			db:   &DB{Conn: conn},
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare("INSERT INTO identity_users").ExpectExec().
+					WithArgs(sqlmock.AnyArg(), "John", "Doe", "check", "john.doe@test.com", "Arctura", "12345", true).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
+						AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now()))
+				return NewDB(conn)
+			}(),
 			user: &UserRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john.doe@test.com",
 				Password:  "check",
+				Company:   "Arctura",
+				PostCode:  "12345",
 				Terms:     true,
 			},
 			uid:         uuid.NewString(),

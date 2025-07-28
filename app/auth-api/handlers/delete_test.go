@@ -48,7 +48,7 @@ func TestHandlerDelete(t *testing.T) {
 				assert.NoError(t, err)
 				mock.ExpectPrepare("DELETE FROM identity_users WHERE id = ?").
 					ExpectExec().
-					WithArgs().
+					WithArgs("INVALID").
 					WillReturnError(errors.New("error"))
 				return conn
 			}(),
@@ -72,7 +72,7 @@ func TestHandlerDelete(t *testing.T) {
 				assert.NoError(t, err)
 				mock.ExpectPrepare("DELETE FROM identity_users WHERE id = ?").
 					ExpectExec().
-					WithArgs().
+					WithArgs("INVALID").
 					WillReturnResult(sqlmock.NewResult(0, 0))
 				return conn
 			}(),

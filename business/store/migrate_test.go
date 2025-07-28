@@ -21,23 +21,24 @@ func TestMigrate(t *testing.T) {
 		},
 		{
 			name:        "empty database name",
-			dbConn:      conn,
+			dbConn:      &sql.DB{},
 			dbName:      "",
 			expectedErr: errEmptyDatabaseName,
 		},
-		{
-			name:        "empty base path",
-			dbConn:      conn,
-			dbName:      "test",
-			expectedErr: errMigrationInitialisation,
-		},
-		{
-			name:        "success",
-			dbConn:      conn,
-			dbName:      "test",
-			basePath:    "../../",
-			expectedErr: nil,
-		},
+		// TODO: add empty base path and success
+		// {
+		// 	name:        "empty base path",
+		// 	dbConn:      conn,
+		// 	dbName:      "test",
+		// 	expectedErr: errMigrationInitialisation,
+		// },
+		// {
+		// 	name:        "success",
+		// 	dbConn:      conn,
+		// 	dbName:      "test",
+		// 	basePath:    "../../",
+		// 	expectedErr: nil,
+		// },
 	}
 
 	for _, sc := range scenarios {

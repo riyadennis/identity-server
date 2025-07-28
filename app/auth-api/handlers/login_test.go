@@ -1,14 +1,19 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -18,6 +23,7 @@ import (
 func TestLogin(t *testing.T) {
 	scenarios := []struct {
 		name     string
+		conn     *sql.DB
 		request  *http.Request
 		response *foundation.Response
 	}{
@@ -51,14 +57,23 @@ func TestLogin(t *testing.T) {
 			},
 		},
 	}
-	db := setupDB(t)
+
+	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	conn, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+
+	mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users email id = ?")).
+		ExpectQuery().
+		WithArgs(sqlmock.AnyArg()).
+		WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
+			AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now()))
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
-			h := NewHandler(db, &store.TokenConfig{
+			h := NewHandler(store.NewDB(conn), &store.TokenConfig{
 				Issuer:  "TEST",
 				KeyPath: os.Getenv("KEY_PATH"),
-			}, testLogger)
+			}, logger)
 			h.Login(rr, sc.request, nil)
 			re := response(t, rr.Body)
 			assert.Equal(t, sc.response, re)
@@ -93,15 +108,4 @@ func request(t *testing.T, endpoint, content string) *http.Request {
 	}
 	req.Header.Set("content-type", "application/json")
 	return req
-}
-
-func setupDB(t *testing.T) *store.DB {
-	t.Helper()
-	cfg := store.NewENVConfig()
-	conn, err := store.Connect(cfg.DB)
-	assert.NoError(t, err)
-	db := &store.DB{
-		Conn: conn,
-	}
-	return db
 }

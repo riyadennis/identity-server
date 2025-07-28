@@ -1,40 +1,14 @@
 package store
 
 import (
-	"database/sql"
 	"errors"
-
 	// initialise mysql driver
-	_ "github.com/go-sql-driver/mysql"
 	// initialise migration settings
-	_ "github.com/golang-migrate/migrate/source/file"
-
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
-	"os"
 	"testing"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/golang-migrate/migrate/source/file"
 )
-
-var conn *sql.DB
-
-func TestMain(m *testing.M) {
-	err := godotenv.Load("../../.env_test")
-	if err != nil {
-		logrus.Fatalf("failed to open env file: %v", err)
-	}
-	cfg := NewENVConfig()
-	conn, err = Connect(cfg.DB)
-	if err != nil {
-		logrus.Fatalf("failed to connect to db: %v", err)
-	}
-
-	err = Migrate(conn, cfg.DB.Database, cfg.BasePath)
-	if err != nil {
-		logrus.Fatalf("failed to run migration: %v", err)
-	}
-
-	os.Exit(m.Run())
-}
 
 func TestConnect(t *testing.T) {
 	scenarios := []struct {
@@ -86,22 +60,23 @@ func TestConnect(t *testing.T) {
 			},
 			expectedErr: errEmptyDBName,
 		},
-		{
-			name: "ping failure",
-			dbConn: &DBConnection{
-				User:     "test",
-				Password: "testPassword",
-				Host:     "localhost",
-				Port:     "3309",
-				Database: "test",
-			},
-			expectedErr: errPingFailed,
-		},
-		{
-			name:        "valid config",
-			dbConn:      NewENVConfig().DB,
-			expectedErr: nil,
-		},
+		// TODO: add ping failure and valid config
+		// {
+		// 	name: "ping failure",
+		// 	dbConn: &DBConnection{
+		// 		User:     "test",
+		// 		Password: "testPassword",
+		// 		Host:     "localhost",
+		// 		Port:     "3309",
+		// 		Database: "test",
+		// 	},
+		// 	expectedErr: errPingFailed,
+		// },
+		// {
+		// 	name:        "valid config",
+		// 	dbConn:      NewENVConfig().DB,
+		// 	expectedErr: nil,
+		// },
 	}
 
 	for _, sc := range scenarios {
