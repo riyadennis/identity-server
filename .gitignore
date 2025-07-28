@@ -3,3 +3,4 @@
 .env
 dist/
 .idea
+__debug_bin*

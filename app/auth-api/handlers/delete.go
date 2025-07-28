@@ -29,6 +29,7 @@ func (h *Handler) Delete(w http.ResponseWriter, _ *http.Request, params httprout
 
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errDeleteFailed, foundation.DatabaseError)
+		return
 	}
 
 	if deleted == 0 {
