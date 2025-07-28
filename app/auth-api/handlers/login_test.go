@@ -1,24 +1,29 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"io"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
-
 	"github.com/riyadennis/identity-server/foundation"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLogin(t *testing.T) {
 	scenarios := []struct {
 		name     string
+		conn     *sql.DB
 		request  *http.Request
 		response *foundation.Response
 	}{
@@ -52,13 +57,23 @@ func TestLogin(t *testing.T) {
 			},
 		},
 	}
+
+	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	conn, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+
+	mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users email = ?")).
+		ExpectQuery().
+		WithArgs(sqlmock.AnyArg()).
+		WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
+			AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now()))
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
-			h := NewHandler(dbConn, &store.TokenConfig{
+			h := NewHandler(store.NewDB(conn), &store.TokenConfig{
 				Issuer:  "TEST",
 				KeyPath: os.Getenv("KEY_PATH"),
-			}, testLogger)
+			}, logger)
 			h.Login(rr, sc.request, nil)
 			re := response(t, rr.Body)
 			assert.Equal(t, sc.response, re)
@@ -70,7 +85,7 @@ func response(t *testing.T, body io.Reader) *foundation.Response {
 	t.Helper()
 	var re *foundation.Response
 	if body != nil {
-		data, err := ioutil.ReadAll(body)
+		data, err := io.ReadAll(body)
 		if err != nil {
 			t.Error(err.Error())
 		}

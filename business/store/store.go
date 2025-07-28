@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-
 	"github.com/sirupsen/logrus"
 )
 
@@ -183,7 +182,7 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
 
 // Delete removes a user from db as per the ID
 func (d *DB) Delete(id string) (int64, error) {
-	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users where id = ?`)
+	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users WHERE id = ?`)
 	if err != nil {
 		logrus.Fatalf("%v", err)
 		return 0, err
