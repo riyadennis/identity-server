@@ -62,7 +62,7 @@ func TestLogin(t *testing.T) {
 	conn, mock, err := sqlmock.New()
 	assert.NoError(t, err)
 
-	mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users email id = ?")).
+	mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users email = ?")).
 		ExpectQuery().
 		WithArgs(sqlmock.AnyArg()).
 		WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
