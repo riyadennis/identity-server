@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/google/jsonapi"
-
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/riyadennis/identity-server/business"
@@ -68,15 +67,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 		return
 	}
 
-	password, err := business.GeneratePassword()
-	if err != nil {
-		h.Logger.Printf("failed to generate password: %v", err)
-
-		foundation.ErrorResponse(w, http.StatusBadRequest, err, foundation.PassWordError)
-		return
-	}
-
-	u.Password, err = business.EncryptPassword(password)
+	u.Password, err = business.EncryptPassword(u.Password)
 	if err != nil {
 		h.Logger.Printf("password encryption failed: %v", err)
 
@@ -91,7 +82,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.
 		foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 	}
 
-	resource.Password = password
-
+	resource.Password = "********"
 	_ = foundation.Resource(w, http.StatusCreated, resource)
 }
