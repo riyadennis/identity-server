@@ -1,13 +1,16 @@
 package store
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
+)
 
 type Authenticator interface {
 	Authenticate(email, password string) (bool, error)
 }
 
 // Authenticate checks the validity of a given password for an email
-func (d *DB) Authenticate(email, password string) (bool, error) {
+func (d *DB) Authenticate(email, inputPassword string) (bool, error) {
 	login, err := d.Conn.Prepare(
 		`SELECT  password FROM 
             	identity_users 
@@ -17,14 +20,16 @@ func (d *DB) Authenticate(email, password string) (bool, error) {
 	}
 
 	row := login.QueryRow(email)
-	var hashedPass string
+	var storedHash string
 
-	err = row.Scan(&hashedPass)
+	err = row.Scan(&storedHash)
 	if err != nil {
 		return false, err
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
+
+	err = bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(inputPassword))
 	if err != nil {
+		logrus.Errorf("hashed password error :: %v", err)
 		return false, err
 	}
 

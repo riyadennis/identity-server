@@ -9,11 +9,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/riyadennis/identity-server/foundation/middleware"
-
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/julienschmidt/httprouter"
+
 	"github.com/riyadennis/identity-server/foundation"
+	"github.com/riyadennis/identity-server/foundation/middleware"
 )
 
 var (
@@ -64,7 +64,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 
 	valid, err := h.Authenticator.Authenticate(email, password)
 	if err != nil {
-		h.Logger.Printf("failed to find user in DB: %v", err)
+		h.Logger.Printf("failed to authenticate provided password %v", err)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errEmailNotFound, foundation.InvalidRequest)
