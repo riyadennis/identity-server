@@ -3,17 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
-	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/julienschmidt/httprouter"
 
+	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
-	"github.com/riyadennis/identity-server/foundation/middleware"
 )
 
 var (
@@ -25,14 +21,6 @@ var (
 type UserLogin struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-
-// Token have credentials present in a token
-type Token struct {
-	Status      int    `json:"status"`
-	AccessToken string `json:"access_token"`
-	Expiry      string `json:"expiry"`
-	TokenType   string `json:"token_type"`
 }
 
 // Login endpoint where user enters his email
@@ -89,7 +77,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 		return
 	}
 
-	token, err := generateToken(h.Logger, h.TokenConfig.Issuer, key)
+	token, err := store.GenerateToken(h.Logger, h.TokenConfig.Issuer, key)
 	if err != nil {
 		h.Logger.Printf("token generation failed: %v", err)
 
@@ -113,31 +101,5 @@ func fetchPrivateKey(privateKeyPath, publicKeyPath string) ([]byte, error) {
 		}
 	}
 
-	return ioutil.ReadFile(privateKeyPath)
-}
-
-func generateToken(logger *log.Logger, issuer string, key []byte) (*Token, error) {
-	expiry := time.Now().UTC().Add(middleware.TokenTTL)
-
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
-	if err != nil {
-		logger.Printf("failed to parser private key: %v", err)
-		return nil, err
-	}
-
-	t, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"exp": expiry.Unix(),
-		"iss": issuer,
-	}).SignedString(privateKey)
-	if err != nil {
-		logger.Printf("failed to sign using private key: %v", err)
-		return nil, err
-	}
-
-	return &Token{
-		Status:      200,
-		AccessToken: t,
-		Expiry:      expiry.String(),
-		TokenType:   "Bearer",
-	}, nil
+	return os.ReadFile(privateKeyPath)
 }
