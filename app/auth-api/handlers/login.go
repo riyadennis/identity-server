@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -77,7 +78,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 		return
 	}
 
-	token, err := store.GenerateToken(h.Logger, h.TokenConfig.Issuer, key)
+	token, err := store.GenerateToken(h.Logger, h.TokenConfig.Issuer, key, 120*time.Hour)
 	if err != nil {
 		h.Logger.Printf("token generation failed: %v", err)
 

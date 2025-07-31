@@ -21,9 +21,7 @@ import (
 )
 
 var (
-	dbConn     *store.DB
-	testLogger *log.Logger
-	testEmail  string
+	testEmail string
 )
 
 func TestRegister(t *testing.T) {
