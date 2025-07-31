@@ -2,7 +2,13 @@ package validation
 
 import (
 	"errors"
+	"log"
+	"os"
 	"testing"
+	"time"
+
+	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
 )
@@ -76,4 +82,116 @@ func TestValidateUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidateToken(t *testing.T) {
+	// privateKey, _ := loadTestKeys(t)
+	scenarios := []struct {
+		name          string
+		token         string
+		tokenConfig   *store.TokenConfig
+		expectedError error
+	}{
+		{
+			name:          "empty token",
+			token:         "",
+			tokenConfig:   &store.TokenConfig{},
+			expectedError: errMissingToken,
+		},
+		{
+			name:          "missing bearer token",
+			token:         "Bearer ",
+			tokenConfig:   &store.TokenConfig{},
+			expectedError: errMissingBearerToken,
+		},
+		{
+			name:  "invalid token format",
+			token: "Bearer invalid.token.format",
+			tokenConfig: &store.TokenConfig{
+				TokenTTL:      time.Hour,
+				Issuer:        "test-issuer",
+				KeyPath:       "./testdata/",
+				PublicKeyName: "test_public.pem",
+			},
+			expectedError: jwt.ErrTokenMalformed,
+		},
+		{
+			name: "missing key file",
+			token: func() string {
+				validToken := generateTestToken(t, "test-issuer", time.Hour)
+				return validToken
+			}(),
+			tokenConfig: &store.TokenConfig{
+				TokenTTL:      time.Hour,
+				Issuer:        "test-issuer",
+				KeyPath:       "./testdata/",
+				PublicKeyName: "nonexistent.pem",
+			},
+			expectedError: errTokenKeyNotFound,
+		},
+		{
+			name: "expired token",
+			token: func() string {
+				expiredToken := generateTestToken(t, "test-issuer", -time.Hour)
+				return expiredToken
+			}(),
+			tokenConfig: &store.TokenConfig{
+				TokenTTL:      time.Hour,
+				Issuer:        "test-issuer",
+				KeyPath:       "./testdata/",
+				PublicKeyName: "test_public.pem",
+			},
+			expectedError: jwt.ErrTokenExpired,
+		},
+		{
+			name: "wrong issuer",
+			token: func() string {
+				wrongIssuerToken := generateTestToken(t, "wrong-issuer", time.Hour)
+				return wrongIssuerToken
+			}(),
+			tokenConfig: &store.TokenConfig{
+				TokenTTL:      time.Hour,
+				Issuer:        "test-issuer",
+				KeyPath:       "./testdata/",
+				PublicKeyName: "test_public.pem",
+			},
+			expectedError: errInvalidToken,
+		},
+		{
+			name: "valid token",
+			token: func() string {
+				validToken := generateTestToken(t, "test-issuer", time.Hour)
+				return validToken
+			}(),
+			tokenConfig: &store.TokenConfig{
+				TokenTTL:      time.Hour,
+				Issuer:        "test-issuer",
+				KeyPath:       "./testdata/",
+				PublicKeyName: "test_public.pem",
+			},
+			expectedError: nil,
+		},
+	}
+
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			err := ValidateToken(sc.token, sc.tokenConfig)
+			if !errors.Is(err, sc.expectedError) {
+				t.Fatalf("expected err %v, got %v", sc.expectedError, err)
+			}
+		})
+	}
+}
+
+func generateTestToken(t *testing.T, issuer string, ttl time.Duration) string {
+	t.Helper()
+
+	privateKeyData, err := os.ReadFile("testdata/test_private.pem")
+	assert.NoError(t, err)
+
+	logger := log.New(os.Stdout, "test: ", log.LstdFlags)
+	signedToken, err := store.GenerateToken(logger, issuer, privateKeyData, ttl)
+	assert.NoError(t, err)
+
+	return "Bearer " + signedToken.AccessToken
 }

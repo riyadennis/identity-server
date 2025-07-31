@@ -10,7 +10,7 @@ import (
 // CORS is a net/http compliant Cross Origin Resource Sharing middleware.
 func CORS(next httprouter.Handle, allowedOrigins []string) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		cors.New(cors.Options{
+		c := cors.New(cors.Options{
 			AllowedOrigins: allowedOrigins,
 			AllowedHeaders: []string{
 				"Authorization",
@@ -35,6 +35,10 @@ func CORS(next httprouter.Handle, allowedOrigins []string) httprouter.Handle {
 			AllowCredentials: true,
 		})
 
-		next(w, r, p)
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			next(w, r, p)
+		})
+
+		c.Handler(handler).ServeHTTP(w, r)
 	}
 }

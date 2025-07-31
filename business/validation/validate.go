@@ -69,19 +69,29 @@ func ValidateToken(token string, tc *store.TokenConfig) error {
 
 	t, err := jwt.ParseWithClaims(
 		token[len(BearerSchema):],
-		jwt.MapClaims{
-			"exp": time.Now().UTC().Add(tc.TokenTTL).Unix(),
-			"iss": tc.Issuer,
-		}, fetchKey(tc.KeyPath+tc.PublicKeyName))
-
+		&jwt.RegisteredClaims{
+			Issuer:    tc.Issuer,
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(tc.TokenTTL)),
+		},
+		fetchKey(tc.KeyPath+tc.PublicKeyName),
+	)
 	if err != nil {
 		return err
 	}
-
 	if !t.Valid {
 		return errInvalidToken
 	}
-
+	claims, ok := t.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return errInvalidToken
+	}
+	if claims.Issuer != tc.Issuer {
+		return errInvalidToken
+	}
+	if claims.ExpiresAt.Time.Before(time.Now().UTC()) {
+		return jwt.ErrTokenExpired
+	}
 	return nil
 }
 
@@ -98,7 +108,7 @@ func fetchKey(keyPath string) jwt.Keyfunc {
 
 		publicKey, e := jwt.ParseRSAPublicKeyFromPEM(key)
 		if e != nil {
-			panic(e.Error())
+			return nil, e
 		}
 
 		return publicKey, nil
