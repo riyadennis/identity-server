@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"time"
 
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,6 +33,7 @@ type TokenConfig struct {
 	KeyPath        string
 	PrivateKeyName string
 	PublicKeyName  string
+	TokenTTL       time.Duration
 }
 
 type DBConnection struct {
@@ -41,6 +45,19 @@ type DBConnection struct {
 	Port          string
 	ParseTime     bool
 	MigrationPath string
+}
+
+const (
+	// TokenTTL is the expiry time for a token
+	TokenTTL = 120 * time.Hour
+)
+
+// Token have credentials present in a token
+type Token struct {
+	Status      int    `json:"status"`
+	AccessToken string `json:"access_token"`
+	Expiry      string `json:"expiry"`
+	TokenType   string `json:"token_type"`
 }
 
 func NewENVConfig() *Config {
@@ -60,6 +77,7 @@ func NewENVConfig() *Config {
 			KeyPath:        os.Getenv("KEY_PATH"),
 			PrivateKeyName: "private.pem",
 			PublicKeyName:  "public.pem",
+			TokenTTL:       TokenTTL,
 		},
 	}
 }
@@ -110,4 +128,30 @@ func Connect(dbCfg *DBConnection) (*sql.DB, error) {
 	}
 
 	return conn, nil
+}
+
+func GenerateToken(logger *log.Logger, issuer string, key []byte) (*Token, error) {
+	expiry := time.Now().UTC().Add(TokenTTL)
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
+	if err != nil {
+		logger.Printf("failed to parser private key: %v", err)
+		return nil, err
+	}
+
+	t, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"exp": expiry.Unix(),
+		"iss": issuer,
+	}).SignedString(privateKey)
+	if err != nil {
+		logger.Printf("failed to sign using private key: %v", err)
+		return nil, err
+	}
+
+	return &Token{
+		Status:      200,
+		AccessToken: t,
+		Expiry:      expiry.String(),
+		TokenType:   "Bearer",
+	}, nil
 }

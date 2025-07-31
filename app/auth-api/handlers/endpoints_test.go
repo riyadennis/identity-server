@@ -140,9 +140,9 @@ func TestDeleteRoute_ValidToken(t *testing.T) {
 func TestHomeRoute_ValidToken(t *testing.T) {
 	router, _ := setupTestRouter(t)
 
-	// Create home request with auth token
 	req := httptest.NewRequest(http.MethodGet, HomeEndPoint, nil)
-	req.Header.Set("Authorization", "Bearer test-token")
+
+	req.Header.Set("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTQzODgzOTgsImlzcyI6IiJ9.fcaTzPU4PkeOe_CwtRvdetEDWCm_x0E3pLNUpKCcELdD7RqbCsbig9WWspey1pKyckawoz7N9XGAffmq8i4G97oQcwjNffZKC8SKq6ocxPBs95G0f8KmcX1nCYVsSPb6r0D3A3KCnWphiwrwf6-kmKDxhvEaxqquOfaJcws6JSkekjml_H3iCinbiVISHZqvAqjWSSkC4CPbzB4yqNJ0_oRvkJx-gL8Z7w_Jmk28RouYWap_-1Hzy6MZt4s-PtZPXIQw7NRA3NyVGp9f-MMoatsmOFAkvFbV1wSnEzUgKLg1Wga98y9YnTYDvbFhC8pyHKsbEq0g2en6qqymDg2ZCQ")
 	rec := httptest.NewRecorder()
 
 	router.ServeHTTP(rec, req)

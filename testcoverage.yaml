@@ -68,4 +68,4 @@ diff:
   #   less than 0.5% more coverage than the base.
   #
   #   If set to -0.5, the check allows up to 0.5% less coverage than the base.
-  threshold: -0.5
+  threshold: 70
