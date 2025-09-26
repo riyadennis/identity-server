@@ -39,6 +39,14 @@ func TestLivenessRoute(t *testing.T) {
 	assert.Equal(t, "up", resp["Status"])
 }
 
+func TestHomeRouteNoAuth(t *testing.T) {
+	router, _ := setupTestRouter(t)
+	req := httptest.NewRequest(http.MethodGet, HomeEndPoint, nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+}
 func TestReadinessRoute(t *testing.T) {
 	scenarios := []struct {
 		name         string
