@@ -18,13 +18,11 @@ var (
 	errEmptyDBHost     = errors.New("empty mysql host name")
 	errEmptyDBName     = errors.New("empty mysql database name")
 	errEmptyDBPort     = errors.New("empty mysql port")
-	errPingFailed      = errors.New("database ping failed")
 )
 
 type Config struct {
-	BasePath string
-	DB       *DBConnection
-	Token    *TokenConfig
+	DB    *DBConnection
+	Token *TokenConfig
 }
 
 type TokenConfig struct {
@@ -57,7 +55,6 @@ type Token struct {
 
 func NewENVConfig() *Config {
 	return &Config{
-		BasePath: os.Getenv("BASE_PATH"),
 		DB: &DBConnection{
 			User:          os.Getenv("MYSQL_USERNAME"),
 			Password:      os.Getenv("MYSQL_PASSWORD"),
