@@ -2,6 +2,7 @@ package store
 
 import (
 	"errors"
+	"os"
 	// initialise mysql driver
 	// initialise migration settings
 	"testing"
@@ -60,23 +61,19 @@ func TestConnect(t *testing.T) {
 			},
 			expectedErr: errEmptyDBName,
 		},
-		// TODO: add ping failure and valid config
-		// {
-		// 	name: "ping failure",
-		// 	dbConn: &DBConnection{
-		// 		User:     "test",
-		// 		Password: "testPassword",
-		// 		Host:     "localhost",
-		// 		Port:     "3309",
-		// 		Database: "test",
-		// 	},
-		// 	expectedErr: errPingFailed,
-		// },
-		// {
-		// 	name:        "valid config",
-		// 	dbConn:      NewENVConfig().DB,
-		// 	expectedErr: nil,
-		// },
+		// TODO:  valid config
+		{
+			name: "valid config",
+			dbConn: func() *DBConnection {
+				os.Setenv("MYSQL_USERNAME", "root")
+				os.Setenv("MYSQL_PASSWORD", "root")
+				os.Setenv("MYSQL_HOST", "localhost")
+				os.Setenv("MYSQL_DATABASE", "identity")
+				os.Setenv("MYSQL_PORT", "80")
+				return NewENVConfig().DB
+			}(),
+			expectedErr: nil,
+		},
 	}
 
 	for _, sc := range scenarios {

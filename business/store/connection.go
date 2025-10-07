@@ -9,7 +9,6 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -114,12 +113,6 @@ func Connect(dbCfg *DBConnection) (*sql.DB, error) {
 	conn, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, err
-	}
-
-	err = conn.Ping()
-	if err != nil {
-		logrus.Errorf("database ping failed: %v", err)
-		return nil, errPingFailed
 	}
 
 	return conn, nil
