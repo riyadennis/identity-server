@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-
 	// initialise mysql driver
 	// initialise migration settings
 
@@ -28,6 +27,11 @@ func main() {
 	db, err := store.Connect(cfg.DB)
 	if err != nil {
 		logger.Fatalf("failed to connect to database: %v", err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		logger.Fatalf("database ping failed: %v", err)
 	}
 
 	defer func() {
