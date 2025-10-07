@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 )
 
 func setupTestRouter(t *testing.T) (http.Handler, sqlmock.Sqlmock) {
@@ -159,4 +160,15 @@ func TestHomeRoute_NoToken(t *testing.T) {
 
 	router.ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+}
+
+func TestHome(t *testing.T) {
+	w := httptest.NewRecorder()
+	Home(w, nil, nil)
+	body := &foundation.Response{}
+	dec := json.NewDecoder(w.Body)
+	dec.Decode(body)
+	assert.Equal(t, http.StatusOK, body.Status)
+	assert.Equal(t, "Authorised", body.Message)
+	assert.Equal(t, "", body.ErrorCode)
 }
