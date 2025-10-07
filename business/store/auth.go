@@ -9,12 +9,13 @@ type Authenticator interface {
 	Authenticate(email, password string) (bool, error)
 }
 
+var authQuery = `SELECT password FROM 
+identity_users 
+where email = ?`
+
 // Authenticate checks the validity of a given password for an email
 func (d *DB) Authenticate(email, inputPassword string) (bool, error) {
-	login, err := d.Conn.Prepare(
-		`SELECT  password FROM 
-            	identity_users 
-				where email = ?`)
+	login, err := d.Conn.Prepare(authQuery)
 	if err != nil {
 		return false, err
 	}
