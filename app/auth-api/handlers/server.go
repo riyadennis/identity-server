@@ -39,7 +39,7 @@ func NewServer(addr string) *Server {
 	if err != nil {
 		errChan <- err
 	}
-
+	defer close(errChan)
 	return &Server{
 		httpServer: http.Server{
 			Addr:         ":" + addr,
