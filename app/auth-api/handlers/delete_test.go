@@ -114,7 +114,7 @@ func TestHandlerDelete(t *testing.T) {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			dbCOnn := store.NewDB(sc.conn)
-			handler := NewHandler(dbCOnn, &store.TokenConfig{}, logger)
+			handler := NewHandler(dbCOnn, dbCOnn, &store.TokenConfig{}, logger)
 
 			handler.Delete(w, nil, sc.params)
 

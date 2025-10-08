@@ -33,7 +33,7 @@ const (
 )
 
 func loadRoutes(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) http.Handler {
-	h := NewHandler(store.NewDB(conn), tc, logger)
+	h := NewHandler(store.NewDB(conn), store.NewDB(conn), tc, logger)
 	router := httprouter.New()
 	allowedOrigins := []string{"*"}
 

@@ -92,7 +92,7 @@ func TestRegister(t *testing.T) {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			db := store.NewDB(sc.conn)
-			h := NewHandler(db,
+			h := NewHandler(db, db,
 				&store.TokenConfig{
 					Issuer:  "TEST",
 					KeyPath: os.Getenv("KEY_PATH"),

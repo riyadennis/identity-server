@@ -23,10 +23,11 @@ type Handler struct {
 	TokenConfig   *store.TokenConfig
 }
 
-func NewHandler(store *store.DB, tc *store.TokenConfig, logger *log.Logger) *Handler {
+func NewHandler(store store.Store, authenticator store.Authenticator,
+	tc *store.TokenConfig, logger *log.Logger) *Handler {
 	return &Handler{
 		Store:         store,
-		Authenticator: store,
+		Authenticator: authenticator,
 		Logger:        logger,
 		TokenConfig:   tc,
 	}
