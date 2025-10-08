@@ -134,10 +134,7 @@ func (d *DB) Retrieve(ctx context.Context, id string) (*UserResource, error) {
 	return user, nil
 }
 
-// Read will fetch data from db for a user as per the email
-// will return nil if user is not found
-func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
-	query := `SELECT id,
+var ReadQuery = `SELECT id,
        first_name,
        last_name,
        email,
@@ -148,7 +145,10 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
 		FROM identity_users 
 		where email = ?`
 
-	rows, err := d.Conn.QueryContext(ctx, query, email)
+// Read will fetch data from db for a user as per the email
+// will return nil if user is not found
+func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
+	rows, err := d.Conn.QueryContext(ctx, ReadQuery, email)
 	if err != nil {
 		return nil, err
 	}
