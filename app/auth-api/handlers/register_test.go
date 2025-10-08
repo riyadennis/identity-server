@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -28,7 +28,7 @@ func TestRegister(t *testing.T) {
 	scenarios := []struct {
 		name             string
 		req              *http.Request
-		conn             *sql.DB
+		store            store.Store
 		expectedResponse *foundation.Response
 	}{
 		{
@@ -61,18 +61,7 @@ func TestRegister(t *testing.T) {
 				Email:     testEmail,
 			}),
 			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
-				"missing first name",
-				foundation.ValidationFailed),
-		},
-		{
-			name: "missing terms",
-			req: registerPayLoad(t, &store.UserRequest{
-				FirstName: "John",
-				LastName:  "Doe",
-				Email:     testEmail,
-			}),
-			expectedResponse: foundation.NewResponse(http.StatusBadRequest,
-				"missing terms",
+				"missing last name",
 				foundation.ValidationFailed),
 		},
 		{
@@ -86,23 +75,45 @@ func TestRegister(t *testing.T) {
 				"invalid email",
 				foundation.ValidationFailed),
 		},
+		{
+			name: "error reading db",
+			req: func() *http.Request {
+				u := user(t)
+				u.Email = "joh@doe.com"
+				return registerPayLoad(t, u)
+			}(),
+			store:            &MockStore{Error: errors.New("error")},
+			expectedResponse: foundation.NewResponse(http.StatusBadRequest, "error", foundation.ValidationFailed),
+		},
+		{
+			name: "duplicate email",
+			req: func() *http.Request {
+				u := user(t)
+				u.Email = "joh@doe.com"
+				return registerPayLoad(t, u)
+			}(),
+			store: &MockStore{UserResource: &store.UserResource{
+				Email: "joh@doe.com",
+			}},
+			expectedResponse: foundation.NewResponse(
+				http.StatusBadRequest,
+				"email already exists",
+				foundation.EmailAlreadyExists),
+		},
 	}
 	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			db := store.NewDB(sc.conn)
-			h := NewHandler(db, db,
+			h := NewHandler(sc.store, &MockAuthenticator{},
 				&store.TokenConfig{
 					Issuer:  "TEST",
 					KeyPath: os.Getenv("KEY_PATH"),
 				}, logger)
 			h.Register(w, sc.req, nil)
-			assert.Equal(t, sc.expectedResponse.Status, w.Code)
-			resp := responseFromHTTP(t, w.Body)
+			resp := response(t, w.Body)
 			// TODO assert message also
-			assert.Equal(t, sc.expectedResponse.ErrorCode, resp.ErrorCode)
-			assert.Equal(t, sc.expectedResponse.Status, w.Code)
+			assert.Equal(t, sc.expectedResponse, resp)
 		})
 	}
 }
