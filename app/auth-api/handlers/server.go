@@ -26,8 +26,8 @@ var (
 type Server struct {
 	httpServer  http.Server
 	listenAddr  string
-	serverError chan error
-	shutDown    chan os.Signal
+	ServerError chan error
+	ShutDown    chan os.Signal
 }
 
 // NewServer creates a server instance with error and shutdown channels initialised
@@ -38,8 +38,8 @@ func NewServer(addr string) *Server {
 	err := validatePort(addr)
 	if err != nil {
 		errChan <- err
+		close(errChan)
 	}
-	defer close(errChan)
 	return &Server{
 		httpServer: http.Server{
 			Addr:         ":" + addr,
@@ -47,8 +47,8 @@ func NewServer(addr string) *Server {
 			WriteTimeout: timeOut,
 		},
 		listenAddr:  addr,
-		serverError: errChan,
-		shutDown:    shutdown,
+		ServerError: errChan,
+		ShutDown:    shutdown,
 	}
 }
 
@@ -59,13 +59,13 @@ func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) er
 	// Start the service
 	go func() {
 		logger.Printf("server running on port %s", s.httpServer.Addr)
-		s.serverError <- s.httpServer.ListenAndServe()
+		s.ServerError <- s.httpServer.ListenAndServe()
 	}()
 
 	select {
-	case err := <-s.serverError:
+	case err := <-s.ServerError:
 		return err
-	case sig := <-s.shutDown:
+	case sig := <-s.ShutDown:
 		logger.Printf("main: %v: Start shutdown", sig)
 		// Give outstanding requests a deadline for completion.
 		ctx, cancel := context.WithTimeout(context.Background(), timeOut)

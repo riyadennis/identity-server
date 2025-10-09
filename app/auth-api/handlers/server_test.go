@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,9 +41,31 @@ func TestNewServerPortValdation(t *testing.T) {
 	for _, tc := range sc {
 		t.Run(tc.name, func(t *testing.T) {
 			se := NewServer(tc.port)
-			err := <-se.serverError
-			assert.Equal(t, tc.expectedError, err)
+			select {
+			case err := <-se.ServerError:
+				assert.Equal(t, tc.expectedError, err)
+			default:
+				break
+			}
+
 		})
 	}
 
+}
+
+func TestServerRun(t *testing.T) {
+	s := NewServer("8080")
+	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	s.Run(nil, nil, logger)
+	close(s.ServerError)
+	close(s.ShutDown)
+}
+
+func TestServerShutDown(t *testing.T) {
+	s := NewServer("8080")
+	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	s.Run(nil, nil, logger)
+	s.ShutDown <- os.Interrupt
+	close(s.ServerError)
+	close(s.ShutDown)
 }
