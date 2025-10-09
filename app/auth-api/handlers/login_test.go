@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -13,9 +12,7 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -279,16 +276,4 @@ func request(t *testing.T, endpoint, content string) *http.Request {
 	}
 	req.Header.Set("content-type", "application/json")
 	return req
-}
-
-func mockDBwithUser(t *testing.T) *sql.DB {
-	conn, mock, err := sqlmock.New()
-	assert.NoError(t, err)
-
-	mock.ExpectQuery(store.ReadQuery).
-		WithArgs(sqlmock.AnyArg()).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
-			AddRow("1", "John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now()))
-
-	return conn
 }

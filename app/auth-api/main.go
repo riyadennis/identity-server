@@ -43,8 +43,13 @@ func main() {
 		logger.Panicf("migration failed: %v", err)
 	}
 
-	err = handlers.NewServer(os.Getenv("PORT")).Run(db, cfg.Token, logger)
+	server := handlers.NewServer(os.Getenv("PORT"))
+	err = server.Run(db, cfg.Token, logger)
 	if err != nil {
 		logger.Panicf("error running server: %v", err)
 	}
+	defer func() {
+		close(server.ServerError)
+		close(server.ShutDown)
+	}()
 }
