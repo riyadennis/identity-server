@@ -46,7 +46,7 @@ func TestNewServerPortValdation(t *testing.T) {
 			case err := <-se.ServerError:
 				assert.Equal(t, tc.expectedError, err)
 			default:
-				break
+				t.Log("reached default for test " + tc.name)
 			}
 		})
 	}
