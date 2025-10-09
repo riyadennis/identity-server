@@ -47,10 +47,8 @@ func TestNewServerPortValdation(t *testing.T) {
 			default:
 				break
 			}
-
 		})
 	}
-
 }
 
 func TestServerRun(t *testing.T) {
