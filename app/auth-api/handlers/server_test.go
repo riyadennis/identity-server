@@ -41,6 +41,7 @@ func TestNewServerPortValdation(t *testing.T) {
 	for _, tc := range sc {
 		t.Run(tc.name, func(t *testing.T) {
 			se := NewServer(tc.port)
+			// using select to listen to channel
 			select {
 			case err := <-se.ServerError:
 				assert.Equal(t, tc.expectedError, err)
