@@ -38,7 +38,6 @@ func NewServer(addr string) *Server {
 	err := validatePort(addr)
 	if err != nil {
 		errChan <- err
-		close(errChan)
 	}
 	return &Server{
 		httpServer: http.Server{

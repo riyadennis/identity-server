@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"log"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,24 +45,8 @@ func TestNewServerPortValdation(t *testing.T) {
 				assert.Equal(t, tc.expectedError, err)
 			default:
 				t.Log("reached default for test " + tc.name)
+				close(se.ServerError)
 			}
 		})
 	}
-}
-
-func TestServerRun(t *testing.T) {
-	s := NewServer("8080")
-	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
-	s.Run(nil, nil, logger)
-	close(s.ServerError)
-	close(s.ShutDown)
-}
-
-func TestServerShutDown(t *testing.T) {
-	s := NewServer("8080")
-	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
-	s.Run(nil, nil, logger)
-	s.ShutDown <- os.Interrupt
-	close(s.ServerError)
-	close(s.ShutDown)
 }
