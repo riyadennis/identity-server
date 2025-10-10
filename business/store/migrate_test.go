@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMigrate(t *testing.T) {
@@ -25,20 +28,22 @@ func TestMigrate(t *testing.T) {
 			dbName:      "",
 			expectedErr: errEmptyDatabaseName,
 		},
-		// TODO: add empty base path and success
-		// {
-		// 	name:        "empty base path",
-		// 	dbConn:      conn,
-		// 	dbName:      "test",
-		// 	expectedErr: errMigrationInitialisation,
-		// },
-		// {
-		// 	name:        "success",
-		// 	dbConn:      conn,
-		// 	dbName:      "test",
-		// 	basePath:    "../../",
-		// 	expectedErr: nil,
-		// },
+		{
+			name: "success",
+			dbConn: func() *sql.DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPing()
+				mock.ExpectQuery(`SELECT DATABASE()`).
+					WillReturnRows(sqlmock.NewRows([]string{"DATABASE"}).
+						AddRow("test"))
+				mock.ExpectQuery(`SHOW TABLES LIKE "schema_migrations"`).
+					WillReturnRows(sqlmock.NewRows([]string{"DATABASE"}).
+						AddRow("test"))
+				return conn
+			}(),
+			dbName: "test",
+		},
 	}
 
 	for _, sc := range scenarios {
