@@ -47,6 +47,7 @@ func TestNewServerPortValdation(t *testing.T) {
 				assert.Equal(t, tc.expectedError, err)
 			default:
 				t.Log("reached default for test " + tc.name)
+				close(se.ServerError)
 			}
 		})
 	}
