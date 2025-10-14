@@ -90,7 +90,7 @@ func (d *DB) Insert(ctx context.Context, u *UserRequest) (*UserResource, error) 
 }
 
 // Retrieve will fetch data from db for a user as per the id
-// will return nil if user is not found
+// will return nil if the user is not found
 func (d *DB) Retrieve(ctx context.Context, id string) (*UserResource, error) {
 	if d.Conn == nil {
 		return nil, errEmptyDBConnection
@@ -146,8 +146,12 @@ var ReadQuery = `SELECT id,
 		where email = ?`
 
 // Read will fetch data from db for a user as per the email
-// will return nil if user is not found
+// will return nil if the user is not found
 func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
+	if d.Conn == nil {
+		return nil, errEmptyDBConnection
+	}
+
 	rows, err := d.Conn.QueryContext(ctx, ReadQuery, email)
 	if err != nil {
 		return nil, err
@@ -172,8 +176,8 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
 				logrus.Infof("user not found :: %s", email)
 				return nil, nil
 			}
-
-			return nil, err
+			logrus.Errorf("failed to read user data: %v", err)
+			return nil, errInvalidDataInDB
 		}
 	}
 
@@ -184,7 +188,7 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
 func (d *DB) Delete(id string) (int64, error) {
 	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users WHERE id = ?`)
 	if err != nil {
-		logrus.Fatalf("%v", err)
+		logrus.Errorf("user deletion failed with error: %v", err)
 		return 0, err
 	}
 

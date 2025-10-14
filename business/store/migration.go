@@ -13,6 +13,7 @@ var (
 	errEmptyDBConnection       = errors.New("empty database connection")
 	errEmptyDatabaseName       = errors.New("no database set in  config")
 	errMigrationInitialisation = errors.New("failed to initialise migration")
+	errInvalidDataInDB         = errors.New("invalid data in db")
 )
 
 // Migrate runs migration on the db specified in the connection

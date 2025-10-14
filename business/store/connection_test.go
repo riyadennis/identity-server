@@ -61,15 +61,14 @@ func TestConnect(t *testing.T) {
 			},
 			expectedErr: errEmptyDBName,
 		},
-		// TODO:  valid config
 		{
 			name: "valid config",
 			dbConn: func() *DBConnection {
-				os.Setenv("MYSQL_USERNAME", "root")
-				os.Setenv("MYSQL_PASSWORD", "root")
-				os.Setenv("MYSQL_HOST", "localhost")
-				os.Setenv("MYSQL_DATABASE", "identity")
-				os.Setenv("MYSQL_PORT", "80")
+				_ = os.Setenv("MYSQL_USERNAME", "root")
+				_ = os.Setenv("MYSQL_PASSWORD", "root")
+				_ = os.Setenv("MYSQL_HOST", "localhost")
+				_ = os.Setenv("MYSQL_DATABASE", "identity")
+				_ = os.Setenv("MYSQL_PORT", "80")
 				return NewENVConfig().DB
 			}(),
 			expectedErr: nil,

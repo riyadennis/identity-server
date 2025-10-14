@@ -117,3 +117,208 @@ func TestDBInsertPrepareFail(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestDBRetrieve(t *testing.T) {
+	scenarios := []struct {
+		name        string
+		db          *DB
+		user        *UserResource
+		uid         string
+		expectedErr error
+	}{
+		{
+			name:        "empty connection",
+			db:          &DB{},
+			expectedErr: errEmptyDBConnection,
+		},
+		{
+			name: "prepare failed",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+					WillReturnError(errors.New("error"))
+				return NewDB(conn)
+			}(),
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "sql failed",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnError(errors.New("error"))
+				return NewDB(conn)
+			}(),
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "user not found",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnError(sql.ErrNoRows)
+				return NewDB(conn)
+			}(),
+		},
+		{
+			name: "success",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+					ExpectQuery().
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnRows(
+						sqlmock.NewRows(
+							[]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
+							AddRow("john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01"))
+				return NewDB(conn)
+			}(),
+			user: &UserResource{
+				FirstName: "john",
+				LastName:  "doe",
+				Email:     "john.doe@gmail.com",
+				Company:   "Arctura",
+				PostCode:  "12345",
+				CreatedAt: "2024-01-01",
+				UpdatedAt: "2024-01-01",
+			},
+		},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			user, err := sc.db.Retrieve(context.Background(), sc.uid)
+			assert.Equal(t, sc.expectedErr, err)
+			assert.Equal(t, sc.user, user)
+		})
+	}
+}
+
+func TestDB_Read(t *testing.T) {
+	scenarios := []struct {
+		name        string
+		db          *DB
+		user        *UserResource
+		email       string
+		expectedErr error
+	}{
+		{
+			name:        "empty connection",
+			db:          &DB{},
+			expectedErr: errEmptyDBConnection,
+		},
+		{
+			name: "query failed",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(ReadQuery).
+					WillReturnError(errors.New("error"))
+				return NewDB(conn)
+			}(),
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "invalid data in DB",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(ReadQuery).
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
+						AddRow(nil, nil, nil, nil, nil, nil, nil, nil))
+				return NewDB(conn)
+			}(),
+			expectedErr: errInvalidDataInDB,
+		},
+		{
+			name: "success",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(ReadQuery).
+					WithArgs(sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
+						AddRow(123, "john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01"))
+				return NewDB(conn)
+			}(),
+			user: &UserResource{
+				ID:        "123",
+				FirstName: "john",
+				LastName:  "doe",
+				Email:     "john.doe@gmail.com",
+				Company:   "Arctura",
+				PostCode:  "12345",
+				CreatedAt: "2024-01-01",
+				UpdatedAt: "2024-01-01",
+			},
+		},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			user, err := sc.db.Read(context.Background(), sc.email)
+			assert.Equal(t, sc.expectedErr, err)
+			assert.Equal(t, sc.user, user)
+		})
+	}
+}
+
+func TestDB_Delete(t *testing.T) {
+	scenarios := []struct {
+		name                 string
+		db                   *DB
+		id                   string
+		expectedErr          error
+		expectedRowsAffected int64
+	}{
+		{
+			name: "deletion prepare failed",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(`DELETE  FROM identity_users WHERE id = ?`).
+					WillReturnError(errors.New("error"))
+				return NewDB(conn)
+			}(),
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "deletion execution failed",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(`DELETE  FROM identity_users WHERE id = ?`).
+					ExpectExec().WillReturnError(errors.New("error"))
+				return NewDB(conn)
+			}(),
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "success",
+			db: func() *DB {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(`DELETE  FROM identity_users WHERE id = ?`).
+					ExpectExec().WillReturnResult(sqlmock.NewResult(1, 1))
+				return NewDB(conn)
+			}(),
+			expectedRowsAffected: 1,
+		},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			rowsAffected, err := sc.db.Delete(sc.id)
+			assert.Equal(t, sc.expectedErr, err)
+			assert.Equal(t, sc.expectedRowsAffected, rowsAffected)
+		})
+	}
+}
