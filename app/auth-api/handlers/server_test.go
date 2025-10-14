@@ -1,12 +1,20 @@
 package handlers
 
 import (
+	"bytes"
+	"database/sql"
+	"errors"
+	"log"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/riyadennis/identity-server/business/store"
 )
 
-func TestNewServerPortValdation(t *testing.T) {
+func TestNewServerPortValidation(t *testing.T) {
 	sc := []struct {
 		name          string
 		port          string
@@ -49,4 +57,32 @@ func TestNewServerPortValdation(t *testing.T) {
 			}
 		})
 	}
+}
+
+// mock http.Server to replace ListenAndServe and Shutdown
+// since http.Server is a struct, we'll simulate the error via goroutine and channels
+func TestServer_Run_Error(t *testing.T) {
+	s := NewServer("8081")
+	var buf bytes.Buffer
+	logger := log.New(&buf, "", 0)
+	// Simulate error from ListenAndServe
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		s.ServerError <- errors.New("listen error")
+	}()
+	err := s.Run(&sql.DB{}, &store.TokenConfig{}, logger)
+	assert.EqualError(t, err, "listen error")
+}
+
+func TestServer_Run_Shutdown(t *testing.T) {
+	s := NewServer("8082")
+	var buf bytes.Buffer
+	logger := log.New(&buf, "", 0)
+	// Simulate shutdown signal after short delay
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		s.ShutDown <- os.Kill
+	}()
+	err := s.Run(&sql.DB{}, &store.TokenConfig{}, logger)
+	assert.NoError(t, err)
 }

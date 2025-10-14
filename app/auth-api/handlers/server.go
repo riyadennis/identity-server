@@ -51,7 +51,7 @@ func NewServer(addr string) *Server {
 	}
 }
 
-// Run registers routes and starts web server
+// Run registers routes and starts a webserver
 // and waits to receive from shutdown and error channels
 func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) error {
 	s.httpServer.Handler = loadRoutes(conn, tc, logger)
