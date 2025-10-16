@@ -44,15 +44,14 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     permissions:
-      contents: read                # 'read' access to repository contents
+      contents: write                # 'read' access to repository contents
       pull-requests: write
       pages: write
     steps:
     - uses: actions/checkout@v4
-#      with:
-#       persist-credentials: false
-#       fetch-depth: 0
-
+      with:
+       fetch-depth: 0
+       ref: ${{ github.head_ref }}
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
@@ -81,8 +80,8 @@ jobs:
     - name: Commit changes
       if: steps.verify-changed-files.outputs.files_changed == 'true'
       run: |
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
             git add README.md
             git commit -m "chore: Updated coverage badge."
 
@@ -90,5 +89,4 @@ jobs:
       if: steps.verify-changed-files.outputs.files_changed == 'true'
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ github.token }}
         branch: ${{ github.head_ref }}
