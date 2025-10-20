@@ -59,17 +59,14 @@ jobs:
         cache: true
         
     - name: generate test coverage
-      run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
-
-    - name: check test coverage
-      uses: vladopajic/go-test-coverage@v2
-      with:
-        config: ./testcoverage.yaml
+      run: |
+        go test -v ./... -covermode=count -coverprofile=coverage.out
+        go tool cover -func=coverage.out -o=coverage.out
 
     - name: Go Coverage Badge  # Pass the `coverage.out` output to this action
       uses: tj-actions/coverage-badge-go@v3
       with:
-        filename: cover.out
+        filename: coverage.out
 
     - name: Verify Changed files
       uses: tj-actions/verify-changed-files@v17
