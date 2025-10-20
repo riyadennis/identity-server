@@ -34,11 +34,6 @@ type User struct {
 	UpdatedAt string `jsonapi:"attr,updated_at"`
 }
 
-// UserResource hold data about user in the database
-type UserResource struct {
-	User
-}
-
 // DB implements store interface
 type DB struct {
 	Conn *sql.DB
