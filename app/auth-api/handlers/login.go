@@ -24,9 +24,17 @@ type UserLogin struct {
 	Password string `json:"password"`
 }
 
-// Login endpoint where user enters his email
-// and password to get back a Token.
-// Which can be used to authenticate other requests.
+// @Summary      Login
+// @Description  Authenticate a user and return a JWT token
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Basic base64(email:password)"
+// @Success      200   {object}  store.Token
+// @Failure      400   {object}  foundation.Response
+// @Failure      401   {object}  foundation.Response
+// @Failure      500   {object}  foundation.Response
+// @Router       /login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	email, password, ok := r.BasicAuth()
 	if !ok {

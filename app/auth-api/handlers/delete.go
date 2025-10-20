@@ -14,7 +14,16 @@ var (
 	errDeleteFailed = errors.New("failed to remove user")
 )
 
-// Delete is the handler for delete end point to remove a user from as per the email
+// @Summary      Delete a user
+// @Description  Permanently remove a user by ID
+// @Tags         User
+// @Security     ApiKeyAuth
+// @Produce      json
+// @Param        id path string true "User ID"
+// @Success      204   {string}  string  "No Content"
+// @Failure      400   {object}  foundation.Response
+// @Failure      404   {object}  foundation.Response
+// @Router       /delete/{id} [delete]
 func (h *Handler) Delete(w http.ResponseWriter, _ *http.Request, params httprouter.Params) {
 	id := params.ByName("id")
 	if id == "" {

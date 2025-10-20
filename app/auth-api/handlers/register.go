@@ -33,7 +33,16 @@ func NewHandler(store store.Store, authenticator store.Authenticator,
 	}
 }
 
-// Register is the handler function that will process rest call to register endpoint
+// @Summary      Register a new user
+// @Description  Create a user with email and password
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        user  body   store.UserRequest  true  "User registration data"
+// @Success      201   {object}  store.UserResource
+// @Failure      400   {object}  foundation.Response
+// @Failure      500   {object}  foundation.Response
+// @Router       /register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	u := &store.UserRequest{}
 
