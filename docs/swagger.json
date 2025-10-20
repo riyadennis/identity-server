@@ -198,7 +198,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/store.UserRequest"
+                            "$ref": "#/definitions/store.User"
                         }
                     }
                 ],
@@ -206,7 +206,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/store.UserResource"
+                            "$ref": "#/definitions/store.User"
                         }
                     },
                     "400": {
@@ -260,46 +260,7 @@
                 }
             }
         },
-        "store.UserRequest": {
-            "type": "object",
-            "properties": {
-                "data": {
-                  "type": "object",
-                    "properties": {
-                        "type": {
-                          "type": "User"
-                        },
-                        "attributes": {
-                           "type": "object",
-                           "properties": {
-                             "company": {
-                               "type": "string"
-                             },
-                             "email": {
-                               "type": "string"
-                             },
-                             "first_name": {
-                               "type": "string"
-                             },
-                             "last_name": {
-                               "type": "string"
-                             },
-                             "password": {
-                               "type": "string"
-                             },
-                             "post_code": {
-                               "type": "string"
-                             },
-                             "terms": {
-                               "type": "boolean"
-                             }
-                           }
-                     }
-                    }
-                }
-            }
-        },
-        "store.UserResource": {
+        "store.User": {
             "type": "object",
             "properties": {
                 "company": {

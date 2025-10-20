@@ -38,13 +38,13 @@ func NewHandler(store store.Store, authenticator store.Authenticator,
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        user  body   store.UserRequest  true  "User registration data"
-// @Success      201   {object}  store.UserResource
+// @Param        user  body   store.User  true  "User registration data"
+// @Success      201   {object} store.User
 // @Failure      400   {object}  foundation.Response
 // @Failure      500   {object}  foundation.Response
 // @Router       /register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	u := &store.UserRequest{}
+	u := &store.User{}
 
 	err := jsonapi.UnmarshalPayload(r.Body, u)
 	if err != nil {

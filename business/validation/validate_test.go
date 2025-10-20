@@ -16,7 +16,7 @@ import (
 func TestValidateUser(t *testing.T) {
 	scenarios := []struct {
 		name          string
-		user          *store.UserRequest
+		user          *store.User
 		expectedError error
 	}{
 		{
@@ -26,19 +26,19 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name:          "missing first name",
-			user:          &store.UserRequest{},
+			user:          &store.User{},
 			expectedError: errMissingFirstName,
 		},
 		{
 			name: "missing last name",
-			user: &store.UserRequest{
+			user: &store.User{
 				FirstName: "John",
 			},
 			expectedError: errMissingLastName,
 		},
 		{
 			name: "missing email",
-			user: &store.UserRequest{
+			user: &store.User{
 				FirstName: "John",
 				LastName:  "Doe",
 			},
@@ -46,7 +46,7 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name: "invalid email",
-			user: &store.UserRequest{
+			user: &store.User{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "INVALID",
@@ -55,7 +55,7 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			user: &store.UserRequest{
+			user: &store.User{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john.doe@test.com",
@@ -64,7 +64,7 @@ func TestValidateUser(t *testing.T) {
 		},
 		{
 			name: "missing terms",
-			user: &store.UserRequest{
+			user: &store.User{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john.doe@test.com",

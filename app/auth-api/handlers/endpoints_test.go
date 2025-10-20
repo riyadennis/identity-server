@@ -96,7 +96,7 @@ func TestRegisterRoute_ValidRequest(t *testing.T) {
 			AddRow("Test", "User", "test@example.com", "TestCo", "12345", "2024-01-01", "2024-01-01"))
 
 	// Create test request
-	user := &store.UserRequest{
+	user := &store.User{
 		FirstName: "Test",
 		LastName:  "User",
 		Email:     "test@example.com",

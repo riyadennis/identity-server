@@ -209,7 +209,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/store.UserRequest"
+                            "$ref": "#/definitions/store.User"
                         }
                     }
                 ],
@@ -217,7 +217,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/store.UserResource"
+                            "$ref": "#/definitions/store.User"
                         }
                     },
                     "400": {
@@ -271,36 +271,7 @@ const docTemplate = `{
                 }
             }
         },
-        "store.UserRequest": {
-            "type": "object",
-            "properties": {
-                "company": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "firstName": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "lastName": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "postCode": {
-                    "type": "string"
-                },
-                "terms": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "store.UserResource": {
+        "store.User": {
             "type": "object",
             "properties": {
                 "company": {
