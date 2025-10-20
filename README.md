@@ -1,4 +1,5 @@
 # identity-server
+![Coverage](https://img.shields.io/badge/Coverage-0-red)
 
 ## Project Overview
 A Go-based identity management server providing user registration, authentication, and JWT token generation. Built with a clean architecture separating business logic, storage, and HTTP handling layers.
