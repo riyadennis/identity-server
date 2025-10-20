@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>API Documentation Index</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.12/swagger-ui.css" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 32px; }
+    #links { margin-bottom: 2em; }
+    ul { font-size: 1.1em; }
+  </style>
+</head>
+<body>
+  <div id="links">
+    <h1>API Documentation</h1>
+    <ul>
+      <li><a href="swagger.json" target="_blank">Swagger JSON</a></li>
+      <li><a href="swagger.yaml" target="_blank">Swagger YAML</a></li>
+      <li><a href="fo-documentation.html" target="_blank">FO Documentation</a></li>
+      <li><a href="https://riyadennis.github.io/identity-server/" target="_blank">View on GitHub Pages</a></li>
+    </ul>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.12/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = function() {
+      window.ui = SwaggerUIBundle({
+        url: "swagger.json",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis],
+        layout: "BaseLayout",
+      });
+    };
+  </script>
+</body>
+</html>
