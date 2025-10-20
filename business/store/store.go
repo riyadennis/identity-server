@@ -30,13 +30,8 @@ type User struct {
 	Company   string `jsonapi:"attr,company"`
 	PostCode  string `jsonapi:"attr,post_code"`
 	Terms     bool   `jsonapi:"attr,terms"`
-	CreatedAt string `jsonapi:"attr,created_at"`
-	UpdatedAt string `jsonapi:"attr,updated_at"`
-}
-
-// UserResource hold data about user in the database
-type UserResource struct {
-	User
+	CreatedAt string `jsonapi:"attr,created_at,omitempty"`
+	UpdatedAt string `jsonapi:"attr,updated_at,omitempty"`
 }
 
 // DB implements store interface
