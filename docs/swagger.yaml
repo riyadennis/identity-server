@@ -21,26 +21,7 @@ definitions:
       token_type:
         type: string
     type: object
-  store.UserRequest:
-    properties:
-      company:
-        type: string
-      email:
-        type: string
-      firstName:
-        type: string
-      id:
-        type: string
-      lastName:
-        type: string
-      password:
-        type: string
-      postCode:
-        type: string
-      terms:
-        type: boolean
-    type: object
-  store.UserResource:
+  store.User:
     properties:
       company:
         type: string
@@ -189,14 +170,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/store.UserRequest'
+          $ref: '#/definitions/store.User'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/store.UserResource'
+            $ref: '#/definitions/store.User'
         "400":
           description: Bad Request
           schema:

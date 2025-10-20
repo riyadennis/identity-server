@@ -39,7 +39,7 @@ func NewHandler(store store.Store, authenticator store.Authenticator,
 // @Accept       json
 // @Produce      json
 // @Param        user  body   store.User  true  "User registration data"
-// @Success      201   {object}  store.UserResource
+// @Success      201   {object} store.User
 // @Failure      400   {object}  foundation.Response
 // @Failure      500   {object}  foundation.Response
 // @Router       /register [post]
