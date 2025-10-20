@@ -7,12 +7,16 @@ import (
 	"os"
 
 	"github.com/julienschmidt/httprouter"
+
 	"github.com/riyadennis/identity-server/foundation"
 )
 
-// Liveness returns liveness status of the service,
-// if app is deployed in kubernetes cluster it will return pod, node and namespace.
-// the env vars are to be set from the manifest.
+// @Summary      Liveness probe
+// @Description  Returns liveness and k8s deployment info
+// @Tags         Health
+// @Produce      json
+// @Success      200   {object}  map[string]interface{}
+// @Router       /liveness [get]
 func Liveness(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	hostName, err := os.Hostname()
 	if err != nil {
@@ -39,7 +43,13 @@ func Liveness(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	_ = json.NewEncoder(w).Encode(data)
 }
 
-// Ready returns readiness status of the service
+// @Summary      Readiness probe
+// @Description  Checks if API is ready for traffic (DB available)
+// @Tags         Health
+// @Produce      json
+// @Success      200   {object}  foundation.Response
+// @Failure      500   {object}  foundation.Response
+// @Router       /readiness [get]
 func Ready(db *sql.DB) httprouter.Handle {
 	return func(w http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		if err := db.Ping(); err != nil {

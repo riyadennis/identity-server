@@ -50,7 +50,7 @@ type Token struct {
 	AccessToken string        `json:"access_token"`
 	Expiry      string        `json:"expiry"`
 	TokenType   string        `json:"token_type"`
-	TokenTTL    time.Duration `json:"token_ttl"`
+	TokenTTL    time.Duration `json:"token_ttl" swaggertype:"string"`
 }
 
 func NewENVConfig() *Config {

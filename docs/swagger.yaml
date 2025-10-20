@@ -1,0 +1,211 @@
+definitions:
+  foundation.Response:
+    properties:
+      error-code:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  store.Token:
+    properties:
+      access_token:
+        type: string
+      expiry:
+        type: string
+      status:
+        type: integer
+      token_ttl:
+        type: string
+      token_type:
+        type: string
+    type: object
+  store.UserRequest:
+    properties:
+      company:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      password:
+        type: string
+      postCode:
+        type: string
+      terms:
+        type: boolean
+    type: object
+  store.UserResource:
+    properties:
+      company:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      password:
+        type: string
+      postCode:
+        type: string
+      terms:
+        type: boolean
+      updatedAt:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /delete/{id}:
+    delete:
+      description: Permanently remove a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/foundation.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/foundation.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a user
+      tags:
+      - User
+  /home:
+    get:
+      description: Returns dashboard info for authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/foundation.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/foundation.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user dashboard
+      tags:
+      - User
+  /liveness:
+    get:
+      description: Returns liveness and k8s deployment info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Liveness probe
+      tags:
+      - Health
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and return a JWT token
+      parameters:
+      - description: Basic base64(email:password)
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Token'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/foundation.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/foundation.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/foundation.Response'
+      summary: Login
+      tags:
+      - Auth
+  /readiness:
+    get:
+      description: Checks if API is ready for traffic (DB available)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/foundation.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/foundation.Response'
+      summary: Readiness probe
+      tags:
+      - Health
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create a user with email and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/store.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.UserResource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/foundation.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/foundation.Response'
+      summary: Register a new user
+      tags:
+      - Auth
+swagger: "2.0"
