@@ -21,15 +21,15 @@ import (
 
 type MockStore struct {
 	Error error
-	*store.UserResource
+	*store.User
 }
 
-func (m *MockStore) Insert(ctx context.Context, u *store.UserRequest) (*store.UserResource, error) {
-	return m.UserResource, m.Error
+func (m *MockStore) Insert(ctx context.Context, u *store.User) (*store.User, error) {
+	return m.User, m.Error
 }
 
-func (m *MockStore) Read(ctx context.Context, email string) (*store.UserResource, error) {
-	return m.UserResource, m.Error
+func (m *MockStore) Read(ctx context.Context, email string) (*store.User, error) {
+	return m.User, m.Error
 }
 
 func (m *MockStore) Delete(id string) (int64, error) {
@@ -140,7 +140,7 @@ func TestLogin(t *testing.T) {
 				ErrorCode: foundation.InvalidRequest,
 			},
 			store: &MockStore{
-				UserResource: &store.UserResource{
+				User: &store.User{
 					ID:        "123",
 					FirstName: "Joe",
 				},
@@ -167,7 +167,7 @@ func TestLogin(t *testing.T) {
 				ErrorCode: foundation.UnAuthorised,
 			},
 			store: &MockStore{
-				UserResource: &store.UserResource{
+				User: &store.User{
 					ID:        "123",
 					FirstName: "Joe",
 				},
@@ -192,7 +192,7 @@ func TestLogin(t *testing.T) {
 				ErrorCode: foundation.KeyNotFound,
 			},
 			store: &MockStore{
-				UserResource: &store.UserResource{
+				User: &store.User{
 					ID:        "123",
 					FirstName: "Joe",
 				},
@@ -223,7 +223,7 @@ func TestLoginAuthenticationKeyFound(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	h := NewHandler(&MockStore{
-		UserResource: &store.UserResource{
+		User: &store.User{
 			ID:        "123",
 			FirstName: "Joe",
 		},

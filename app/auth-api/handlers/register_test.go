@@ -33,7 +33,7 @@ func TestRegister(t *testing.T) {
 	}{
 		{
 			name: "missing email",
-			req: registerPayLoad(t, &store.UserRequest{
+			req: registerPayLoad(t, &store.User{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "",
@@ -44,7 +44,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing first name",
-			req: registerPayLoad(t, &store.UserRequest{
+			req: registerPayLoad(t, &store.User{
 				FirstName: "",
 				LastName:  "Doe",
 				Email:     testEmail,
@@ -55,7 +55,7 @@ func TestRegister(t *testing.T) {
 		},
 		{
 			name: "missing last name",
-			req: registerPayLoad(t, &store.UserRequest{
+			req: registerPayLoad(t, &store.User{
 				FirstName: "John",
 				LastName:  "",
 				Email:     testEmail,
@@ -92,9 +92,7 @@ func TestRegister(t *testing.T) {
 				u.Email = "joh@doe.com"
 				return registerPayLoad(t, u)
 			}(),
-			store: &MockStore{UserResource: &store.UserResource{
-				Email: "joh@doe.com",
-			}},
+			store: &MockStore{User: &store.User{Email: "joh@doe.com"}},
 			expectedResponse: foundation.NewResponse(
 				http.StatusBadRequest,
 				"email already exists",
@@ -118,7 +116,7 @@ func TestRegister(t *testing.T) {
 	}
 }
 
-func registerPayLoad(t *testing.T, u *store.UserRequest) *http.Request {
+func registerPayLoad(t *testing.T, u *store.User) *http.Request {
 	var buff bytes.Buffer
 
 	err := jsonapi.MarshalPayload(&buff, u)
@@ -163,10 +161,10 @@ func TestGeneratePassword(t *testing.T) {
 	}
 }
 
-func user(t *testing.T) *store.UserRequest {
+func user(t *testing.T) *store.User {
 	t.Helper()
 
-	u := &store.UserRequest{
+	u := &store.User{
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     testEmail,

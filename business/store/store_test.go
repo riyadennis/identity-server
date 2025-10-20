@@ -18,7 +18,7 @@ func TestDBInsertSuccess(t *testing.T) {
 	scenarios := []struct {
 		name        string
 		db          *DB
-		user        *UserRequest
+		user        *User
 		uid         string
 		expectedErr error
 	}{
@@ -48,7 +48,7 @@ func TestDBInsertSuccess(t *testing.T) {
 						AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now()))
 				return NewDB(conn)
 			}(),
-			user: &UserRequest{
+			user: &User{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john.doe@test.com",
@@ -81,7 +81,7 @@ func TestDBInsertExecuteFail(t *testing.T) {
 		t.Fatalf("mock initailisation failed: %v", err)
 	}
 	uid := uuid.New().String()
-	user := &UserRequest{
+	user := &User{
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     "john.doe@test.com",
@@ -104,7 +104,7 @@ func TestDBInsertPrepareFail(t *testing.T) {
 		t.Fatalf("mock initailisation failed: %v", err)
 	}
 
-	user := &UserRequest{
+	user := &User{
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     "john.doe@test.com",
@@ -122,7 +122,7 @@ func TestDBRetrieve(t *testing.T) {
 	scenarios := []struct {
 		name        string
 		db          *DB
-		user        *UserResource
+		user        *User
 		uid         string
 		expectedErr error
 	}{
@@ -181,7 +181,7 @@ func TestDBRetrieve(t *testing.T) {
 							AddRow("john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01"))
 				return NewDB(conn)
 			}(),
-			user: &UserResource{
+			user: &User{
 				FirstName: "john",
 				LastName:  "doe",
 				Email:     "john.doe@gmail.com",
@@ -205,7 +205,7 @@ func TestDB_Read(t *testing.T) {
 	scenarios := []struct {
 		name        string
 		db          *DB
-		user        *UserResource
+		user        *User
 		email       string
 		expectedErr error
 	}{
@@ -251,7 +251,7 @@ func TestDB_Read(t *testing.T) {
 						AddRow(123, "john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01"))
 				return NewDB(conn)
 			}(),
-			user: &UserResource{
+			user: &User{
 				ID:        "123",
 				FirstName: "john",
 				LastName:  "doe",

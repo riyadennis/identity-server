@@ -13,7 +13,7 @@ func TestRequestBody(t *testing.T) {
 	scenarios := []struct {
 		name          string
 		request       *http.Request
-		expectedUser  *store.UserRequest
+		expectedUser  *store.User
 		expectedError string
 	}{
 		{

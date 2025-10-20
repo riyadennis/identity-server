@@ -15,25 +15,13 @@ var (
 
 // Store have CRUD functions for user management
 type Store interface {
-	Insert(ctx context.Context, u *UserRequest) (*UserResource, error)
-	Read(ctx context.Context, email string) (*UserResource, error)
+	Insert(ctx context.Context, u *User) (*User, error)
+	Read(ctx context.Context, email string) (*User, error)
 	Delete(id string) (int64, error)
 }
 
-// UserRequest hold data from registration request body
-type UserRequest struct {
-	ID        string `jsonapi:"primary,user"`
-	FirstName string `jsonapi:"attr,first_name"`
-	LastName  string `jsonapi:"attr,last_name"`
-	Email     string `jsonapi:"attr,email"`
-	Password  string `jsonapi:"attr,password"`
-	Company   string `jsonapi:"attr,company"`
-	PostCode  string `jsonapi:"attr,post_code"`
-	Terms     bool   `jsonapi:"attr,terms"`
-}
-
-// UserResource hold data about user in the database
-type UserResource struct {
+// User holds data from the registration request body
+type User struct {
 	ID        string `jsonapi:"primary,user"`
 	FirstName string `jsonapi:"attr,first_name"`
 	LastName  string `jsonapi:"attr,last_name"`
@@ -44,6 +32,11 @@ type UserResource struct {
 	Terms     bool   `jsonapi:"attr,terms"`
 	CreatedAt string `jsonapi:"attr,created_at"`
 	UpdatedAt string `jsonapi:"attr,updated_at"`
+}
+
+// UserResource hold data about user in the database
+type UserResource struct {
+	User
 }
 
 // DB implements store interface
@@ -59,7 +52,7 @@ func NewDB(database *sql.DB) *DB {
 }
 
 // Insert creates a new user during registration
-func (d *DB) Insert(ctx context.Context, u *UserRequest) (*UserResource, error) {
+func (d *DB) Insert(ctx context.Context, u *User) (*User, error) {
 	if d.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
@@ -91,7 +84,7 @@ func (d *DB) Insert(ctx context.Context, u *UserRequest) (*UserResource, error) 
 
 // Retrieve will fetch data from db for a user as per the id
 // will return nil if the user is not found
-func (d *DB) Retrieve(ctx context.Context, id string) (*UserResource, error) {
+func (d *DB) Retrieve(ctx context.Context, id string) (*User, error) {
 	if d.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
@@ -112,7 +105,7 @@ func (d *DB) Retrieve(ctx context.Context, id string) (*UserResource, error) {
 	}
 
 	row := fetch.QueryRowContext(ctx, id)
-	user := &UserResource{}
+	user := &User{}
 	err = row.Scan(
 		&user.FirstName,
 		&user.LastName,
@@ -147,7 +140,7 @@ var ReadQuery = `SELECT id,
 
 // Read will fetch data from db for a user as per the email
 // will return nil if the user is not found
-func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
+func (d *DB) Read(ctx context.Context, email string) (*User, error) {
 	if d.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
@@ -158,7 +151,7 @@ func (d *DB) Read(ctx context.Context, email string) (*UserResource, error) {
 	}
 	defer rows.Close()
 
-	user := &UserResource{}
+	user := &User{}
 	for rows.Next() {
 		err := rows.Scan(
 			&user.ID,
