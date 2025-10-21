@@ -33,7 +33,7 @@ func NewHandler(store store.Store, authenticator store.Authenticator,
 	}
 }
 
-// @Summary      Register a new user
+// Register @Summary     Endpoint to  Register a new user
 // @Description  Create a user with email and password
 // @Tags         Auth
 // @Accept       json

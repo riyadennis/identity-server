@@ -14,7 +14,7 @@ var (
 	errDeleteFailed = errors.New("failed to remove user")
 )
 
-// @Summary      Delete a user
+// Delete @Summary      Delete Endpoint
 // @Description  Permanently remove a user by ID
 // @Tags         User
 // @Security     ApiKeyAuth

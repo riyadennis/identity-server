@@ -24,7 +24,7 @@ type UserLogin struct {
 	Password string `json:"password"`
 }
 
-// @Summary      Login
+// Login @Summary      Login Endpoint
 // @Description  Authenticate a user and return a JWT token
 // @Tags         Auth
 // @Accept       json
