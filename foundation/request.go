@@ -1,10 +1,9 @@
 package foundation
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
-
-	"github.com/google/jsonapi"
 )
 
 var (
@@ -22,7 +21,7 @@ func RequestBody(r *http.Request, resource interface{}) error {
 		return errMissingContentType
 	}
 
-	err := jsonapi.UnmarshalPayload(r.Body, resource)
+	err := json.NewDecoder(r.Body).Decode(resource)
 	if err != nil {
 		return err
 	}

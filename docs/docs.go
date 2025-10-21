@@ -277,31 +277,31 @@ const docTemplate = `{
                 "company": {
                     "type": "string"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
                 "email": {
                     "type": "string"
                 },
-                "firstName": {
+                "first_name": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "lastName": {
+                "last_name": {
                     "type": "string"
                 },
                 "password": {
                     "type": "string"
                 },
-                "postCode": {
+                "post_code": {
                     "type": "string"
                 },
                 "terms": {
                     "type": "boolean"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string"
                 }
             }
