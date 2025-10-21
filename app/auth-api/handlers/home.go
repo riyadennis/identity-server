@@ -8,7 +8,7 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
-// @Summary      Get user dashboard
+// Home @Summary      Get user dashboard
 // @Description  Returns dashboard info for authenticated user
 // @Tags         User
 // @Security     ApiKeyAuth
