@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/google/jsonapi"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -107,7 +106,7 @@ func TestRegisterRoute_ValidRequest(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := jsonapi.MarshalPayload(&buf, user)
+	err := json.NewEncoder(&buf).Encode(user)
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPost, RegisterEndpoint, &buf)

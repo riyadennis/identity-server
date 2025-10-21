@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/jsonapi"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business"
@@ -118,8 +117,7 @@ func TestRegister(t *testing.T) {
 
 func registerPayLoad(t *testing.T, u *store.User) *http.Request {
 	var buff bytes.Buffer
-
-	err := jsonapi.MarshalPayload(&buff, u)
+	err := json.NewEncoder(&buff).Encode(u)
 	if err != nil {
 		t.Error(err)
 	}

@@ -22,16 +22,16 @@ type Store interface {
 
 // User holds data from the registration request body
 type User struct {
-	ID        string `jsonapi:"primary,user"`
-	FirstName string `jsonapi:"attr,first_name"`
-	LastName  string `jsonapi:"attr,last_name"`
-	Email     string `jsonapi:"attr,email"`
-	Password  string `jsonapi:"attr,password"`
-	Company   string `jsonapi:"attr,company"`
-	PostCode  string `jsonapi:"attr,post_code"`
-	Terms     bool   `jsonapi:"attr,terms"`
-	CreatedAt string `jsonapi:"attr,created_at"`
-	UpdatedAt string `jsonapi:"attr,updated_at"`
+	ID        string `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	Company   string `json:"company"`
+	PostCode  string `json:"post_code"`
+	Terms     bool   `json:"terms"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 // DB implements store interface

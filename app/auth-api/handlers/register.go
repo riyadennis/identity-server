@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 
-	"github.com/google/jsonapi"
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/riyadennis/identity-server/business"
@@ -45,8 +45,9 @@ func NewHandler(store store.Store, authenticator store.Authenticator,
 // @Router       /register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	u := &store.User{}
+	decoder := json.NewDecoder(r.Body)
 
-	err := jsonapi.UnmarshalPayload(r.Body, u)
+	err := decoder.Decode(u)
 	if err != nil {
 		h.Logger.Printf("invalid data in request: %v", err)
 
