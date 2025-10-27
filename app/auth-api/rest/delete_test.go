@@ -101,7 +101,7 @@ func TestHandlerDelete(t *testing.T) {
 			dbCOnn := store.NewDB(sc.conn)
 			handler := NewHandler(dbCOnn, dbCOnn, &store.TokenConfig{}, logger)
 
-			r := httptest.NewRequest("GET", "/user/delete/{userID}", nil)
+			r := httptest.NewRequest("GET", "/admin/delete/{userID}", nil)
 			routeContext := chi.NewRouteContext()
 			routeContext.URLParams.Add("userID", sc.userID)
 			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, routeContext))

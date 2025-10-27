@@ -1,5 +1,5 @@
 # identity-server
-![Coverage](https://img.shields.io/badge/Coverage-72.3%25-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-72.4%25-brightgreen)
 
 ## Project Overview
 A Go-based identity management server providing user registration, authentication, and JWT token generation. Built with a clean architecture separating business logic, storage, and HTTP handling layers.
@@ -39,8 +39,8 @@ A Go-based identity management server providing user registration, authenticatio
 - `GET /readiness` - Kubernetes readiness probe
 
 ### Protected Endpoints (require JWT)
-- `GET /home` - User profile access
-- `DELETE /delete/:id` - User deletion
+- `GET /user/home` - User profile access
+- `DELETE /admin/delete/:id` - User deletion
 
 To Run the service locally we need .env file set with the following values:
 
@@ -52,5 +52,5 @@ MYSQL_USERNAME="username"
 MYSQL_PASSWORD="password"
 MYSQL_PORT="3306"
 MYSQL_HOST="127.0.0.1"
-BASE_PATH="/"
+MIGRATION_PATH="migrations"
 ```

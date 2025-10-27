@@ -56,8 +56,8 @@ require (
 - `GET /readiness` - Kubernetes readiness probe
 
 ### Protected Endpoints (require JWT)
-- `GET /home` - User profile access
-- `DELETE /delete/:id` - User deletion
+- `GET /user/home` - User profile access
+- `DELETE /admin/delete/:id` - User deletion
 
 ## Database Schema
 
