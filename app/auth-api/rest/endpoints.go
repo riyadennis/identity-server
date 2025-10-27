@@ -37,8 +37,6 @@ const (
 
 // LoadRESTEndpoints adds REST endpoints to the router
 func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) http.Handler {
-	h := NewHandler(store.NewDB(conn), store.NewDB(conn), tc, logger)
-
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -62,6 +60,8 @@ func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) 
 	}))
 	r.Get(LivenessEndPoint, Liveness)
 	r.Get(ReadinessEndPoint, Ready(conn))
+
+	h := NewHandler(store.NewDB(conn), store.NewDB(conn), tc, logger)
 	r.Post(RegisterEndpoint, h.Register)
 	r.Post(LoginEndPoint, h.Login)
 	// register routes here
