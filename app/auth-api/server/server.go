@@ -1,4 +1,4 @@
-package handlers
+package server
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/riyadennis/identity-server/app/auth-api/rest"
 	"github.com/riyadennis/identity-server/business/store"
 )
 
@@ -22,30 +23,28 @@ var (
 	errPortBeyondRange     = errors.New("port is beyond the allowed range")
 )
 
-// Server have all the set up needed to run and shut down a http server
+// Server have all the setup needed to run and shut down a http server
 type Server struct {
-	httpServer  http.Server
-	listenAddr  string
+	restServer  http.Server
 	ServerError chan error
 	ShutDown    chan os.Signal
 }
 
-// NewServer creates a server instance with error and shutdown channels initialised
-func NewServer(addr string) *Server {
-	errChan := make(chan error, 1)
+// NewServer creates a server instance with error and shutdown channels initialized
+func NewServer(restPort string) *Server {
+	errChan := make(chan error, 2)
 	shutdown := make(chan os.Signal, 1)
 
-	err := validatePort(addr)
+	err := validatePort(restPort)
 	if err != nil {
 		errChan <- err
 	}
 	return &Server{
-		httpServer: http.Server{
-			Addr:         ":" + addr,
+		restServer: http.Server{
+			Addr:         ":" + restPort,
 			ReadTimeout:  timeOut,
 			WriteTimeout: timeOut,
 		},
-		listenAddr:  addr,
 		ServerError: errChan,
 		ShutDown:    shutdown,
 	}
@@ -54,11 +53,11 @@ func NewServer(addr string) *Server {
 // Run registers routes and starts a webserver
 // and waits to receive from shutdown and error channels
 func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) error {
-	s.httpServer.Handler = loadRoutes(conn, tc, logger)
+	s.restServer.Handler = rest.LoadRESTEndpoints(conn, tc, logger)
 	// Start the service
 	go func() {
-		logger.Printf("server running on port %s", s.httpServer.Addr)
-		s.ServerError <- s.httpServer.ListenAndServe()
+		logger.Printf("server running on port %s", s.restServer.Addr)
+		s.ServerError <- s.restServer.ListenAndServe()
 	}()
 
 	select {
@@ -70,7 +69,7 @@ func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) er
 		ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 		defer cancel()
 
-		err := s.httpServer.Shutdown(ctx)
+		err := s.restServer.Shutdown(ctx)
 		if err != nil {
 			return err
 		}

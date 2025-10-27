@@ -1,4 +1,4 @@
-package handlers
+package server
 
 import (
 	"bytes"
@@ -78,7 +78,7 @@ func TestServer_Run_Shutdown(t *testing.T) {
 	s := NewServer("8082")
 	var buf bytes.Buffer
 	logger := log.New(&buf, "", 0)
-	// Simulate shutdown signal after short delay
+	// Simulate shutdown signal after a short delay
 	go func() {
 		time.Sleep(10 * time.Millisecond)
 		s.ShutDown <- os.Kill

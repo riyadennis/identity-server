@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ func setupTestRouter(t *testing.T) (http.Handler, sqlmock.Sqlmock) {
 	}
 	tokenConfig := &store.TokenConfig{Issuer: "TEST", KeyPath: os.Getenv("KEY_PATH")}
 	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
-	return loadRoutes(conn, tokenConfig, logger), mock
+	return LoadRESTEndpoints(conn, tokenConfig, logger), mock
 }
 
 func TestLivenessRoute(t *testing.T) {
