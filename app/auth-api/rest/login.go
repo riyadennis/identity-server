@@ -45,7 +45,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	err := validation.ValidateEmail(email)
 	if err != nil {
-		h.Logger.Printf("invalid request, username is invalid")
+		h.Logger.Printf("invalid request, username is invalid: %v", err)
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			err, foundation.InvalidRequest)
 		return

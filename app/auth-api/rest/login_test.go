@@ -85,13 +85,10 @@ func TestLogin(t *testing.T) {
 		{
 			name: "login DB error",
 			request: func() *http.Request {
-				credentials := `{
-					"email": "john4@gmail.com","password":"pass"
-				}`
+				credentials := "john4@gmail.com:pass"
 				req := request(t, "/login", "")
 
-				base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
-				req.Header.Set("Authorization", "Basic "+base64)
+				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 				return req
 			}(),
 			response: &foundation.Response{
@@ -106,13 +103,10 @@ func TestLogin(t *testing.T) {
 		{
 			name: "no User in DB",
 			request: func() *http.Request {
-				credentials := `{
-					"email": "john4@gmail.com","password":"pass"
-				}`
+				credentials := "john4@gmail.com:pass"
 				req := request(t, "/login", "")
 
-				base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
-				req.Header.Set("Authorization", "Basic "+base64)
+				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 				return req
 			}(),
 			response: &foundation.Response{
@@ -125,13 +119,9 @@ func TestLogin(t *testing.T) {
 		{
 			name: "authentication error",
 			request: func() *http.Request {
-				credentials := `{
-					"email": "john4@gmail.com","password":"pass"
-				}`
+				credentials := "john4@gmail.com:pass"
 				req := request(t, "/login", "")
-
-				base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
-				req.Header.Set("Authorization", "Basic "+base64)
+				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 				return req
 			}(),
 			response: &foundation.Response{
@@ -152,13 +142,9 @@ func TestLogin(t *testing.T) {
 		{
 			name: "authentication failed",
 			request: func() *http.Request {
-				credentials := `{
-					"email": "john4@gmail.com","password":"pass"
-				}`
+				credentials := "john4@gmail.com:pass"
 				req := request(t, "/login", "")
-
-				base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
-				req.Header.Set("Authorization", "Basic "+base64)
+				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 				return req
 			}(),
 			response: &foundation.Response{
@@ -177,9 +163,7 @@ func TestLogin(t *testing.T) {
 		{
 			name: "authentication key not found",
 			request: func() *http.Request {
-				credentials := `{
-					"email": "john4@gmail.com","password":"pass"
-				}`
+				credentials := "john4@gmail.com:pass"
 				req := request(t, "/login", "")
 
 				base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
@@ -235,9 +219,7 @@ func TestLoginAuthenticationKeyFound(t *testing.T) {
 			PublicKeyName:  "test_public.pem",
 		}, logger)
 
-	credentials := `{
-			"email": "john4@gmail.com","password":"pass"
-		}`
+	credentials := "john@gmail.com:pass"
 	req := request(t, "/login", "")
 	base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
 	req.Header.Set("Authorization", "Basic "+base64)
