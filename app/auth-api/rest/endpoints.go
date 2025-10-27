@@ -4,11 +4,14 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/riyadennis/identity-server/business/store"
-	"github.com/riyadennis/identity-server/foundation/middleware"
+	customMiddleware "github.com/riyadennis/identity-server/foundation/middleware"
 )
 
 const (
@@ -16,7 +19,7 @@ const (
 	RegisterEndpoint = "/register"
 
 	// DeleteEndpoint is to delete a user
-	DeleteEndpoint = "/delete/:id"
+	DeleteEndpoint = "/delete/{userID}"
 
 	// LoginEndPoint creates a token for the  user of credentials are valid
 	LoginEndPoint = "/login"
@@ -35,16 +38,43 @@ const (
 // LoadRESTEndpoints adds REST endpoints to the router
 func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) http.Handler {
 	h := NewHandler(store.NewDB(conn), store.NewDB(conn), tc, logger)
-	router := httprouter.New()
-	allowedOrigins := []string{"*"}
 
-	router.GET(LivenessEndPoint, Liveness)
-	router.GET(ReadinessEndPoint, Ready(conn))
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+
+	// Set a timeout value on the request context (ctx) that will signal
+	// through ctx.Done() that the request has timed out and further
+	// processing should be stopped.
+	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(middleware.SetHeader("Content-Type", "application/json"))
+	r.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc: func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value isn't ignored by any of the major browsers
+	}))
+	r.Get(LivenessEndPoint, Liveness)
+	r.Get(ReadinessEndPoint, Ready(conn))
+	r.Post(RegisterEndpoint, h.Register)
+	r.Post(LoginEndPoint, h.Login)
 	// register routes here
-	router.POST(RegisterEndpoint, middleware.CORS(h.Register, allowedOrigins))
-	router.POST(LoginEndPoint, middleware.CORS(h.Login, allowedOrigins))
-	router.DELETE(DeleteEndpoint, middleware.CORS(middleware.Auth(h.Delete, tc, logger), allowedOrigins))
-	router.GET(HomeEndPoint, middleware.CORS(middleware.Auth(Home, tc, logger), allowedOrigins))
+	r.Route("/user", func(r chi.Router) {
+		ac := customMiddleware.AuthConfig{
+			TokenConfig: tc,
+			Logger:      logger,
+		}
 
-	return router
+		r.Use(ac.Auth)
+		r.Delete(DeleteEndpoint, h.Delete)
+		r.Get(HomeEndPoint, Home)
+	})
+
+	return r
 }

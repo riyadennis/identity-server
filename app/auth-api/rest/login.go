@@ -7,8 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 )
@@ -35,7 +33,7 @@ type UserLogin struct {
 // @Failure      401   {object}  foundation.Response
 // @Failure      500   {object}  foundation.Response
 // @Router       /login [post]
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	email, password, ok := r.BasicAuth()
 	if !ok {
 		h.Logger.Printf("invalid request: %v", r)

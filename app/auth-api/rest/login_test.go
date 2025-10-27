@@ -211,7 +211,7 @@ func TestLogin(t *testing.T) {
 				&store.TokenConfig{
 					Issuer: "TEST",
 				}, logger)
-			h.Login(rr, sc.request, nil)
+			h.Login(rr, sc.request)
 			re := response(t, rr.Body)
 			assert.Equal(t, sc.response, re)
 		})
@@ -242,7 +242,7 @@ func TestLoginAuthenticationKeyFound(t *testing.T) {
 	base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
 	req.Header.Set("Authorization", "Basic "+base64)
 
-	h.Login(rr, req, nil)
+	h.Login(rr, req)
 	re := response(t, rr.Body)
 
 	assert.Equal(t, &foundation.Response{

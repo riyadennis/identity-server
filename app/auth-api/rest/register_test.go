@@ -107,7 +107,7 @@ func TestRegister(t *testing.T) {
 					Issuer:  "TEST",
 					KeyPath: os.Getenv("KEY_PATH"),
 				}, logger)
-			h.Register(w, sc.req, nil)
+			h.Register(w, sc.req)
 			resp := response(t, w.Body)
 			// TODO assert message also
 			assert.Equal(t, sc.expectedResponse, resp)

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/julienschmidt/httprouter"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -20,14 +21,13 @@ import (
 func TestHandlerDelete(t *testing.T) {
 	scenarios := []struct {
 		name             string
-		params           httprouter.Params
+		userID           string
 		conn             *sql.DB
 		expectedStatus   int
 		expectedResponse *foundation.Response
 	}{
 		{
 			name:           "no id",
-			params:         nil,
 			expectedStatus: http.StatusBadRequest,
 			expectedResponse: &foundation.Response{
 				Status:    http.StatusBadRequest,
@@ -36,13 +36,8 @@ func TestHandlerDelete(t *testing.T) {
 			},
 		},
 		{
-			name: "database error",
-			params: httprouter.Params{
-				{
-					Key:   "id",
-					Value: "INVALID",
-				},
-			},
+			name:   "database error",
+			userID: "INVALID",
 			conn: func() *sql.DB {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
@@ -60,13 +55,8 @@ func TestHandlerDelete(t *testing.T) {
 			},
 		},
 		{
-			name: "user do not exist",
-			params: httprouter.Params{
-				{
-					Key:   "id",
-					Value: "INVALID",
-				},
-			},
+			name:   "user do not exist",
+			userID: "INVALID",
 			conn: func() *sql.DB {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
@@ -84,13 +74,8 @@ func TestHandlerDelete(t *testing.T) {
 			},
 		},
 		{
-			name: "success",
-			params: httprouter.Params{
-				{
-					Key:   "id",
-					Value: "123",
-				},
-			},
+			name:   "success",
+			userID: "123",
 			conn: func() *sql.DB {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
@@ -116,7 +101,12 @@ func TestHandlerDelete(t *testing.T) {
 			dbCOnn := store.NewDB(sc.conn)
 			handler := NewHandler(dbCOnn, dbCOnn, &store.TokenConfig{}, logger)
 
-			handler.Delete(w, nil, sc.params)
+			r := httptest.NewRequest("GET", "/user/delete/{userID}", nil)
+			routeContext := chi.NewRouteContext()
+			routeContext.URLParams.Add("userID", sc.userID)
+			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, routeContext))
+
+			handler.Delete(w, r)
 
 			assert.Equal(t, w.Code, sc.expectedStatus)
 
