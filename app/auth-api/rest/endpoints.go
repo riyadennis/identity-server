@@ -64,17 +64,18 @@ func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) 
 	h := NewHandler(store.NewDB(conn), store.NewDB(conn), tc, logger)
 	r.Post(RegisterEndpoint, h.Register)
 	r.Post(LoginEndPoint, h.Login)
+	ac := customMiddleware.AuthConfig{
+		TokenConfig: tc,
+		Logger:      logger,
+	}
 	// register routes here
 	r.Route("/user", func(r chi.Router) {
-		ac := customMiddleware.AuthConfig{
-			TokenConfig: tc,
-			Logger:      logger,
-		}
-
 		r.Use(ac.Auth)
-		r.Delete(DeleteEndpoint, h.Delete)
 		r.Get(HomeEndPoint, Home)
 	})
-
+	r.Route("/admin", func(r chi.Router) {
+		r.Use(ac.Auth)
+		r.Delete(DeleteEndpoint, h.Delete)
+	})
 	return r
 }
