@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/riyadennis/identity-server/business"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/business/validation"
@@ -43,7 +41,7 @@ func NewHandler(store store.Store, authenticator store.Authenticator,
 // @Failure      400   {object}  foundation.Response
 // @Failure      500   {object}  foundation.Response
 // @Router       /register [post]
-func (h *Handler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	u := &store.User{}
 	decoder := json.NewDecoder(r.Body)
 

@@ -7,9 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/riyadennis/identity-server/foundation"
 )
 
@@ -35,16 +34,22 @@ type UserLogin struct {
 // @Failure      401   {object}  foundation.Response
 // @Failure      500   {object}  foundation.Response
 // @Router       /login [post]
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	email, password, ok := r.BasicAuth()
 	if !ok {
-		h.Logger.Printf("invalid request: %v", r)
+		h.Logger.Printf("invalid request, username or password is empty")
 
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errors.New("empty login data"), foundation.InvalidRequest)
 		return
 	}
-
+	err := validation.ValidateEmail(email)
+	if err != nil {
+		h.Logger.Printf("invalid request, username is invalid: %v", err)
+		foundation.ErrorResponse(w, http.StatusBadRequest,
+			err, foundation.InvalidRequest)
+		return
+	}
 	u, err := h.Store.Read(r.Context(), email)
 	if err != nil {
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
@@ -53,7 +58,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	}
 
 	if u == nil {
-		h.Logger.Printf("failed to find user in DB: %v", r)
+		h.Logger.Printf("failed to find user in DB")
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
 			errEmailNotFound, foundation.UserDoNotExist)
 		return

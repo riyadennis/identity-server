@@ -46,11 +46,9 @@ func ValidateUser(u *store.User) error {
 		return errMissingEmail
 	}
 
-	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	if !re.MatchString(u.Email) {
-		return errInvalidEmail
+	if err := ValidateEmail(u.Email); err != nil {
+		return err
 	}
-
 	if !u.Terms {
 		return errTermsMissing
 	}
@@ -58,6 +56,14 @@ func ValidateUser(u *store.User) error {
 	return nil
 }
 
+func ValidateEmail(email string) error {
+	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	if !re.MatchString(email) {
+		return errInvalidEmail
+	}
+
+	return nil
+}
 func ValidateToken(token string, tc *store.TokenConfig) error {
 	if token == "" {
 		return errMissingToken

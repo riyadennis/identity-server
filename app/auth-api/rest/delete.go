@@ -4,8 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
-
+	"github.com/go-chi/chi/v5"
 	"github.com/riyadennis/identity-server/foundation"
 )
 
@@ -23,9 +22,9 @@ var (
 // @Success      204   {string}  string  "No Content"
 // @Failure      400   {object}  foundation.Response
 // @Failure      404   {object}  foundation.Response
-// @Router       /delete/{id} [delete]
-func (h *Handler) Delete(w http.ResponseWriter, _ *http.Request, params httprouter.Params) {
-	id := params.ByName("id")
+// @Router       /delete/{userID} [delete]
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "userID")
 	if id == "" {
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errInvalidID, foundation.InvalidRequest)
