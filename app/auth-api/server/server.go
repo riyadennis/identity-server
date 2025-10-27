@@ -62,7 +62,7 @@ func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) er
 
 	select {
 	case err := <-s.ServerError:
-		if err != nil && errors.Is(err, http.ErrServerClosed) {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			return err
 		}
 	case sig := <-s.ShutDown:
