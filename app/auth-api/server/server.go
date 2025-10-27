@@ -62,7 +62,9 @@ func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) er
 
 	select {
 	case err := <-s.ServerError:
-		return err
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return err
+		}
 	case sig := <-s.ShutDown:
 		logger.Printf("main: %v: Start shutdown", sig)
 		// Give outstanding requests a deadline for completion.
