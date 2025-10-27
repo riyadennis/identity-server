@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/riyadennis/identity-server/foundation"
 )
 
@@ -36,13 +37,19 @@ type UserLogin struct {
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	email, password, ok := r.BasicAuth()
 	if !ok {
-		h.Logger.Printf("invalid request: %v", r)
+		h.Logger.Printf("invalid request, username or password is empty")
 
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errors.New("empty login data"), foundation.InvalidRequest)
 		return
 	}
-
+	err := validation.ValidateEmail(email)
+	if err != nil {
+		h.Logger.Printf("invalid request, username is invalid")
+		foundation.ErrorResponse(w, http.StatusBadRequest,
+			err, foundation.InvalidRequest)
+		return
+	}
 	u, err := h.Store.Read(r.Context(), email)
 	if err != nil {
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
@@ -51,7 +58,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if u == nil {
-		h.Logger.Printf("failed to find user in DB: %v", r)
+		h.Logger.Printf("failed to find user in DB")
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
 			errEmailNotFound, foundation.UserDoNotExist)
 		return
