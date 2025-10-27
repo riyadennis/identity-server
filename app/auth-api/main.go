@@ -10,7 +10,7 @@ import (
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/joho/godotenv"
 
-	"github.com/riyadennis/identity-server/app/auth-api/handlers"
+	"github.com/riyadennis/identity-server/app/auth-api/server"
 	"github.com/riyadennis/identity-server/business/store"
 )
 
@@ -43,13 +43,13 @@ func main() {
 		logger.Panicf("migration failed: %v", err)
 	}
 
-	server := handlers.NewServer(os.Getenv("PORT"))
-	err = server.Run(db, cfg.Token, logger)
+	s := server.NewServer(os.Getenv("PORT"))
+	err = s.Run(db, cfg.Token, logger)
 	if err != nil {
 		logger.Panicf("error running server: %v", err)
 	}
 	defer func() {
-		close(server.ServerError)
-		close(server.ShutDown)
+		close(s.ServerError)
+		close(s.ShutDown)
 	}()
 }

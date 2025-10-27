@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 import (
 	"database/sql"
@@ -22,7 +22,7 @@ const (
 	LoginEndPoint = "/login"
 
 	// HomeEndPoint is the details end point that a
-	// logged in user with valid token can access
+	// logged-in user with a valid token can access
 	HomeEndPoint = "/home"
 
 	// LivenessEndPoint is for kubernetes to check when to restart the container
@@ -32,7 +32,8 @@ const (
 	ReadinessEndPoint = "/readiness"
 )
 
-func loadRoutes(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) http.Handler {
+// LoadRESTEndpoints adds REST endpoints to the router
+func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) http.Handler {
 	h := NewHandler(store.NewDB(conn), store.NewDB(conn), tc, logger)
 	router := httprouter.New()
 	allowedOrigins := []string{"*"}
