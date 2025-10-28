@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -23,8 +23,7 @@ func setupTestRouter(t *testing.T) (http.Handler, sqlmock.Sqlmock) {
 		t.Fatalf("failed to create sqlmock: %v", err)
 	}
 	tokenConfig := &store.TokenConfig{Issuer: "TEST", KeyPath: os.Getenv("KEY_PATH")}
-	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
-	return LoadRESTEndpoints(conn, tokenConfig, logger), mock
+	return LoadRESTEndpoints(conn, tokenConfig, logrus.New()), mock
 }
 
 func TestLivenessRoute(t *testing.T) {

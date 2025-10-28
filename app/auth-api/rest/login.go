@@ -66,7 +66,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	valid, err := h.Authenticator.Authenticate(email, password)
 	if err != nil {
-		h.Logger.Printf("failed to authenticate provided password %v", err)
+		h.Logger.Errorf("failed to authenticate provided password %v", err)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errEmailNotFound, foundation.InvalidRequest)
@@ -74,7 +74,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !valid {
-		h.Logger.Printf("failed to authenticate user: %v", err)
+		h.Logger.Errorf("failed to authenticate user: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusBadRequest,
 			errEmailNotFound, foundation.UnAuthorised)
@@ -83,7 +83,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	key, err := fetchPrivateKey(h.TokenConfig.KeyPath+h.TokenConfig.PrivateKeyName, h.TokenConfig.KeyPath+h.TokenConfig.PublicKeyName)
 	if err != nil {
-		h.Logger.Printf("failed to fetch keys: %v", err)
+		h.Logger.Errorf("failed to fetch keys: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
 			errTokenGeneration, foundation.KeyNotFound)

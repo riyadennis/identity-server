@@ -2,13 +2,13 @@ package rest
 
 import (
 	"database/sql"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/riyadennis/identity-server/business/store"
 	customMiddleware "github.com/riyadennis/identity-server/foundation/middleware"
@@ -36,7 +36,7 @@ const (
 )
 
 // LoadRESTEndpoints adds REST endpoints to the router
-func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) http.Handler {
+func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *logrus.Logger) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -60,8 +60,11 @@ func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) 
 	}))
 	r.Get(LivenessEndPoint, Liveness)
 	r.Get(ReadinessEndPoint, Ready(conn))
-
-	h := NewHandler(store.NewDB(conn), store.NewDB(conn), tc, logger)
+	auth := &store.Auth{
+		Conn:   conn,
+		Logger: logger,
+	}
+	h := NewHandler(store.NewDB(conn), auth, tc, logger)
 	r.Post(RegisterEndpoint, h.Register)
 	r.Post(LoginEndPoint, h.Login)
 	ac := customMiddleware.AuthConfig{

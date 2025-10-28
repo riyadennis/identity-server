@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/riyadennis/identity-server/app/auth-api/rest"
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/sirupsen/logrus"
 )
 
 const timeOut = 5 * time.Second
@@ -52,7 +52,7 @@ func NewServer(restPort string) *Server {
 
 // Run registers routes and starts a webserver
 // and waits to receive from shutdown and error channels
-func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *log.Logger) error {
+func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *logrus.Logger) error {
 	s.restServer.Handler = rest.LoadRESTEndpoints(conn, tc, logger)
 	// Start the service
 	go func() {

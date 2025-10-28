@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business"
@@ -98,7 +98,7 @@ func TestRegister(t *testing.T) {
 				foundation.EmailAlreadyExists),
 		},
 	}
-	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	logger := logrus.New()
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()

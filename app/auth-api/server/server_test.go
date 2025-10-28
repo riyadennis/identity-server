@@ -1,14 +1,13 @@
 package server
 
 import (
-	"bytes"
 	"database/sql"
 	"errors"
-	"log"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -63,8 +62,9 @@ func TestNewServerPortValidation(t *testing.T) {
 // since http.Server is a struct, we'll simulate the error via goroutine and channels
 func TestServer_Run_Error(t *testing.T) {
 	s := NewServer("8081")
-	var buf bytes.Buffer
-	logger := log.New(&buf, "", 0)
+	//var buf bytes.Buffer
+	//logger := log.New(&buf, "", 0)
+	logger := logrus.New()
 	// Simulate error from ListenAndServe
 	go func() {
 		time.Sleep(10 * time.Millisecond)
@@ -76,8 +76,7 @@ func TestServer_Run_Error(t *testing.T) {
 
 func TestServer_Run_Shutdown(t *testing.T) {
 	s := NewServer("8082")
-	var buf bytes.Buffer
-	logger := log.New(&buf, "", 0)
+	logger := logrus.New()
 	// Simulate shutdown signal after a short delay
 	go func() {
 		time.Sleep(10 * time.Millisecond)
