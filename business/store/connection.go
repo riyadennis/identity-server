@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -115,7 +115,7 @@ func Connect(dbCfg *DBConnection) (*sql.DB, error) {
 	return conn, nil
 }
 
-func GenerateToken(logger *log.Logger, issuer string, key []byte, ttl time.Duration) (*Token, error) {
+func GenerateToken(logger *logrus.Logger, issuer string, key []byte, ttl time.Duration) (*Token, error) {
 	expiry := time.Now().UTC().Add(ttl)
 
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
@@ -129,7 +129,7 @@ func GenerateToken(logger *log.Logger, issuer string, key []byte, ttl time.Durat
 		"iss": issuer,
 	}).SignedString(privateKey)
 	if err != nil {
-		logger.Printf("failed to sign using private key: %v", err)
+		logger.Errorf("failed to sign using private key: %v", err)
 		return nil, err
 	}
 

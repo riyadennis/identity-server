@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	// initialise mysql driver
 	// initialise migration settings
@@ -9,14 +8,19 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	"github.com/riyadennis/identity-server/app/auth-api/server"
 	"github.com/riyadennis/identity-server/business/store"
 )
 
 func main() {
-	logger := log.New(os.Stdout, "IDENTITY: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
-
+	logger := &logrus.Logger{
+		Out:       os.Stdout,
+		Formatter: new(logrus.JSONFormatter),
+		Hooks:     make(logrus.LevelHooks),
+		Level:     logrus.DebugLevel,
+	}
 	err := godotenv.Load()
 	if err != nil {
 		logger.Fatalf("failed to open env file: %v", err)
@@ -45,6 +49,7 @@ func main() {
 
 	s := server.NewServer(os.Getenv("PORT"))
 	err = s.Run(db, cfg.Token, logger)
+	
 	if err != nil {
 		logger.Panicf("error running server: %v", err)
 	}

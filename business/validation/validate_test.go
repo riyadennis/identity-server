@@ -2,12 +2,12 @@ package validation
 
 import (
 	"errors"
-	"log"
 	"os"
 	"testing"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -189,8 +189,7 @@ func generateTestToken(t *testing.T, issuer string, ttl time.Duration) string {
 	privateKeyData, err := os.ReadFile("testdata/test_private.pem")
 	assert.NoError(t, err)
 
-	logger := log.New(os.Stdout, "test: ", log.LstdFlags)
-	signedToken, err := store.GenerateToken(logger, issuer, privateKeyData, ttl)
+	signedToken, err := store.GenerateToken(logrus.New(), issuer, privateKeyData, ttl)
 	assert.NoError(t, err)
 
 	return "Bearer " + signedToken.AccessToken

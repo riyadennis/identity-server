@@ -4,14 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-chi/chi/v5"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -93,13 +92,14 @@ func TestHandlerDelete(t *testing.T) {
 			},
 		},
 	}
-
-	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			dbCOnn := store.NewDB(sc.conn)
-			handler := NewHandler(dbCOnn, dbCOnn, &store.TokenConfig{}, logger)
+			handler := NewHandler(dbCOnn, &store.Auth{
+				Conn: sc.conn,
+			}, &store.TokenConfig{}, logrus.New())
 
 			r := httptest.NewRequest("GET", "/admin/delete/{userID}", nil)
 			routeContext := chi.NewRouteContext()

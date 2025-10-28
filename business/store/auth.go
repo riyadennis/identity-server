@@ -1,6 +1,8 @@
 package store
 
 import (
+	"database/sql"
+
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -9,13 +11,18 @@ type Authenticator interface {
 	Authenticate(email, password string) (bool, error)
 }
 
+type Auth struct {
+	Conn   *sql.DB
+	Logger *logrus.Logger
+}
+
 var authQuery = `SELECT password FROM 
 identity_users 
 where email = ?`
 
 // Authenticate checks the validity of a given password for an email
-func (d *DB) Authenticate(email, inputPassword string) (bool, error) {
-	login, err := d.Conn.Prepare(authQuery)
+func (a *Auth) Authenticate(email, inputPassword string) (bool, error) {
+	login, err := a.Conn.Prepare(authQuery)
 	if err != nil {
 		return false, err
 	}
@@ -30,7 +37,7 @@ func (d *DB) Authenticate(email, inputPassword string) (bool, error) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(inputPassword))
 	if err != nil {
-		logrus.Errorf("hashed password error :: %v", err)
+		a.Logger.Errorf("hashed password error :: %v", err)
 		return false, err
 	}
 

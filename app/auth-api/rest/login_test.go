@@ -6,13 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -187,7 +186,7 @@ func TestLogin(t *testing.T) {
 		},
 	}
 
-	logger := log.New(os.Stdout, "IDENTITY-TEST", log.LstdFlags)
+	logger := logrus.New()
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			rr := httptest.NewRecorder()
@@ -203,7 +202,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestLoginAuthenticationKeyFound(t *testing.T) {
-	logger := log.New(os.Stdout, "IDENTITY-LOGIN-TEST", log.LstdFlags)
+	logger := logrus.New()
 	rr := httptest.NewRecorder()
 
 	h := NewHandler(&MockStore{
