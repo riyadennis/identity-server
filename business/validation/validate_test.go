@@ -118,7 +118,7 @@ func TestValidateToken(t *testing.T) {
 		{
 			name: "missing key file",
 			token: func() string {
-				validToken := generateTestToken(t, "test-issuer", time.Hour)
+				validToken := generateTestToken(t, "test-issuer", time.Now().UTC().Add(1*time.Hour))
 				return validToken
 			}(),
 			tokenConfig: &store.TokenConfig{
@@ -132,7 +132,7 @@ func TestValidateToken(t *testing.T) {
 		{
 			name: "expired token",
 			token: func() string {
-				expiredToken := generateTestToken(t, "test-issuer", -time.Hour)
+				expiredToken := generateTestToken(t, "test-issuer", time.Now().UTC().Add(-1*time.Hour))
 				return expiredToken
 			}(),
 			tokenConfig: &store.TokenConfig{
@@ -146,7 +146,7 @@ func TestValidateToken(t *testing.T) {
 		{
 			name: "wrong issuer",
 			token: func() string {
-				wrongIssuerToken := generateTestToken(t, "wrong-issuer", time.Hour)
+				wrongIssuerToken := generateTestToken(t, "wrong-issuer", time.Now().UTC().Add(1*time.Hour))
 				return wrongIssuerToken
 			}(),
 			tokenConfig: &store.TokenConfig{
@@ -160,7 +160,7 @@ func TestValidateToken(t *testing.T) {
 		{
 			name: "valid token",
 			token: func() string {
-				validToken := generateTestToken(t, "test-issuer", time.Hour)
+				validToken := generateTestToken(t, "test-issuer", time.Now().UTC().Add(1*time.Hour))
 				return validToken
 			}(),
 			tokenConfig: &store.TokenConfig{
@@ -183,7 +183,7 @@ func TestValidateToken(t *testing.T) {
 	}
 }
 
-func generateTestToken(t *testing.T, issuer string, ttl time.Duration) string {
+func generateTestToken(t *testing.T, issuer string, ttl time.Time) string {
 	t.Helper()
 
 	privateKeyData, err := os.ReadFile("testdata/test_private.pem")

@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -80,24 +81,58 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			errEmailNotFound, foundation.UnAuthorised)
 		return
 	}
-
-	key, err := fetchPrivateKey(h.TokenConfig.KeyPath+h.TokenConfig.PrivateKeyName, h.TokenConfig.KeyPath+h.TokenConfig.PublicKeyName)
+	tr, err := h.Authenticator.FetchLoginToken(u.ID)
 	if err != nil {
-		h.Logger.Errorf("failed to fetch keys: %v", err)
+		h.Logger.Errorf("failed to fetch token from DB: %v", err)
 
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
 			errTokenGeneration, foundation.KeyNotFound)
 
 		return
 	}
+	var token *store.Token
+	// token is present and not expired
+	if tr != nil && tr.Expiry.After(time.Now()) {
+		h.Logger.Printf("token already exists with id: %s", tr.Id)
+		token = &store.Token{
+			Status:      http.StatusOK,
+			AccessToken: tr.Token,
+			TokenType:   "Bearer",
+			Expiry:      tr.Expiry.String(),
+			TokenTTL:    tr.TTL,
+		}
+	} else {
+		key, err := fetchPrivateKey(h.TokenConfig.KeyPath+h.TokenConfig.PrivateKeyName, h.TokenConfig.KeyPath+h.TokenConfig.PublicKeyName)
+		if err != nil {
+			h.Logger.Errorf("failed to fetch keys: %v", err)
 
-	token, err := store.GenerateToken(h.Logger, h.TokenConfig.Issuer, key, 120*time.Hour)
-	if err != nil {
-		h.Logger.Printf("token generation failed: %v", err)
+			foundation.ErrorResponse(w, http.StatusInternalServerError,
+				errTokenGeneration, foundation.KeyNotFound)
 
-		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			errTokenGeneration, foundation.TokenError)
-		return
+			return
+		}
+		expiryTime := time.Now().UTC().Add(120 * time.Hour)
+		token, err = store.GenerateToken(h.Logger, h.TokenConfig.Issuer, key, expiryTime)
+		if err != nil {
+			h.Logger.Printf("token generation failed: %v", err)
+
+			foundation.ErrorResponse(w, http.StatusInternalServerError,
+				errTokenGeneration, foundation.TokenError)
+			return
+		}
+		err = h.Authenticator.SaveLoginToken(r.Context(), &store.TokenRecord{
+			UserId: u.ID,
+			Token:  token.AccessToken,
+			Expiry: expiryTime,
+			TTL:    fmt.Sprintf("%d", expiryTime.Unix()),
+		})
+		if err != nil {
+			h.Logger.Printf("token saving failed: %v", err)
+
+			foundation.ErrorResponse(w, http.StatusInternalServerError,
+				errTokenGeneration, foundation.TokenError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

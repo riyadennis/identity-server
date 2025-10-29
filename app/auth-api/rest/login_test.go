@@ -43,6 +43,12 @@ type MockAuthenticator struct {
 func (ma *MockAuthenticator) Authenticate(email, password string) (bool, error) {
 	return ma.ReturnVal, ma.Error
 }
+func (ma *MockAuthenticator) FetchLoginToken(userID string) (*store.TokenRecord, error) {
+	return nil, nil
+}
+func (ma *MockAuthenticator) SaveLoginToken(ctx context.Context, t *store.TokenRecord) error {
+	return nil
+}
 
 func TestLogin(t *testing.T) {
 	scenarios := []struct {
