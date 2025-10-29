@@ -44,13 +44,14 @@ type DBConnection struct {
 	MigrationPath string
 }
 
-// Token have credentials present in a token
+// Token has credentials present in a token
 type Token struct {
-	Status      int           `json:"status"`
-	AccessToken string        `json:"access_token"`
-	Expiry      string        `json:"expiry"`
-	TokenType   string        `json:"token_type"`
-	TokenTTL    time.Duration `json:"token_ttl" swaggertype:"string"`
+	Status      int    `json:"status"`
+	AccessToken string `json:"access_token"`
+	Expiry      string `json:"expiry"`
+	TokenType   string `json:"token_type"`
+	LastRefresh string `json:"last_refresh"`
+	TokenTTL    string `json:"token_ttl" swaggertype:"string"`
 }
 
 func NewENVConfig() *Config {
@@ -115,9 +116,7 @@ func Connect(dbCfg *DBConnection) (*sql.DB, error) {
 	return conn, nil
 }
 
-func GenerateToken(logger *logrus.Logger, issuer string, key []byte, ttl time.Duration) (*Token, error) {
-	expiry := time.Now().UTC().Add(ttl)
-
+func GenerateToken(logger *logrus.Logger, issuer string, key []byte, expiry time.Time) (*Token, error) {
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {
 		logger.Printf("failed to parser private key: %v", err)
@@ -138,6 +137,6 @@ func GenerateToken(logger *logrus.Logger, issuer string, key []byte, ttl time.Du
 		AccessToken: t,
 		Expiry:      expiry.String(),
 		TokenType:   "Bearer",
-		TokenTTL:    ttl,
+		TokenTTL:    fmt.Sprintf("%d", expiry.Unix()),
 	}, nil
 }

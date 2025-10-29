@@ -1,5 +1,0 @@
-package store
-
-func FetchLoginToken() {
-
-}
