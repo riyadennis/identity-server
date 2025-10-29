@@ -50,3 +50,9 @@ install-go-test-coverage:
 check-coverage: install-go-test-coverage
 	go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	${GOBIN}/go-test-coverage --config=testcoverage.yaml
+
+docs-fmt:
+	swag fmt
+
+docs-generate:
+	swag init -g app/auth-api/main.go

@@ -4,7 +4,7 @@
         "contact": {}
     },
     "paths": {
-        "/delete/{id}": {
+        "/admin/delete/{userID}": {
             "delete": {
                 "security": [
                     {
@@ -18,7 +18,6 @@
                 "tags": [
                     "User"
                 ],
-                "summary": "Delete a user",
                 "parameters": [
                     {
                         "type": "string",
@@ -43,37 +42,6 @@
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/foundation.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/home": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Returns dashboard info for authenticated user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get user dashboard",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/foundation.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/foundation.Response"
                         }
@@ -114,7 +82,6 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Login",
                 "parameters": [
                     {
                         "type": "string",
@@ -190,7 +157,6 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Register a new user",
                 "parameters": [
                     {
                         "description": "User registration data",
@@ -223,6 +189,36 @@
                     }
                 }
             }
+        },
+        "/user/home": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns dashboard info for authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/foundation.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/foundation.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -247,6 +243,9 @@
                     "type": "string"
                 },
                 "expiry": {
+                    "type": "string"
+                },
+                "last_refresh": {
                     "type": "string"
                 },
                 "status": {

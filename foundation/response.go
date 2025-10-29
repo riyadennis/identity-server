@@ -53,6 +53,6 @@ func Resource(w http.ResponseWriter, status int, resource interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }

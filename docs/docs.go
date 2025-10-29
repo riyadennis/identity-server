@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/delete/{id}": {
+        "/admin/delete/{userID}": {
             "delete": {
                 "security": [
                     {
@@ -29,7 +29,6 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Delete a user",
                 "parameters": [
                     {
                         "type": "string",
@@ -54,37 +53,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/foundation.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/home": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Returns dashboard info for authenticated user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get user dashboard",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/foundation.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/foundation.Response"
                         }
@@ -125,7 +93,6 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Login",
                 "parameters": [
                     {
                         "type": "string",
@@ -201,7 +168,6 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Register a new user",
                 "parameters": [
                     {
                         "description": "User registration data",
@@ -234,6 +200,36 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/home": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns dashboard info for authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/foundation.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/foundation.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -258,6 +254,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "expiry": {
+                    "type": "string"
+                },
+                "last_refresh": {
                     "type": "string"
                 },
                 "status": {

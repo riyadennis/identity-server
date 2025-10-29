@@ -14,15 +14,16 @@ var (
 )
 
 // Delete @Summary      Delete Endpoint
-// @Description  Permanently remove a user by ID
-// @Tags         User
-// @Security     ApiKeyAuth
-// @Produce      json
-// @Param        id path string true "User ID"
-// @Success      204   {string}  string  "No Content"
-// @Failure      400   {object}  foundation.Response
-// @Failure      404   {object}  foundation.Response
-// @Router       /admin/delete/{userID} [delete]
+//
+//	@Description	Permanently remove a user by ID
+//	@Tags			User
+//	@Security		ApiKeyAuth
+//	@Produce		json
+//	@Param			id	path		string	true	"User ID"
+//	@Success		204	{string}	string	"No Content"
+//	@Failure		400	{object}	foundation.Response
+//	@Failure		404	{object}	foundation.Response
+//	@Router			/admin/delete/{userID} [delete]
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "userID")
 	if id == "" {

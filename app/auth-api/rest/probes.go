@@ -9,12 +9,12 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
-// @Summary      Liveness probe
-// @Description  Returns liveness and k8s deployment info
-// @Tags         Health
-// @Produce      json
-// @Success      200   {object}  map[string]interface{}
-// @Router       /liveness [get]
+// @Summary		Liveness probe
+// @Description	Returns liveness and k8s deployment info
+// @Tags			Health
+// @Produce		json
+// @Success		200	{object}	map[string]interface{}
+// @Router			/liveness [get]
 func Liveness(w http.ResponseWriter, _ *http.Request) {
 	hostName, err := os.Hostname()
 	if err != nil {
@@ -41,13 +41,13 @@ func Liveness(w http.ResponseWriter, _ *http.Request) {
 	_ = json.NewEncoder(w).Encode(data)
 }
 
-// @Summary      Readiness probe
-// @Description  Checks if API is ready for traffic (DB available)
-// @Tags         Health
-// @Produce      json
-// @Success      200   {object}  foundation.Response
-// @Failure      500   {object}  foundation.Response
-// @Router       /readiness [get]
+// @Summary		Readiness probe
+// @Description	Checks if API is ready for traffic (DB available)
+// @Tags			Health
+// @Produce		json
+// @Success		200	{object}	foundation.Response
+// @Failure		500	{object}	foundation.Response
+// @Router			/readiness [get]
 func Ready(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, request *http.Request) {
 		if err := db.Ping(); err != nil {
