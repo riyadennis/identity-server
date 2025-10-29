@@ -6,9 +6,10 @@ A Go-based identity management server providing user registration, authenticatio
 
 ## Architecture
 
-### Core Components
+## Core Components
 - **Main Entry Point**: `app/auth-api/main.go` - Application startup, database connection, and server initialization
-- **HTTP Handlers**: `app/auth-api/handlers/` - REST API endpoints and routing
+- **HTTP Handlers**: `app/auth-api/rest/` - REST API endpoints and routing
+- **Server Layer**: `app/auth-api/server/` - HTTP server configuration and lifecycle management
 - **Business Logic**: `business/` - Core business operations and validation
 - **Database Layer**: `business/store/` - Data access, connection management, and migrations
 - **Foundation**: `foundation/` - Shared utilities, middleware, and crypto operations
@@ -26,9 +27,10 @@ A Go-based identity management server providing user registration, authenticatio
 - **Language**: Go 1.24
 - **Database**: MySQL
 - **Authentication**: JWT tokens with RSA key pairs
-- **HTTP Router**: julienschmidt/httprouter
+- **HTTP Router**: go-chi/chi/v5
 - **Migrations**: golang-migrate/migrate
-- **Deployment**: Docker + Kubernetes
+- **Documentation**: Swagger/OpenAPI (swaggo/swag)
+- **Deployment**: Docker + Kubernetes/Helm
 
 ## API Endpoints
 

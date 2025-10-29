@@ -7,7 +7,8 @@ A Go-based identity management server providing user registration, authenticatio
 
 ### Core Components
 - **Main Entry Point**: `app/auth-api/main.go` - Application startup, database connection, and server initialization
-- **HTTP Handlers**: `app/auth-api/handlers/` - REST API endpoints and routing
+- **HTTP Handlers**: `app/auth-api/rest/` - REST API endpoints and routing
+- **Server Layer**: `app/auth-api/server/` - HTTP server configuration and lifecycle management
 - **Business Logic**: `business/` - Core business operations and validation
 - **Database Layer**: `business/store/` - Data access, connection management, and migrations
 - **Foundation**: `foundation/` - Shared utilities, middleware, and crypto operations
@@ -25,25 +26,26 @@ A Go-based identity management server providing user registration, authenticatio
 - **Language**: Go 1.24
 - **Database**: MySQL
 - **Authentication**: JWT tokens with RSA key pairs
-- **HTTP Router**: julienschmidt/httprouter
+- **HTTP Router**: go-chi/chi/v5
 - **Migrations**: golang-migrate/migrate
+- **Documentation**: Swagger/OpenAPI (swaggo/swag)
 - **Deployment**: Docker + Kubernetes/Helm
 
 ## Dependencies (go.mod)
 ```go
 require (
-    github.com/DATA-DOG/go-sqlmock v1.5.0
+    github.com/DATA-DOG/go-sqlmock v1.5.2
+    github.com/go-chi/chi/v5 v5.2.3
+    github.com/go-chi/cors v1.2.2
     github.com/go-sql-driver/mysql v1.6.0
-    github.com/golang-jwt/jwt/v4 v4.2.0
+    github.com/golang-jwt/jwt/v4 v4.5.2
     github.com/golang-migrate/migrate v3.5.4+incompatible
-    github.com/google/jsonapi v1.0.0
-    github.com/google/uuid v1.3.0
-    github.com/joho/godotenv v1.4.0
-    github.com/julienschmidt/httprouter v1.3.0
-    github.com/rs/cors v1.8.2
+    github.com/google/uuid v1.6.0
+    github.com/joho/godotenv v1.5.1
     github.com/sirupsen/logrus v1.8.1
-    github.com/stretchr/testify v1.7.0
-    golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
+    github.com/stretchr/testify v1.11.1
+    github.com/swaggo/swag v1.16.6
+    golang.org/x/crypto v0.43.0
 )
 ```
 
@@ -57,7 +59,7 @@ require (
 
 ### Protected Endpoints (require JWT)
 - `GET /user/home` - User profile access
-- `DELETE /admin/delete/:id` - User deletion
+- `DELETE /admin/delete/{userID}` - User deletion
 
 ## Database Schema
 
@@ -110,7 +112,7 @@ KEY_PATH="/tmp/keys"
 - Current coverage: ~28-33%
 - Test database required (`.env_test` file)
 - Key test areas:
-  - Handler tests: `app/auth-api/handlers/*_test.go`
+  - Handler tests: `app/auth-api/rest/*_test.go`
   - Store tests: `business/store/*_test.go`
   - Validation tests: `business/validation/validate_test.go`
 
@@ -141,7 +143,8 @@ make service-url     # Get service URL
 
 ```
 ├── app/auth-api/           # HTTP API layer
-│   ├── handlers/           # HTTP request handlers
+│   ├── rest/              # REST API handlers and routing
+│   ├── server/            # HTTP server configuration
 │   └── main.go            # Application entry point
 ├── business/              # Business logic layer
 │   ├── store/             # Data access layer
@@ -151,6 +154,7 @@ make service-url     # Get service URL
 │   ├── keys.go           # RSA key generation
 │   ├── request.go        # Request utilities
 │   └── response.go       # Response utilities
+├── docs/                 # Swagger documentation (auto-generated)
 ├── migrations/            # Database migration files
 ├── zarf/                 # Kubernetes/Helm deployment
 │   ├── identity/         # Helm chart
@@ -166,8 +170,21 @@ make service-url     # Get service URL
 1. User registers via `/register` endpoint
 2. Password is hashed using bcrypt
 3. User authenticates via `/login` endpoint
-4. JWT token generated with RSA private key
+4. System checks for existing valid token in database:
+   - If valid token exists and not expired, reuses it
+   - If no token or expired, generates a new JWT token with RSA private key
+   - New tokens are saved to a database with expiry time (120 hours TTL)
 5. Protected endpoints validate JWT with RSA public key
+
+### Routing Architecture
+- Uses go-chi/chi/v5 router with middleware support
+- Route groups organize endpoints by access level:
+  - Public routes: `/register`, `/login`, `/liveness`, `/readiness`
+  - `/user/*` routes: Protected user endpoints (require JWT)
+  - `/admin/*` routes: Protected admin endpoints (require JWT)
+- URL parameters use `{paramName}` syntax (e.g., `/admin/delete/{userID}`)
+- Middleware applied at route group level for authentication
+- CORS configured globally for all routes
 
 ### Database Connection
 - MySQL connection with connection pooling
@@ -184,10 +201,11 @@ make service-url     # Get service URL
 ## Common Development Tasks
 
 ### Adding New Endpoints
-1. Define route constants in `handlers/endpoints.go`
-2. Implement handler function in appropriate handler file
-3. Add route registration in `loadRoutes()` function
+1. Define route constants in `app/auth-api/rest/endpoints.go`
+2. Implement handler function in the appropriate handler file in `app/auth-api/rest/`
+3. Add route registration in `LoadRESTEndpoints()` function
 4. Add middleware as needed (Auth, CORS)
+5. Update Swagger documentation comments for API docs
 
 ### Database Changes
 1. Create new migration files in `migrations/` directory
@@ -229,11 +247,9 @@ docker build -t riyadennis/identity-server:1.3.0 .
 - Helm chart publishing to GitHub Pages
 
 ## Notes for Future Development
-- Consider upgrading older dependencies (some from 2021-2022)
 - Improve test coverage (currently 28-33%)
 - Add input validation middleware
 - Consider adding rate limiting
-- Add comprehensive API documentation (OpenAPI/Swagger)
 - Implement proper secret management for production
 - Add database connection pooling configuration
 - Consider adding metrics and observability
