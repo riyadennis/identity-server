@@ -41,9 +41,8 @@ githubToken:
 
 exportEnv:
 	export $(xargs < .env)
+    GOBIN ?= $$(go env GOPATH)/bin
 
-GOBIN ?= $$(go env GOPATH)/bin
-# for coverage
 install-go-test-coverage:
 	go install github.com/vladopajic/go-test-coverage/v2@latest
 
