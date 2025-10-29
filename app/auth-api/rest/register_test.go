@@ -19,10 +19,6 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
-var (
-	testEmail string
-)
-
 func TestRegister(t *testing.T) {
 	scenarios := []struct {
 		name             string
@@ -166,7 +162,7 @@ func user(t *testing.T) *store.User {
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     testEmail,
-		Password:  "testPassword",
+		Password:  testPassword,
 		Company:   "testCompany",
 		PostCode:  "E112QD",
 		Terms:     true,

@@ -18,6 +18,11 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
+const (
+	testEmail    = "john.doe@gmail.com"
+	testPassword = "pass"
+)
+
 type MockStore struct {
 	Error error
 	*store.User
@@ -83,7 +88,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name:     "login DB error",
-			request:  loginRequest(t, "john4@gmail.com", "pass"),
+			request:  loginRequest(t, testEmail, testPassword),
 			response: expectedResponse(t, "email not found"),
 			store: &MockStore{
 				Error: errors.New("error"),
@@ -91,7 +96,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name:     "authentication error",
-			request:  loginRequest(t, "john4@gmail.com", "pass"),
+			request:  loginRequest(t, testEmail, testPassword),
 			response: expectedResponse(t, "invalid password"),
 			store: &MockStore{
 				User: &store.User{
@@ -105,7 +110,7 @@ func TestLogin(t *testing.T) {
 		},
 		{
 			name:    "authentication key not found",
-			request: loginRequest(t, "john4@gmail.com", "pass"),
+			request: loginRequest(t, testEmail, testPassword),
 			response: &foundation.Response{
 				Status:    http.StatusInternalServerError,
 				Message:   errTokenGeneration.Error(),
