@@ -11,7 +11,7 @@ import (
 
 const passwordSeed = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-// GeneratePassword wil create a password for user login
+// GeneratePassword will create a password for user login
 func GeneratePassword() (string, error) {
 	result := ""
 	for {

@@ -9,8 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/riyadennis/identity-server/business"
 )
 
 func TestAuthenticate(t *testing.T) {
@@ -72,12 +70,12 @@ func TestAuthenticate(t *testing.T) {
 			db: func() *Auth {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
-				password, err := business.EncryptPassword("pass")
+				enPass, err := bcrypt.GenerateFromPassword([]byte("pass"), bcrypt.MinCost)
 				assert.NoError(t, err)
 				mock.ExpectPrepare(authQuery).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
-					WillReturnRows(sqlmock.NewRows([]string{"password"}).AddRow(password))
+					WillReturnRows(sqlmock.NewRows([]string{"password"}).AddRow(string(enPass)))
 				return &Auth{
 					Conn: conn,
 				}

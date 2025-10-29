@@ -3,12 +3,9 @@ package rest
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"os"
-	"time"
 
-	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/business"
 	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/riyadennis/identity-server/foundation"
 )
@@ -52,88 +49,19 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			err, foundation.InvalidRequest)
 		return
 	}
-	u, err := h.Store.Read(r.Context(), email)
+	helper := business.NewHelper(h.Store, h.Authenticator, h.Logger)
+	user, err := helper.UserCredentialsInDB(r.Context(), email, password)
 	if err != nil {
-		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			err, foundation.UserDoNotExist)
-		return
-	}
-
-	if u == nil {
-		h.Logger.Printf("failed to find user in DB")
-		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			errEmailNotFound, foundation.UserDoNotExist)
-		return
-	}
-
-	valid, err := h.Authenticator.Authenticate(email, password)
-	if err != nil {
-		h.Logger.Errorf("failed to authenticate provided password %v", err)
-
 		foundation.ErrorResponse(w, http.StatusBadRequest,
-			errEmailNotFound, foundation.InvalidRequest)
+			err, foundation.InvalidRequest)
 		return
 	}
 
-	if !valid {
-		h.Logger.Errorf("failed to authenticate user: %v", err)
-
-		foundation.ErrorResponse(w, http.StatusBadRequest,
-			errEmailNotFound, foundation.UnAuthorised)
-		return
-	}
-	tr, err := h.Authenticator.FetchLoginToken(u.ID)
+	token, err := helper.ManageToken(r.Context(), h.TokenConfig, user.ID)
 	if err != nil {
-		h.Logger.Errorf("failed to fetch token from DB: %v", err)
-
 		foundation.ErrorResponse(w, http.StatusInternalServerError,
-			errTokenGeneration, foundation.KeyNotFound)
-
+			errTokenGeneration, foundation.TokenError)
 		return
-	}
-	var token *store.Token
-	// token is present and not expired
-	if tr != nil && tr.Expiry.After(time.Now()) {
-		h.Logger.Printf("token already exists with id: %s", tr.Id)
-		token = &store.Token{
-			Status:      http.StatusOK,
-			AccessToken: tr.Token,
-			TokenType:   "Bearer",
-			Expiry:      tr.Expiry.String(),
-			TokenTTL:    tr.TTL,
-		}
-	} else {
-		key, err := fetchPrivateKey(h.TokenConfig.KeyPath+h.TokenConfig.PrivateKeyName, h.TokenConfig.KeyPath+h.TokenConfig.PublicKeyName)
-		if err != nil {
-			h.Logger.Errorf("failed to fetch keys: %v", err)
-
-			foundation.ErrorResponse(w, http.StatusInternalServerError,
-				errTokenGeneration, foundation.KeyNotFound)
-
-			return
-		}
-		expiryTime := time.Now().UTC().Add(120 * time.Hour)
-		token, err = store.GenerateToken(h.Logger, h.TokenConfig.Issuer, key, expiryTime)
-		if err != nil {
-			h.Logger.Printf("token generation failed: %v", err)
-
-			foundation.ErrorResponse(w, http.StatusInternalServerError,
-				errTokenGeneration, foundation.TokenError)
-			return
-		}
-		err = h.Authenticator.SaveLoginToken(r.Context(), &store.TokenRecord{
-			UserId: u.ID,
-			Token:  token.AccessToken,
-			Expiry: expiryTime,
-			TTL:    fmt.Sprintf("%d", expiryTime.Unix()),
-		})
-		if err != nil {
-			h.Logger.Printf("token saving failed: %v", err)
-
-			foundation.ErrorResponse(w, http.StatusInternalServerError,
-				errTokenGeneration, foundation.TokenError)
-			return
-		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -141,15 +69,4 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.Logger.Printf("json encoding failed: %v", err)
 	}
-}
-
-func fetchPrivateKey(privateKeyPath, publicKeyPath string) ([]byte, error) {
-	if _, err := os.Stat(privateKeyPath); os.IsNotExist(err) {
-		err := foundation.GenerateKeys(privateKeyPath, publicKeyPath)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return os.ReadFile(privateKeyPath)
 }
