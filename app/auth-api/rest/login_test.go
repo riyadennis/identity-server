@@ -77,70 +77,22 @@ func TestLogin(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid email",
-			request: func() *http.Request {
-				credentials := "john4gmail.com:pass"
-				req := request(t, "/login", "")
-
-				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
-				return req
-			}(),
-			response: &foundation.Response{
-				Status:    http.StatusBadRequest,
-				Message:   "invalid email",
-				ErrorCode: foundation.InvalidRequest,
-			},
+			name:     "invalid email",
+			request:  loginRequest(t, "invalid", "pass"),
+			response: expectedResponse(t, "invalid email"),
+		},
+		{
+			name:     "login DB error",
+			request:  loginRequest(t, "john4@gmail.com", "pass"),
+			response: expectedResponse(t, "email not found"),
 			store: &MockStore{
 				Error: errors.New("error"),
 			},
 		},
 		{
-			name: "login DB error",
-			request: func() *http.Request {
-				credentials := "john4@gmail.com:pass"
-				req := request(t, "/login", "")
-
-				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
-				return req
-			}(),
-			response: &foundation.Response{
-				Status:    http.StatusBadRequest,
-				Message:   "email not found",
-				ErrorCode: foundation.InvalidRequest,
-			},
-			store: &MockStore{
-				Error: errors.New("error"),
-			},
-		},
-		{
-			name: "no User in DB",
-			request: func() *http.Request {
-				credentials := "john4@gmail.com:pass"
-				req := request(t, "/login", "")
-
-				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
-				return req
-			}(),
-			response: &foundation.Response{
-				Status:    http.StatusBadRequest,
-				Message:   "email not found",
-				ErrorCode: foundation.InvalidRequest,
-			},
-			store: &MockStore{},
-		},
-		{
-			name: "authentication error",
-			request: func() *http.Request {
-				credentials := "john4@gmail.com:pass"
-				req := request(t, "/login", "")
-				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
-				return req
-			}(),
-			response: &foundation.Response{
-				Status:    http.StatusBadRequest,
-				Message:   "invalid password",
-				ErrorCode: foundation.InvalidRequest,
-			},
+			name:     "authentication error",
+			request:  loginRequest(t, "john4@gmail.com", "pass"),
+			response: expectedResponse(t, "invalid password"),
 			store: &MockStore{
 				User: &store.User{
 					ID:        "123",
@@ -152,36 +104,8 @@ func TestLogin(t *testing.T) {
 			},
 		},
 		{
-			name: "authentication failed",
-			request: func() *http.Request {
-				credentials := "john4@gmail.com:pass"
-				req := request(t, "/login", "")
-				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
-				return req
-			}(),
-			response: &foundation.Response{
-				Status:    http.StatusBadRequest,
-				Message:   "invalid password",
-				ErrorCode: foundation.InvalidRequest,
-			},
-			store: &MockStore{
-				User: &store.User{
-					ID:        "123",
-					FirstName: "Joe",
-				},
-			},
-			authenticator: &MockAuthenticator{},
-		},
-		{
-			name: "authentication key not found",
-			request: func() *http.Request {
-				credentials := "john4@gmail.com:pass"
-				req := request(t, "/login", "")
-
-				base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
-				req.Header.Set("Authorization", "Basic "+base64)
-				return req
-			}(),
+			name:    "authentication key not found",
+			request: loginRequest(t, "john4@gmail.com", "pass"),
 			response: &foundation.Response{
 				Status:    http.StatusInternalServerError,
 				Message:   errTokenGeneration.Error(),
@@ -231,18 +155,28 @@ func TestLoginAuthenticationKeyFound(t *testing.T) {
 			PublicKeyName:  "test_public.pem",
 		}, logger)
 
-	credentials := "john@gmail.com:pass"
-	req := request(t, "/login", "")
-	base64 := base64.StdEncoding.EncodeToString([]byte(credentials))
-	req.Header.Set("Authorization", "Basic "+base64)
-
-	h.Login(rr, req)
+	h.Login(rr, loginRequest(t, "john@gmail.com", "pass"))
 	re := response(t, rr.Body)
 
 	assert.Equal(t, &foundation.Response{
 		Status: http.StatusOK}, re)
 }
 
+func loginRequest(t *testing.T, email, password string) *http.Request {
+	t.Helper()
+	credentials := email + ":" + password
+	req := request(t, "/login", "")
+	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
+	return req
+}
+func expectedResponse(t *testing.T, message string) *foundation.Response {
+	t.Helper()
+	return &foundation.Response{
+		Status:    http.StatusBadRequest,
+		Message:   message,
+		ErrorCode: foundation.InvalidRequest,
+	}
+}
 func response(t *testing.T, body io.Reader) *foundation.Response {
 	t.Helper()
 	var re *foundation.Response
