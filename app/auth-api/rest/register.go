@@ -32,15 +32,16 @@ func NewHandler(store store.Store, authenticator store.Authenticator,
 }
 
 // Register @Summary     Endpoint to  Register a new user
-// @Description  Create a user with email and password
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        user  body   store.User  true  "User registration data"
-// @Success      201   {object} store.User
-// @Failure      400   {object}  foundation.Response
-// @Failure      500   {object}  foundation.Response
-// @Router       /register [post]
+//
+//	@Description	Create a user with email and password
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		store.User	true	"User registration data"
+//	@Success		201		{object}	store.User
+//	@Failure		400		{object}	foundation.Response
+//	@Failure		500		{object}	foundation.Response
+//	@Router			/register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	u := &store.User{}
 	decoder := json.NewDecoder(r.Body)

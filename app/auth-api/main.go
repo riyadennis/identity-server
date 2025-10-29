@@ -49,7 +49,7 @@ func main() {
 
 	s := server.NewServer(os.Getenv("PORT"))
 	err = s.Run(db, cfg.Token, logger)
-	
+
 	if err != nil {
 		logger.Panicf("error running server: %v", err)
 	}
