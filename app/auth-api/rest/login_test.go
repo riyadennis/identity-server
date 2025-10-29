@@ -77,14 +77,21 @@ func TestLogin(t *testing.T) {
 			},
 		},
 		{
-			name: "missing password",
-			request: request(t, "/login", `{
-			"email": "john4@gmail.com"
-		}`),
+			name: "invalid email",
+			request: func() *http.Request {
+				credentials := "john4gmail.com:pass"
+				req := request(t, "/login", "")
+
+				req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
+				return req
+			}(),
 			response: &foundation.Response{
 				Status:    http.StatusBadRequest,
-				Message:   "empty login data",
+				Message:   "invalid email",
 				ErrorCode: foundation.InvalidRequest,
+			},
+			store: &MockStore{
+				Error: errors.New("error"),
 			},
 		},
 		{
@@ -97,9 +104,9 @@ func TestLogin(t *testing.T) {
 				return req
 			}(),
 			response: &foundation.Response{
-				Status:    http.StatusInternalServerError,
-				Message:   "error",
-				ErrorCode: foundation.UserDoNotExist,
+				Status:    http.StatusBadRequest,
+				Message:   "email not found",
+				ErrorCode: foundation.InvalidRequest,
 			},
 			store: &MockStore{
 				Error: errors.New("error"),
@@ -115,9 +122,9 @@ func TestLogin(t *testing.T) {
 				return req
 			}(),
 			response: &foundation.Response{
-				Status:    http.StatusInternalServerError,
+				Status:    http.StatusBadRequest,
 				Message:   "email not found",
-				ErrorCode: foundation.UserDoNotExist,
+				ErrorCode: foundation.InvalidRequest,
 			},
 			store: &MockStore{},
 		},
@@ -131,7 +138,7 @@ func TestLogin(t *testing.T) {
 			}(),
 			response: &foundation.Response{
 				Status:    http.StatusBadRequest,
-				Message:   "email not found",
+				Message:   "invalid password",
 				ErrorCode: foundation.InvalidRequest,
 			},
 			store: &MockStore{
@@ -154,8 +161,8 @@ func TestLogin(t *testing.T) {
 			}(),
 			response: &foundation.Response{
 				Status:    http.StatusBadRequest,
-				Message:   "email not found",
-				ErrorCode: foundation.UnAuthorised,
+				Message:   "invalid password",
+				ErrorCode: foundation.InvalidRequest,
 			},
 			store: &MockStore{
 				User: &store.User{
@@ -178,7 +185,7 @@ func TestLogin(t *testing.T) {
 			response: &foundation.Response{
 				Status:    http.StatusInternalServerError,
 				Message:   errTokenGeneration.Error(),
-				ErrorCode: foundation.KeyNotFound,
+				ErrorCode: foundation.TokenError,
 			},
 			store: &MockStore{
 				User: &store.User{
