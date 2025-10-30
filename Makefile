@@ -2,11 +2,11 @@ minikube-start:
 	minikube start --vm-driver=virtualbox --disk-size=30g
 
 docker-build:
-	docker build -t riyadennis/identity-server:1.3.0 .
+	docker build -t riyadennis/identity-server:1.4.0 .
 
 docker-push:
 	# need to do the push with a new tag
-	docker push riyadennis/identity-server:1.3.0
+	docker push riyadennis/identity-server:1.4.0
 
 helm-install:
 	helm install identity ./zarf/identity
