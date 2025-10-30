@@ -73,7 +73,7 @@ func (a *Auth) FetchLoginToken(userID string) (*TokenRecord, error) {
 	token := &TokenRecord{}
 	tokenRow := query.QueryRow(userID)
 	err = tokenRow.Scan(&token.Id, &token.Token, &token.TTL, &token.Expiry, &token.LastUsed)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 	if token.Token == "" {
@@ -82,8 +82,9 @@ func (a *Auth) FetchLoginToken(userID string) (*TokenRecord, error) {
 	return token, nil
 }
 
+var saveTokenQuery = `INSERT INTO login_tokens (id, user_id, token, ttl, expiry) VALUES (?, ?, ?, ?, ?)`
+
 func (a *Auth) SaveLoginToken(ctx context.Context, t *TokenRecord) error {
-	saveTokenQuery := `INSERT INTO login_tokens (id, user_id, token, ttl, expiry) VALUES (?, ?, ?, ?, ?)`
 	saveStmt, err := a.Conn.Prepare(saveTokenQuery)
 	if err != nil {
 		a.Logger.Errorf("failed to prepare save token query: %v", err)

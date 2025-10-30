@@ -1,14 +1,21 @@
 package store
 
 import (
+	"context"
+	"database/sql"
 	"errors"
-	"os"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	testExpiry = time.Now().Add(time.Hour * 24)
 )
 
 func TestAuthenticate(t *testing.T) {
@@ -19,16 +26,8 @@ func TestAuthenticate(t *testing.T) {
 		expectedError  error
 	}{
 		{
-			name: "prepare failed",
-			db: func() *Auth {
-				conn, mock, err := sqlmock.New()
-				assert.NoError(t, err)
-				mock.ExpectPrepare(authQuery).
-					WillReturnError(errors.New("error"))
-				return &Auth{
-					Conn: conn,
-				}
-			}(),
+			name:           "prepare failed",
+			db:             prepareFailedAuth(t, authQuery),
 			expectedError:  errors.New("error"),
 			expectedResult: false,
 		},
@@ -37,7 +36,7 @@ func TestAuthenticate(t *testing.T) {
 			db: func() *Auth {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
-				mock.ExpectPrepare(authQuery).
+				mock.ExpectPrepare(regexp.QuoteMeta(authQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnError(errors.New("error"))
@@ -53,7 +52,7 @@ func TestAuthenticate(t *testing.T) {
 			db: func() *Auth {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
-				mock.ExpectPrepare(authQuery).
+				mock.ExpectPrepare(regexp.QuoteMeta(authQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnRows(sqlmock.NewRows([]string{"password"}).AddRow("pass"))
@@ -72,7 +71,7 @@ func TestAuthenticate(t *testing.T) {
 				assert.NoError(t, err)
 				enPass, err := bcrypt.GenerateFromPassword([]byte("pass"), bcrypt.MinCost)
 				assert.NoError(t, err)
-				mock.ExpectPrepare(authQuery).
+				mock.ExpectPrepare(regexp.QuoteMeta(authQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnRows(sqlmock.NewRows([]string{"password"}).AddRow(string(enPass)))
@@ -83,11 +82,6 @@ func TestAuthenticate(t *testing.T) {
 			expectedResult: true,
 		},
 	}
-	os.Setenv("MYSQL_USERNAME", "root")
-	os.Setenv("MYSQL_PASSWORD", "root")
-	os.Setenv("MYSQL_HOST", "localhost")
-	os.Setenv("MYSQL_DATABASE", "identity")
-	os.Setenv("MYSQL_PORT", "80")
 	for _, testCase := range testcases {
 		t.Run(testCase.name, func(t *testing.T) {
 			authenticated, err := testCase.db.Authenticate("email", "pass")
@@ -96,4 +90,163 @@ func TestAuthenticate(t *testing.T) {
 		})
 	}
 
+}
+
+func TestAuth_FetchLoginToken(t *testing.T) {
+	testcases := []struct {
+		name           string
+		db             *Auth
+		expectedResult *TokenRecord
+		expectedError  error
+	}{
+		{
+			name:          "prepare failed",
+			db:            prepareFailedAuth(t, tokenQuery),
+			expectedError: errors.New("error"),
+		},
+		{
+			name: "query failed",
+			db: func() *Auth {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta(tokenQuery)).
+					ExpectQuery().WithArgs(sqlmock.AnyArg()).
+					WillReturnError(errors.New("error"))
+				return &Auth{
+					Conn: conn,
+				}
+			}(),
+			expectedError: errors.New("error"),
+		},
+		{
+			name: "no record",
+			db: func() *Auth {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta(tokenQuery)).
+					ExpectQuery().WithArgs(sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "token", "ttl", "expiry", "last_used"}).
+						AddRow("", "", "", time.Now(), ""))
+				return &Auth{
+					Conn: conn,
+				}
+			}(),
+		},
+		{
+			name: "success",
+			db: func() *Auth {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta(tokenQuery)).
+					ExpectQuery().WithArgs(sqlmock.AnyArg()).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "token", "ttl", "expiry", "last_used"}).
+						AddRow("123", "token", "123", testExpiry, "2024-01-01"))
+				return &Auth{
+					Conn: conn,
+				}
+			}(),
+			expectedResult: validTokenRecord(t),
+		},
+	}
+	for _, testCase := range testcases {
+		t.Run(testCase.name, func(t *testing.T) {
+			token, err := testCase.db.FetchLoginToken("token")
+			assert.Equal(t, testCase.expectedError, err)
+			assert.Equal(t, testCase.expectedResult, token)
+		})
+	}
+}
+
+func TestAuth_SaveLoginToken(t *testing.T) {
+	testCases := []struct {
+		name          string
+		db            *Auth
+		inputToken    *TokenRecord
+		expectedError error
+	}{
+		{
+			name:          "prepare failed",
+			db:            prepareFailedAuth(t, saveTokenQuery),
+			expectedError: errors.New("error"),
+		},
+		{
+			name: "insert error",
+			db: func() *Auth {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta(saveTokenQuery)).
+					ExpectExec().
+					WillReturnError(errors.New("error"))
+				return &Auth{
+					Conn:   conn,
+					Logger: logrus.New(),
+				}
+			}(),
+			inputToken:    validTokenRecord(t),
+			expectedError: errors.New("error"),
+		},
+		{
+			name: "no rows affected",
+			db: func() *Auth {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta(saveTokenQuery)).
+					ExpectExec().
+					WillReturnResult(sqlmock.NewResult(0, 0))
+				return &Auth{
+					Conn:   conn,
+					Logger: logrus.New(),
+				}
+			}(),
+			inputToken:    validTokenRecord(t),
+			expectedError: errors.New("failed to save token"),
+		},
+		{
+			name: "success",
+			db: func() *Auth {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(regexp.QuoteMeta(saveTokenQuery)).
+					ExpectExec().
+					WillReturnResult(sqlmock.NewResult(123, 1))
+				return &Auth{
+					Conn:   conn,
+					Logger: logrus.New(),
+				}
+			}(),
+			inputToken: validTokenRecord(t),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := testCase.db.SaveLoginToken(context.Background(), testCase.inputToken)
+			assert.Equal(t, testCase.expectedError, err)
+		})
+	}
+}
+
+func prepareFailedAuth(t *testing.T, query string) *Auth {
+	t.Helper()
+	conn, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	mock.ExpectPrepare(regexp.QuoteMeta(query)).
+		WillReturnError(errors.New("error"))
+	return &Auth{
+		Conn:   conn,
+		Logger: logrus.New(),
+	}
+}
+
+func validTokenRecord(t *testing.T) *TokenRecord {
+	t.Helper()
+	return &TokenRecord{
+		Id:       "123",
+		Token:    "token",
+		Expiry:   testExpiry,
+		TTL:      "123",
+		LastUsed: sql.NullString{String: "2024-01-01", Valid: true},
+	}
 }
