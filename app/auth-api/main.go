@@ -7,7 +7,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
-	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 
 	"github.com/riyadennis/identity-server/app/auth-api/server"
@@ -20,10 +19,6 @@ func main() {
 		Formatter: new(logrus.JSONFormatter),
 		Hooks:     make(logrus.LevelHooks),
 		Level:     logrus.DebugLevel,
-	}
-	err := godotenv.Load()
-	if err != nil {
-		logger.Fatalf("failed to open env file: %v", err)
 	}
 
 	cfg := store.NewENVConfig()

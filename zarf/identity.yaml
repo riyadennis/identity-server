@@ -21,30 +21,32 @@ spec:
         - name: MYSQL_USERNAME
           valueFrom:
             secretKeyRef:
-              name: mysql-credentials
-              key: username
+              name: mysql-secret
+              key: user
               optional: false
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mysql-credentials
+              name: mysql-secret
               key: password
               optional: false
         - name: MYSQL_HOST
           valueFrom:
             secretKeyRef:
-              name: mysql-credentials
+              name: mysql-secret
               key: host
               optional: false
         - name: MYSQL_DATABASE
           valueFrom:
             secretKeyRef:
-              name: mysql-credentials
+              name: mysql-secret
               key: database
               optional: false
         - name: MYSQL_PORT
           valueFrom:
             secretKeyRef:
-              name: mysql-credentials
+              name: mysql-secret
               key: port
               optional: false
+        - name: MIGRATION_PATH
+          value: "/home/webuser/migrations"
