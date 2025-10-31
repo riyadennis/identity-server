@@ -33,8 +33,8 @@ docker-run-test:
     -e ISSUER="riya-dennis" -p 8088:8088 --name identity-server-test --network backend riyadennis/identity-server
 
 tag:
-	git tag -a v0.1.4 -m "fix for duplicate entries"
-	git push origin v0.1.4
+	git tag -a v0.1.7 -m "removed need for .env file"
+	git push origin v0.1.7
 
 githubToken:
 	export GITHUB_TOKEN="your token"
