@@ -58,3 +58,7 @@ docs-generate:
 
 claude:
 	npx @anthropic-ai/claude-code chat
+
+docker-compose-up:
+	docker-compose build --no-cache
+	docker-compose up
