@@ -40,7 +40,7 @@ func NewResponse(status int, message, errCode string) *Response {
 	}
 }
 
-// Resource writes a JSON API compliant resource response
+// Resource writes a JSON resource response
 // More here: https://jsonapi.org/format/#document-resource-objects
 func Resource(w http.ResponseWriter, status int, resource interface{}) error {
 	w.Header().Set("Content-Type", "application/vnd.api+json; charset=utf-8")
