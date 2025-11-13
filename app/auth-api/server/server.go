@@ -31,23 +31,29 @@ type Server struct {
 }
 
 // NewServer creates a server instance with error and shutdown channels initialized
-func NewServer(restPort string) *Server {
+func NewServer(restPort string) (*Server, error) {
 	errChan := make(chan error, 2)
 	shutdown := make(chan os.Signal, 1)
 
 	err := validatePort(restPort)
 	if err != nil {
-		errChan <- err
+		return nil, err
 	}
 	return &Server{
 		restServer: http.Server{
 			Addr:         ":" + restPort,
 			ReadTimeout:  timeOut,
 			WriteTimeout: timeOut,
+			// to prevent SlowLoris attack
+			ReadHeaderTimeout: timeOut,
+			// close idle open connections
+			IdleTimeout: 120 * time.Second,
+			// set to 1MB
+			MaxHeaderBytes: 1 << 20,
 		},
 		ServerError: errChan,
 		ShutDown:    shutdown,
-	}
+	}, nil
 }
 
 // Run registers routes and starts a webserver

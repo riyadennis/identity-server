@@ -2,6 +2,9 @@ package main
 
 import (
 	"os"
+	"os/signal"
+	"syscall"
+
 	// initialise mysql driver
 	// initialise migration settings
 
@@ -39,14 +42,18 @@ func main() {
 
 	err = store.Migrate(db, cfg.DB.Database, cfg.DB.MigrationPath)
 	if err != nil {
-		logger.Panicf("migration failed: %v", err)
+		logger.Fatalf("migration failed: %v", err)
 	}
 
-	s := server.NewServer(os.Getenv("PORT"))
-	err = s.Run(db, cfg.Token, logger)
-
+	s, err := server.NewServer(os.Getenv("PORT"))
 	if err != nil {
-		logger.Panicf("error running server: %v", err)
+		logger.Fatalf("server initialisation failed: %v", err)
+	}
+	signal.Notify(s.ShutDown, os.Interrupt, syscall.SIGTERM)
+
+	err = s.Run(db, cfg.Token, logger)
+	if err != nil {
+		logger.Fatalf("error running server: %v", err)
 	}
 	defer func() {
 		close(s.ServerError)
