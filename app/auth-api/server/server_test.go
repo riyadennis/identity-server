@@ -1,7 +1,6 @@
 package server
 
 import (
-	"database/sql"
 	"errors"
 	"os"
 	"testing"
@@ -9,8 +8,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/riyadennis/identity-server/business/store"
 )
 
 func TestNewServerPortValidation(t *testing.T) {
@@ -43,9 +40,10 @@ func TestNewServerPortValidation(t *testing.T) {
 			port: "8080",
 		},
 	}
+	logger := logrus.New()
 	for _, tc := range sc {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := NewServer(tc.port)
+			_, err := NewServer(logger, tc.port)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
@@ -54,29 +52,26 @@ func TestNewServerPortValidation(t *testing.T) {
 // mock http.Server to replace ListenAndServe and Shutdown
 // since http.Server is a struct, we'll simulate the error via goroutine and channels
 func TestServer_Run_Error(t *testing.T) {
-	s, err := NewServer("8081")
+	s, err := NewServer(logrus.New(), "8081")
 	assert.NoError(t, err)
 	//var buf bytes.Buffer
-	//logger := log.New(&buf, "", 0)
-	logger := logrus.New()
 	// Simulate error from ListenAndServe
 	go func() {
 		time.Sleep(10 * time.Millisecond)
 		s.ServerError <- errors.New("listen error")
 	}()
-	err = s.Run(&sql.DB{}, &store.TokenConfig{}, logger)
+	err = s.Run()
 	assert.EqualError(t, err, "listen error")
 }
 
 func TestServer_Run_Shutdown(t *testing.T) {
-	s, err := NewServer("8082")
+	s, err := NewServer(logrus.New(), "8082")
 	assert.NoError(t, err)
-	logger := logrus.New()
 	// Simulate shutdown signal after a short delay
 	go func() {
 		time.Sleep(10 * time.Millisecond)
 		s.ShutDown <- os.Kill
 	}()
-	err = s.Run(&sql.DB{}, &store.TokenConfig{}, logger)
+	err = s.Run()
 	assert.NoError(t, err)
 }

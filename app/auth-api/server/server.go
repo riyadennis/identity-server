@@ -25,13 +25,14 @@ var (
 
 // Server have all the setup needed to run and shut down a http server
 type Server struct {
+	Logger      *logrus.Logger
 	restServer  http.Server
 	ServerError chan error
 	ShutDown    chan os.Signal
 }
 
 // NewServer creates a server instance with error and shutdown channels initialized
-func NewServer(restPort string) (*Server, error) {
+func NewServer(logger *logrus.Logger, restPort string) (*Server, error) {
 	errChan := make(chan error, 2)
 	shutdown := make(chan os.Signal, 1)
 
@@ -40,6 +41,7 @@ func NewServer(restPort string) (*Server, error) {
 		return nil, err
 	}
 	return &Server{
+		Logger: logger,
 		restServer: http.Server{
 			Addr:         ":" + restPort,
 			ReadTimeout:  timeOut,
@@ -56,13 +58,16 @@ func NewServer(restPort string) (*Server, error) {
 	}, nil
 }
 
+func (s *Server) RESTHandler(conn *sql.DB, tc *store.TokenConfig) {
+	s.restServer.Handler = rest.LoadRESTEndpoints(conn, tc, s.Logger)
+}
+
 // Run registers routes and starts a webserver
 // and waits to receive from shutdown and error channels
-func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *logrus.Logger) error {
-	s.restServer.Handler = rest.LoadRESTEndpoints(conn, tc, logger)
+func (s *Server) Run() error {
 	// Start the service
 	go func() {
-		logger.Printf("server running on port %s", s.restServer.Addr)
+		s.Logger.Infof("server running on port %s", s.restServer.Addr)
 		s.ServerError <- s.restServer.ListenAndServe()
 	}()
 
@@ -72,7 +77,7 @@ func (s *Server) Run(conn *sql.DB, tc *store.TokenConfig, logger *logrus.Logger)
 			return err
 		}
 	case sig := <-s.ShutDown:
-		logger.Printf("main: %v: Start shutdown", sig)
+		s.Logger.Infof("main: %v: Start shutdown", sig)
 		// Give outstanding requests a deadline for completion.
 		ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 		defer cancel()

@@ -45,18 +45,21 @@ func main() {
 		logger.Fatalf("migration failed: %v", err)
 	}
 
-	s, err := server.NewServer(os.Getenv("PORT"))
+	s, err := server.NewServer(logger, os.Getenv("PORT"))
 	if err != nil {
 		logger.Fatalf("server initialisation failed: %v", err)
 	}
 	signal.Notify(s.ShutDown, os.Interrupt, syscall.SIGTERM)
 
-	err = s.Run(db, cfg.Token, logger)
-	if err != nil {
-		logger.Fatalf("error running server: %v", err)
-	}
 	defer func() {
 		close(s.ServerError)
 		close(s.ShutDown)
 	}()
+
+	s.RESTHandler(db, cfg.Token)
+	err = s.Run()
+	if err != nil {
+		logger.Fatalf("error running server: %v", err)
+	}
+
 }
