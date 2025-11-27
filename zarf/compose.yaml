@@ -11,6 +11,13 @@ services:
       - MYSQL_USER=identity-server
       - MYSQL_PASSWORD=password
   go-server:
+    develop:
+      watch:
+        - action: sync
+          path: ../
+          target: /home/webuser
+        - action: rebuild
+          path: go.mod
     build:
       context: ../
       dockerfile: Dockerfile

@@ -77,6 +77,7 @@ func (a *Auth) FetchLoginToken(userID string) (*TokenRecord, error) {
 		return nil, err
 	}
 	if token.Token == "" {
+		a.Logger.Infof("no token found in DB new login")
 		return nil, nil
 	}
 	return token, nil

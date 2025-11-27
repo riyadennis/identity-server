@@ -1,0 +1,23 @@
+option go_package = "../proto";
+
+// The request message containing the user's name.
+message LoginRequest {
+    required string email = 1;
+    required string password = 2;
+}
+
+// The response message containing the greetings
+message LoginResponse {
+    required int32 status = 1;
+    optional string access_token = 2;
+    optional string expiry = 3;
+    optional string token_type = 4;
+    optional string last_refresh = 5;
+    optional int32 token_ttl = 6;
+}
+
+// The Identity service definition.
+service Identity {
+    // Sends a greeting
+    rpc Login (LoginRequest) returns (LoginResponse);
+}

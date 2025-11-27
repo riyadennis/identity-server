@@ -11,7 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/sirupsen/logrus"
-
+	
 	"github.com/riyadennis/identity-server/app/auth-api/server"
 	"github.com/riyadennis/identity-server/business/store"
 )
@@ -45,19 +45,21 @@ func main() {
 		logger.Fatalf("migration failed: %v", err)
 	}
 
-	s, err := server.NewServer(logger, os.Getenv("PORT"))
+	newServer, err := server.NewServer(logger, os.Getenv("PORT"), "8090")
 	if err != nil {
 		logger.Fatalf("server initialisation failed: %v", err)
 	}
-	signal.Notify(s.ShutDown, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(newServer.ShutDown, os.Interrupt, syscall.SIGTERM)
 
 	defer func() {
-		close(s.ServerError)
-		close(s.ShutDown)
+		close(newServer.ServerError)
+		close(newServer.ShutDown)
 	}()
 
-	s.RESTHandler(db, cfg.Token)
-	err = s.Run()
+	newServer.RESTHandler(db, cfg.Token)
+	newServer.GRPCHandler(db, logger, cfg.Token)
+
+	err = newServer.Run()
 	if err != nil {
 		logger.Fatalf("error running server: %v", err)
 	}
