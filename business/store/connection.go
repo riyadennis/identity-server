@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	errInvalidDBConfig = errors.New("invalid db configuration")
+	errInvalidDBConfig = errors.New("invalid auth configuration")
 	errEmptyDBUserName = errors.New("empty mysql user name")
 	errEmptyDBPassword = errors.New("empty mysql password")
 	errEmptyDBHost     = errors.New("empty mysql host name")

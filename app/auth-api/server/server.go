@@ -21,10 +21,10 @@ import (
 const timeOut = 5 * time.Second
 
 var (
-	errEmptyPort           = errors.New("port number empty")
-	errPortNotAValidNumber = errors.New("port number is not a valid number")
-	errPortReserved        = errors.New("port is a reserved number")
-	errPortBeyondRange     = errors.New("port is beyond the allowed range")
+	errEmptyPort           = errors.New("restPort number empty")
+	errPortNotAValidNumber = errors.New("restPort number is not a valid number")
+	errPortReserved        = errors.New("restPort is a reserved number")
+	errPortBeyondRange     = errors.New("restPort is beyond the allowed range")
 )
 
 type ProtoServer struct {
@@ -88,12 +88,12 @@ func (s *Server) GRPCHandler(conn *sql.DB, logger *logrus.Logger, tc *store.Toke
 func (s *Server) Run() error {
 	// Start the rest server
 	go func() {
-		s.Logger.Infof("rest server running on port %s", s.restServer.Addr)
+		s.Logger.Infof("rest server running on restPort %s", s.restServer.Addr)
 		s.ServerError <- s.restServer.ListenAndServe()
 	}()
 	// Start the gRPC server
 	go func() {
-		s.Logger.Infof("gRPC server running on port :%s", s.GRPCServer.port)
+		s.Logger.Infof("gRPC server running on restPort :%s", s.GRPCServer.port)
 		listener, err := net.Listen("tcp", fmt.Sprintf(":%s", s.GRPCServer.port))
 		if err != nil {
 			s.ServerError <- err
