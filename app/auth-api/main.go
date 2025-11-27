@@ -11,7 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/sirupsen/logrus"
-	
+
 	"github.com/riyadennis/identity-server/app/auth-api/server"
 	"github.com/riyadennis/identity-server/business/store"
 )
@@ -45,7 +45,7 @@ func main() {
 		logger.Fatalf("migration failed: %v", err)
 	}
 
-	newServer, err := server.NewServer(logger, os.Getenv("PORT"), "8090")
+	newServer, err := server.NewServer(logger, os.Getenv("REST_PORT"), os.Getenv("GRPC_PORT"))
 	if err != nil {
 		logger.Fatalf("server initialisation failed: %v", err)
 	}

@@ -25,7 +25,8 @@ services:
       - 8095:8095
     environment:
       - ENV=dev
-      - PORT=8095
+      - REST_PORT=8095
+      - GRPC_PORT=8095
       - MYSQL_USERNAME=identity-server
       - MYSQL_PASSWORD=password
       - MYSQL_HOST=mysql-server
