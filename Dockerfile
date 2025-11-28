@@ -28,8 +28,9 @@ ENV LC_ALL en_US.UTF-8
 
 USER webuser
 # Copy the binary to the production image from the builder stage.
-COPY --from=builder --chown=webuser:home /identity/server /home/webuser/server
-COPY --from=builder --chown=webuser:home /identity/migrations /home/webuser/migrations
+COPY --from=builder --chown=root:root --chmod=755  /identity/server /home/webuser/server
+COPY --from=builder --chown=root:root --chmod=755  /identity/migrations /home/webuser/migration
+
 
 # Run the web service on container startup.
 
