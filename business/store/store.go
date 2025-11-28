@@ -77,7 +77,7 @@ func (d *DB) Insert(ctx context.Context, u *User) (*User, error) {
 	return d.Retrieve(ctx, id)
 }
 
-// Retrieve will fetch data from db for a user as per the id
+// Retrieve will fetch data from auth for a user as per the id
 // will return nil if the user is not found
 func (d *DB) Retrieve(ctx context.Context, id string) (*User, error) {
 	if d.Conn == nil {
@@ -133,7 +133,7 @@ var ReadQuery = `SELECT id,
 		FROM identity_users 
 		where email = ?`
 
-// Read will fetch data from db for a user as per the email
+// Read will fetch data from auth for a user as per the email
 // will return nil if the user is not found
 func (d *DB) Read(ctx context.Context, email string) (*User, error) {
 	if d.Conn == nil {
@@ -172,7 +172,7 @@ func (d *DB) Read(ctx context.Context, email string) (*User, error) {
 	return user, nil
 }
 
-// Delete removes a user from db as per the ID
+// Delete removes a user from auth as per the ID
 func (d *DB) Delete(id string) (int64, error) {
 	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users WHERE id = ?`)
 	if err != nil {

@@ -13,37 +13,39 @@ import (
 func TestNewServerPortValidation(t *testing.T) {
 	sc := []struct {
 		name          string
-		port          string
+		restPort      string
+		gRPCPort      string
 		expectedError error
 	}{
 		{
-			name:          "emprty port",
+			name:          "emprty restPort",
 			expectedError: errEmptyPort,
 		},
 		{
-			name:          "string port",
-			port:          "INVALID",
+			name:          "string restPort",
+			restPort:      "INVALID",
 			expectedError: errPortNotAValidNumber,
 		},
 		{
-			name:          "reserved port",
-			port:          "1023",
+			name:          "reserved restPort",
+			restPort:      "1023",
 			expectedError: errPortReserved,
 		},
 		{
 			name:          "beyond range",
-			port:          "65536",
+			restPort:      "65536",
 			expectedError: errPortBeyondRange,
 		},
 		{
-			name: "valid port",
-			port: "8080",
+			name:     "valid restPort",
+			restPort: "8080",
+			gRPCPort: "8081",
 		},
 	}
 	logger := logrus.New()
 	for _, tc := range sc {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := NewServer(logger, tc.port)
+			_, err := NewServer(logger, tc.restPort, tc.gRPCPort)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
@@ -52,7 +54,7 @@ func TestNewServerPortValidation(t *testing.T) {
 // mock http.Server to replace ListenAndServe and Shutdown
 // since http.Server is a struct, we'll simulate the error via goroutine and channels
 func TestServer_Run_Error(t *testing.T) {
-	s, err := NewServer(logrus.New(), "8081")
+	s, err := NewServer(logrus.New(), "8081", "8082")
 	assert.NoError(t, err)
 	//var buf bytes.Buffer
 	// Simulate error from ListenAndServe
@@ -65,7 +67,7 @@ func TestServer_Run_Error(t *testing.T) {
 }
 
 func TestServer_Run_Shutdown(t *testing.T) {
-	s, err := NewServer(logrus.New(), "8082")
+	s, err := NewServer(logrus.New(), "8083", "8084")
 	assert.NoError(t, err)
 	// Simulate shutdown signal after a short delay
 	go func() {

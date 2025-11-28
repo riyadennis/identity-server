@@ -13,10 +13,10 @@ var (
 	errEmptyDBConnection       = errors.New("empty database connection")
 	errEmptyDatabaseName       = errors.New("no database set in  config")
 	errMigrationInitialisation = errors.New("failed to initialise migration")
-	errInvalidDataInDB         = errors.New("invalid data in db")
+	errInvalidDataInDB         = errors.New("invalid data in auth")
 )
 
-// Migrate runs migration on the db specified in the connection
+// Migrate runs migration on the auth specified in the connection
 // will create all the tables in the migrations folder
 func Migrate(db *sql.DB, dbName, migrationPath string) error {
 	if db == nil {

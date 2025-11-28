@@ -95,18 +95,18 @@ func TestAuthenticate(t *testing.T) {
 func TestAuth_FetchLoginToken(t *testing.T) {
 	testcases := []struct {
 		name           string
-		db             *Auth
+		auth           *Auth
 		expectedResult *TokenRecord
 		expectedError  error
 	}{
 		{
 			name:          "prepare failed",
-			db:            prepareFailedAuth(t, tokenQuery),
+			auth:          prepareFailedAuth(t, tokenQuery),
 			expectedError: errors.New("error"),
 		},
 		{
 			name: "query failed",
-			db: func() *Auth {
+			auth: func() *Auth {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(regexp.QuoteMeta(tokenQuery)).
@@ -120,7 +120,7 @@ func TestAuth_FetchLoginToken(t *testing.T) {
 		},
 		{
 			name: "no record",
-			db: func() *Auth {
+			auth: func() *Auth {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(regexp.QuoteMeta(tokenQuery)).
@@ -135,7 +135,7 @@ func TestAuth_FetchLoginToken(t *testing.T) {
 		},
 		{
 			name: "success",
-			db: func() *Auth {
+			auth: func() *Auth {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(regexp.QuoteMeta(tokenQuery)).
@@ -150,9 +150,11 @@ func TestAuth_FetchLoginToken(t *testing.T) {
 			expectedResult: validTokenRecord(t),
 		},
 	}
+	logger := logrus.New()
 	for _, testCase := range testcases {
 		t.Run(testCase.name, func(t *testing.T) {
-			token, err := testCase.db.FetchLoginToken("token")
+			testCase.auth.Logger = logger
+			token, err := testCase.auth.FetchLoginToken("token")
 			assert.Equal(t, testCase.expectedError, err)
 			assert.Equal(t, testCase.expectedResult, token)
 		})

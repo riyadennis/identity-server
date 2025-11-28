@@ -45,19 +45,21 @@ func main() {
 		logger.Fatalf("migration failed: %v", err)
 	}
 
-	s, err := server.NewServer(logger, os.Getenv("PORT"))
+	newServer, err := server.NewServer(logger, os.Getenv("REST_PORT"), os.Getenv("GRPC_PORT"))
 	if err != nil {
 		logger.Fatalf("server initialisation failed: %v", err)
 	}
-	signal.Notify(s.ShutDown, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(newServer.ShutDown, os.Interrupt, syscall.SIGTERM)
 
 	defer func() {
-		close(s.ServerError)
-		close(s.ShutDown)
+		close(newServer.ServerError)
+		close(newServer.ShutDown)
 	}()
 
-	s.RESTHandler(db, cfg.Token)
-	err = s.Run()
+	newServer.RESTHandler(db, cfg.Token)
+	newServer.GRPCHandler(db, logger, cfg.Token)
+
+	err = newServer.Run()
 	if err != nil {
 		logger.Fatalf("error running server: %v", err)
 	}

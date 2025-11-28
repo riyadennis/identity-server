@@ -35,7 +35,7 @@ func TestConnect(t *testing.T) {
 			expectedErr: errEmptyDBPassword,
 		},
 		{
-			name: "empty db host",
+			name: "empty auth host",
 			dbConn: &DBConnection{
 				User:     "test",
 				Password: "testPassword",
@@ -43,7 +43,7 @@ func TestConnect(t *testing.T) {
 			expectedErr: errEmptyDBHost,
 		},
 		{
-			name: "empty db port",
+			name: "empty auth port",
 			dbConn: &DBConnection{
 				User:     "test",
 				Password: "testPassword",

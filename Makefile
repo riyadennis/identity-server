@@ -62,3 +62,10 @@ claude:
 docker-compose-up:
 	docker-compose build --no-cache
 	docker-compose up
+install-proto:
+    brew install protobuf
+    go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+check-proto:
+    protoc --version
+generate-proto:
+    protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative app/auth-api/gRPC/identity.proto 
