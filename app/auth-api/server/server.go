@@ -88,12 +88,12 @@ func (s *Server) GRPCHandler(conn *sql.DB, logger *logrus.Logger, tc *store.Toke
 func (s *Server) Run() error {
 	// Start the rest server
 	go func() {
-		s.Logger.Infof("rest server running on restPort %s", s.restServer.Addr)
+		s.Logger.Infof("rest server running on port %s", s.restServer.Addr)
 		s.ServerError <- s.restServer.ListenAndServe()
 	}()
 	// Start the gRPC server
 	go func() {
-		s.Logger.Infof("gRPC server running on restPort :%s", s.GRPCServer.port)
+		s.Logger.Infof("gRPC server running on port :%s", s.GRPCServer.port)
 		listener, err := net.Listen("tcp", fmt.Sprintf(":%s", s.GRPCServer.port))
 		if err != nil {
 			s.ServerError <- err
