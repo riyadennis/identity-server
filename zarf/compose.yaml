@@ -23,10 +23,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8095:8095
+      - 8096:8096
     environment:
       - ENV=dev
       - REST_PORT=8095
-      - GRPC_PORT=8095
+      - GRPC_PORT=8096
       - MYSQL_USERNAME=identity-server
       - MYSQL_PASSWORD=password
       - MYSQL_HOST=mysql-server
@@ -34,6 +35,8 @@ services:
       - MYSQL_PORT=3306
       - ISSUER=open source
       - KEY_PATH=/tmp/keys
-      - MIGRATION_PATH=/home/webuser/migrations
+      - MIGRATION_PATH=/home/webuser/migration
     depends_on:
+      - mysql-server
+    links:
       - mysql-server
