@@ -34,21 +34,21 @@ type User struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
-// DB implements store interface
-type DB struct {
+// MYSQL implements store interface
+type MYSQL struct {
 	Conn *sql.DB
 }
 
-// NewDB creates a new instance if the DB
-func NewDB(database *sql.DB) *DB {
-	return &DB{
+// NewDB creates a new instance if the MYSQL
+func NewDB(database *sql.DB) *MYSQL {
+	return &MYSQL{
 		Conn: database,
 	}
 }
 
 // Insert creates a new user during registration
-func (d *DB) Insert(ctx context.Context, u *User) (*User, error) {
-	if d.Conn == nil {
+func (m *MYSQL) Insert(ctx context.Context, u *User) (*User, error) {
+	if m.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
 
@@ -58,7 +58,7 @@ func (d *DB) Insert(ctx context.Context, u *User) (*User, error) {
 
 	id := uuid.New().String()
 
-	insert, err := d.Conn.Prepare(`INSERT INTO identity_users 
+	insert, err := m.Conn.Prepare(`INSERT INTO identity_users 
 (id, first_name, last_name,password,
  email, company, post_code, terms) 
  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -74,17 +74,17 @@ func (d *DB) Insert(ctx context.Context, u *User) (*User, error) {
 		return nil, err
 	}
 
-	return d.Retrieve(ctx, id)
+	return m.Retrieve(ctx, id)
 }
 
 // Retrieve will fetch data from auth for a user as per the id
 // will return nil if the user is not found
-func (d *DB) Retrieve(ctx context.Context, id string) (*User, error) {
-	if d.Conn == nil {
+func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
+	if m.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
 
-	fetch, err := d.Conn.Prepare(
+	fetch, err := m.Conn.Prepare(
 		`SELECT
        first_name,
        last_name,
@@ -135,12 +135,12 @@ var ReadQuery = `SELECT id,
 
 // Read will fetch data from auth for a user as per the email
 // will return nil if the user is not found
-func (d *DB) Read(ctx context.Context, email string) (*User, error) {
-	if d.Conn == nil {
+func (m *MYSQL) Read(ctx context.Context, email string) (*User, error) {
+	if m.Conn == nil {
 		return nil, errEmptyDBConnection
 	}
 
-	rows, err := d.Conn.QueryContext(ctx, ReadQuery, email)
+	rows, err := m.Conn.QueryContext(ctx, ReadQuery, email)
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +173,8 @@ func (d *DB) Read(ctx context.Context, email string) (*User, error) {
 }
 
 // Delete removes a user from auth as per the ID
-func (d *DB) Delete(id string) (int64, error) {
-	remove, err := d.Conn.Prepare(`DELETE  FROM identity_users WHERE id = ?`)
+func (m *MYSQL) Delete(id string) (int64, error) {
+	remove, err := m.Conn.Prepare(`DELETE  FROM identity_users WHERE id = ?`)
 	if err != nil {
 		logrus.Errorf("user deletion failed with error: %v", err)
 		return 0, err

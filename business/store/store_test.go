@@ -17,25 +17,25 @@ import (
 func TestDBInsertSuccess(t *testing.T) {
 	scenarios := []struct {
 		name        string
-		db          *DB
+		db          *MYSQL
 		user        *User
 		uid         string
 		expectedErr error
 	}{
 		{
 			name:        "empty connection",
-			db:          &DB{},
+			db:          &MYSQL{},
 			expectedErr: errEmptyDBConnection,
 		},
 		{
 			name:        "empty user",
-			db:          &DB{Conn: &sql.DB{}},
+			db:          &MYSQL{Conn: &sql.DB{}},
 			user:        nil,
 			expectedErr: errEmptyUser,
 		},
 		{
 			name: "success",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare("INSERT INTO identity_users").ExpectExec().
@@ -121,19 +121,19 @@ func TestDBInsertPrepareFail(t *testing.T) {
 func TestDBRetrieve(t *testing.T) {
 	scenarios := []struct {
 		name        string
-		db          *DB
+		db          *MYSQL
 		user        *User
 		uid         string
 		expectedErr error
 	}{
 		{
 			name:        "empty connection",
-			db:          &DB{},
+			db:          &MYSQL{},
 			expectedErr: errEmptyDBConnection,
 		},
 		{
 			name: "prepare failed",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
@@ -144,7 +144,7 @@ func TestDBRetrieve(t *testing.T) {
 		},
 		{
 			name: "sql failed",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
@@ -157,7 +157,7 @@ func TestDBRetrieve(t *testing.T) {
 		},
 		{
 			name: "user not found",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
@@ -169,7 +169,7 @@ func TestDBRetrieve(t *testing.T) {
 		},
 		{
 			name: "success",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
@@ -204,19 +204,19 @@ func TestDBRetrieve(t *testing.T) {
 func TestDB_Read(t *testing.T) {
 	scenarios := []struct {
 		name        string
-		db          *DB
+		db          *MYSQL
 		user        *User
 		email       string
 		expectedErr error
 	}{
 		{
 			name:        "empty connection",
-			db:          &DB{},
+			db:          &MYSQL{},
 			expectedErr: errEmptyDBConnection,
 		},
 		{
 			name: "query failed",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectQuery(ReadQuery).
@@ -226,8 +226,8 @@ func TestDB_Read(t *testing.T) {
 			expectedErr: errors.New("error"),
 		},
 		{
-			name: "invalid data in DB",
-			db: func() *DB {
+			name: "invalid data in MYSQL",
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectQuery(ReadQuery).
@@ -241,7 +241,7 @@ func TestDB_Read(t *testing.T) {
 		},
 		{
 			name: "success",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectQuery(ReadQuery).
@@ -275,14 +275,14 @@ func TestDB_Read(t *testing.T) {
 func TestDB_Delete(t *testing.T) {
 	scenarios := []struct {
 		name                 string
-		db                   *DB
+		db                   *MYSQL
 		id                   string
 		expectedErr          error
 		expectedRowsAffected int64
 	}{
 		{
 			name: "deletion prepare failed",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(`DELETE  FROM identity_users WHERE id = ?`).
@@ -293,7 +293,7 @@ func TestDB_Delete(t *testing.T) {
 		},
 		{
 			name: "deletion execution failed",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(`DELETE  FROM identity_users WHERE id = ?`).
@@ -304,7 +304,7 @@ func TestDB_Delete(t *testing.T) {
 		},
 		{
 			name: "success",
-			db: func() *DB {
+			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare(`DELETE  FROM identity_users WHERE id = ?`).
