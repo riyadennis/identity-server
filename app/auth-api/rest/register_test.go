@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/riyadennis/identity-server/app/auth-api/mocks"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
@@ -77,7 +78,7 @@ func TestRegister(t *testing.T) {
 				u.Email = "joh@doe.com"
 				return registerPayLoad(t, u)
 			}(),
-			store:            &MockStore{Error: errors.New("error")},
+			store:            &mocks.Store{Error: errors.New("error")},
 			expectedResponse: foundation.NewResponse(http.StatusBadRequest, "error", foundation.ValidationFailed),
 		},
 		{
@@ -87,7 +88,7 @@ func TestRegister(t *testing.T) {
 				u.Email = "joh@doe.com"
 				return registerPayLoad(t, u)
 			}(),
-			store: &MockStore{User: &store.User{Email: "joh@doe.com"}},
+			store: &mocks.Store{User: &store.User{Email: "joh@doe.com"}},
 			expectedResponse: foundation.NewResponse(
 				http.StatusBadRequest,
 				"email already exists",
@@ -98,7 +99,7 @@ func TestRegister(t *testing.T) {
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			h := NewHandler(sc.store, &MockAuthenticator{},
+			h := NewHandler(sc.store, &mocks.Authenticator{},
 				&store.TokenConfig{
 					Issuer:  "TEST",
 					KeyPath: os.Getenv("KEY_PATH"),

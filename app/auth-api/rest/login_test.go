@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/riyadennis/identity-server/app/auth-api/mocks"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
@@ -22,38 +22,6 @@ const (
 	testEmail    = "john.doe@gmail.com"
 	testPassword = "pass"
 )
-
-type MockStore struct {
-	Error error
-	*store.User
-}
-
-func (m *MockStore) Insert(ctx context.Context, u *store.User) (*store.User, error) {
-	return m.User, m.Error
-}
-
-func (m *MockStore) Read(ctx context.Context, email string) (*store.User, error) {
-	return m.User, m.Error
-}
-
-func (m *MockStore) Delete(id string) (int64, error) {
-	return 0, m.Error
-}
-
-type MockAuthenticator struct {
-	ReturnVal bool
-	Error     error
-}
-
-func (ma *MockAuthenticator) Authenticate(email, password string) (bool, error) {
-	return ma.ReturnVal, ma.Error
-}
-func (ma *MockAuthenticator) FetchLoginToken(userID string) (*store.TokenRecord, error) {
-	return nil, nil
-}
-func (ma *MockAuthenticator) SaveLoginToken(ctx context.Context, t *store.TokenRecord) error {
-	return nil
-}
 
 func TestLogin(t *testing.T) {
 	scenarios := []struct {
@@ -90,7 +58,7 @@ func TestLogin(t *testing.T) {
 			name:     "login DB error",
 			request:  loginRequest(t, testEmail, testPassword),
 			response: expectedResponse(t, "email not found"),
-			store: &MockStore{
+			store: &mocks.Store{
 				Error: errors.New("error"),
 			},
 		},
@@ -98,13 +66,13 @@ func TestLogin(t *testing.T) {
 			name:     "authentication error",
 			request:  loginRequest(t, testEmail, testPassword),
 			response: expectedResponse(t, "invalid password"),
-			store: &MockStore{
+			store: &mocks.Store{
 				User: &store.User{
 					ID:        "123",
 					FirstName: "Joe",
 				},
 			},
-			authenticator: &MockAuthenticator{
+			authenticator: &mocks.Authenticator{
 				Error: errors.New("error"),
 			},
 		},
@@ -116,13 +84,13 @@ func TestLogin(t *testing.T) {
 				Message:   errTokenGeneration.Error(),
 				ErrorCode: foundation.TokenError,
 			},
-			store: &MockStore{
+			store: &mocks.Store{
 				User: &store.User{
 					ID:        "123",
 					FirstName: "Joe",
 				},
 			},
-			authenticator: &MockAuthenticator{
+			authenticator: &mocks.Authenticator{
 				ReturnVal: true,
 			},
 		},
@@ -147,12 +115,12 @@ func TestLoginAuthenticationKeyFound(t *testing.T) {
 	logger := logrus.New()
 	rr := httptest.NewRecorder()
 
-	h := NewHandler(&MockStore{
+	h := NewHandler(&mocks.Store{
 		User: &store.User{
 			ID:        "123",
 			FirstName: "Joe",
 		},
-	}, &MockAuthenticator{ReturnVal: true},
+	}, &mocks.Authenticator{ReturnVal: true},
 		&store.TokenConfig{
 			Issuer:         "TEST",
 			KeyPath:        "../../../business/validation/testdata/",
