@@ -54,7 +54,7 @@ func TestNewServerPortValidation(t *testing.T) {
 // mock http.Server to replace ListenAndServe and Shutdown
 // since http.Server is a struct, we'll simulate the error via goroutine and channels
 func TestServer_Run_Error(t *testing.T) {
-	s, err := NewServer(logrus.New(), "8081", "8082")
+	s, err := NewServer(logrus.New(), "8099", "8089")
 	assert.NoError(t, err)
 	//var buf bytes.Buffer
 	// Simulate error from ListenAndServe
@@ -67,7 +67,7 @@ func TestServer_Run_Error(t *testing.T) {
 }
 
 func TestServer_Run_Shutdown(t *testing.T) {
-	s, err := NewServer(logrus.New(), "8083", "8084")
+	s, err := NewServer(logrus.New(), "8090", "8091")
 	assert.NoError(t, err)
 	// Simulate shutdown signal after a short delay
 	go func() {
