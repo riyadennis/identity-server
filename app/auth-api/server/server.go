@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net"
@@ -74,12 +73,12 @@ func NewServer(logger *logrus.Logger, restPort, gRPCPort string) (*Server, error
 	}, nil
 }
 
-func (s *Server) RESTHandler(conn *sql.DB, tc *store.TokenConfig) {
-	s.restServer.Handler = rest.LoadRESTEndpoints(conn, tc, s.Logger)
+func (s *Server) RESTHandler(tc *store.TokenConfig, st store.Store, auth store.Authenticator) {
+	s.restServer.Handler = rest.LoadRESTEndpoints(tc, s.Logger, st, auth)
 }
 
-func (s *Server) GRPCHandler(conn *sql.DB, logger *logrus.Logger, tc *store.TokenConfig) {
-	identityServer := proto.NewServer(conn, logger, tc)
+func (s *Server) GRPCHandler(logger *logrus.Logger, tc *store.TokenConfig, st store.Store, auth store.Authenticator) {
+	identityServer := proto.NewServer(logger, tc, st, auth)
 	proto.RegisterIdentityServer(s.GRPCServer.Server, identityServer)
 }
 

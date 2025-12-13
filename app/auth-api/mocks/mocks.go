@@ -11,16 +11,19 @@ type Store struct {
 	*store.User
 }
 
-func (m *Store) Insert(ctx context.Context, u *store.User) (*store.User, error) {
-	return m.User, m.Error
+func (s *Store) Insert(ctx context.Context, u *store.User) (*store.User, error) {
+	return s.User, s.Error
 }
 
-func (m *Store) Read(ctx context.Context, email string) (*store.User, error) {
-	return m.User, m.Error
+func (s *Store) Read(ctx context.Context, email string) (*store.User, error) {
+	return s.User, s.Error
 }
 
-func (m *Store) Delete(id string) (int64, error) {
-	return 0, m.Error
+func (s *Store) Delete(id string) (int64, error) {
+	return 0, s.Error
+}
+func (s *Store) Ping() error {
+	return s.Error
 }
 
 type Authenticator struct {

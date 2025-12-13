@@ -1,11 +1,11 @@
 package rest
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"os"
 
+	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 )
 
@@ -48,9 +48,9 @@ func Liveness(w http.ResponseWriter, _ *http.Request) {
 // @Success		200	{object}	foundation.Response
 // @Failure		500	{object}	foundation.Response
 // @Router			/readiness [get]
-func Ready(db *sql.DB) http.HandlerFunc {
+func Ready(store store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, request *http.Request) {
-		if err := db.Ping(); err != nil {
+		if err := store.Ping(); err != nil {
 			foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 			return
 		}

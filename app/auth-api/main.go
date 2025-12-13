@@ -26,26 +26,14 @@ func main() {
 
 	cfg := store.NewENVConfig()
 
-	db, err := store.Connect(cfg.DB)
+	st, auth, err := store.SetUpMYSQL(logger)
 	if err != nil {
-		logger.Fatalf("failed to connect to database: %v", err)
+		logger.Fatalf("database setUp failed %v", err)
 	}
 
-	err = db.Ping()
-	if err != nil {
-		logger.Fatalf("database ping failed: %v", err)
-	}
-
-	defer func() {
-		_ = db.Close()
-	}()
-
-	err = store.Migrate(db, cfg.DB.Database, cfg.DB.MigrationPath)
-	if err != nil {
-		logger.Fatalf("migration failed: %v", err)
-	}
-
-	newServer, err := server.NewServer(logger, os.Getenv("REST_PORT"), os.Getenv("GRPC_PORT"))
+	newServer, err := server.NewServer(logger,
+		os.Getenv("REST_PORT"),
+		os.Getenv("GRPC_PORT"))
 	if err != nil {
 		logger.Fatalf("server initialisation failed: %v", err)
 	}
@@ -56,8 +44,8 @@ func main() {
 		close(newServer.ShutDown)
 	}()
 
-	newServer.RESTHandler(db, cfg.Token)
-	newServer.GRPCHandler(db, logger, cfg.Token)
+	newServer.RESTHandler(cfg.Token, st, auth)
+	newServer.GRPCHandler(logger, cfg.Token, st, auth)
 
 	err = newServer.Run()
 	if err != nil {

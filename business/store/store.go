@@ -18,6 +18,7 @@ type Store interface {
 	Insert(ctx context.Context, u *User) (*User, error)
 	Read(ctx context.Context, email string) (*User, error)
 	Delete(id string) (int64, error)
+	Ping() error
 }
 
 // User holds data from the registration request body
@@ -186,4 +187,8 @@ func (m *MYSQL) Delete(id string) (int64, error) {
 	}
 
 	return result.RowsAffected()
+}
+
+func (m *MYSQL) Ping() error {
+	return m.Conn.Ping()
 }
