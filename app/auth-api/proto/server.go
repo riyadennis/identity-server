@@ -2,7 +2,6 @@ package proto
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 	"strconv"
 
@@ -20,14 +19,10 @@ type Server struct {
 	TokenConfig         *store.TokenConfig
 }
 
-func NewServer(conn *sql.DB, logger *logrus.Logger, tc *store.TokenConfig) *Server {
-	auth := &store.Auth{
-		Conn:   conn,
-		Logger: logger,
-	}
+func NewServer(logger *logrus.Logger, tc *store.TokenConfig, st store.Store, auth store.Authenticator) *Server {
 	return &Server{
 		unImplementedServer: UnimplementedIdentityServer{},
-		Store:               store.NewDB(conn),
+		Store:               st,
 		Authenticator:       auth,
 		Logger:              logger,
 		TokenConfig:         tc,

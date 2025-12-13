@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"database/sql"
 	"net/http"
 	"time"
 
@@ -36,7 +35,7 @@ const (
 )
 
 // LoadRESTEndpoints adds REST endpoints to the router
-func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *logrus.Logger) http.Handler {
+func LoadRESTEndpoints(tc *store.TokenConfig, logger *logrus.Logger, st store.Store, auth store.Authenticator) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -59,12 +58,9 @@ func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *logrus.Logge
 		MaxAge:           300, // Maximum value isn't ignored by any of the major browsers
 	}))
 	r.Get(LivenessEndPoint, Liveness)
-	r.Get(ReadinessEndPoint, Ready(conn))
-	auth := &store.Auth{
-		Conn:   conn,
-		Logger: logger,
-	}
-	h := NewHandler(store.NewDB(conn), auth, tc, logger)
+	r.Get(ReadinessEndPoint, Ready(st))
+
+	h := NewHandler(st, auth, tc, logger)
 	r.Post(RegisterEndpoint, h.Register)
 	r.Post(LoginEndPoint, h.Login)
 	ac := customMiddleware.AuthConfig{
@@ -80,5 +76,6 @@ func LoadRESTEndpoints(conn *sql.DB, tc *store.TokenConfig, logger *logrus.Logge
 		r.Use(ac.Auth)
 		r.Delete(DeleteEndpoint, h.Delete)
 	})
+	
 	return r
 }

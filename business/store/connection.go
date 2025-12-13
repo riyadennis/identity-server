@@ -74,8 +74,8 @@ func NewENVConfig() *Config {
 	}
 }
 
-// Connect opens a connection to mysql
-func Connect(dbCfg *DBConnection) (*sql.DB, error) {
+// ConnectMYSQL opens a connection to mysql
+func ConnectMYSQL(dbCfg *DBConnection) (*sql.DB, error) {
 	if dbCfg == nil {
 		return nil, errInvalidDBConfig
 	}

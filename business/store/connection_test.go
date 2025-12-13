@@ -77,7 +77,7 @@ func TestConnect(t *testing.T) {
 
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			_, err := Connect(sc.dbConn)
+			_, err := ConnectMYSQL(sc.dbConn)
 			if !errors.Is(err, sc.expectedErr) {
 				t.Fatalf("unexpected error, wanted %v, got %v", sc.expectedErr, err)
 			}

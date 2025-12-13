@@ -36,7 +36,7 @@ func TestNewServer(t *testing.T) {
 	}
 
 	// Test NewServer creates a valid server instance
-	server := NewServer(db, logger, tokenConfig)
+	server := NewServer(logger, tokenConfig, &mocks.Store{}, &mocks.Authenticator{})
 
 	assert.NotNil(t, server)
 	assert.NotNil(t, server.Store)
