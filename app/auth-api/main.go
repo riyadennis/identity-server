@@ -7,23 +7,16 @@ import (
 
 	// initialise mysql driver
 	// initialise migration settings
-
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
-	"github.com/sirupsen/logrus"
 
 	"github.com/riyadennis/identity-server/app/auth-api/server"
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 )
 
 func main() {
-	logger := &logrus.Logger{
-		Out:       os.Stdout,
-		Formatter: new(logrus.JSONFormatter),
-		Hooks:     make(logrus.LevelHooks),
-		Level:     logrus.DebugLevel,
-	}
-
+	logger := foundation.NewLogger()
 	cfg := store.NewENVConfig()
 
 	st, auth, err := store.SetUpMYSQL(logger)
@@ -31,9 +24,7 @@ func main() {
 		logger.Fatalf("database setUp failed %v", err)
 	}
 
-	newServer, err := server.NewServer(logger,
-		os.Getenv("REST_PORT"),
-		os.Getenv("GRPC_PORT"))
+	newServer, err := server.NewServer(logger, os.Getenv("REST_PORT"))
 	if err != nil {
 		logger.Fatalf("server initialisation failed: %v", err)
 	}
@@ -45,7 +36,6 @@ func main() {
 	}()
 
 	newServer.RESTHandler(cfg.Token, st, auth)
-	newServer.GRPCHandler(logger, cfg.Token, st, auth)
 
 	err = newServer.Run()
 	if err != nil {

@@ -1,4 +1,4 @@
-package proto
+package identity
 
 import (
 	"context"

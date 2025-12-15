@@ -3,16 +3,13 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
-	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
-	"github.com/riyadennis/identity-server/app/auth-api/proto"
 	"github.com/riyadennis/identity-server/app/auth-api/rest"
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -35,27 +32,22 @@ type ProtoServer struct {
 type Server struct {
 	Logger      *logrus.Logger
 	restServer  http.Server
-	GRPCServer  *ProtoServer
 	ServerError chan error
 	ShutDown    chan os.Signal
 }
 
 // NewServer creates a server instance with error and shutdown channels initialized
-func NewServer(logger *logrus.Logger, restPort, gRPCPort string) (*Server, error) {
+func NewServer(logger *logrus.Logger, restPort string) (*Server, error) {
 	errChan := make(chan error, 2)
 	shutdown := make(chan os.Signal, 1)
 
-	err := validatePorts(restPort, gRPCPort)
+	err := foundation.ValidatePort(restPort)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Server{
 		Logger: logger,
-		GRPCServer: &ProtoServer{
-			Server: grpc.NewServer(),
-			port:   gRPCPort,
-		},
 		restServer: http.Server{
 			Addr:         ":" + restPort,
 			ReadTimeout:  timeOut,
@@ -77,11 +69,6 @@ func (s *Server) RESTHandler(tc *store.TokenConfig, st store.Store, auth store.A
 	s.restServer.Handler = rest.LoadRESTEndpoints(tc, s.Logger, st, auth)
 }
 
-func (s *Server) GRPCHandler(logger *logrus.Logger, tc *store.TokenConfig, st store.Store, auth store.Authenticator) {
-	identityServer := proto.NewServer(logger, tc, st, auth)
-	proto.RegisterIdentityServer(s.GRPCServer.Server, identityServer)
-}
-
 // Run registers routes and starts a webserver
 // and waits to receive from shutdown and error channels
 func (s *Server) Run() error {
@@ -89,18 +76,6 @@ func (s *Server) Run() error {
 	go func() {
 		s.Logger.Infof("rest server running on port %s", s.restServer.Addr)
 		s.ServerError <- s.restServer.ListenAndServe()
-	}()
-	// Start the gRPC server
-	go func() {
-		s.Logger.Infof("gRPC server running on port :%s", s.GRPCServer.port)
-		listener, err := net.Listen("tcp", fmt.Sprintf(":%s", s.GRPCServer.port))
-		if err != nil {
-			s.ServerError <- err
-		}
-		err = s.GRPCServer.Server.Serve(listener)
-		if err != nil {
-			s.ServerError <- err
-		}
 	}()
 	select {
 	case err := <-s.ServerError:
@@ -116,29 +91,6 @@ func (s *Server) Run() error {
 		err := s.restServer.Shutdown(ctx)
 		if err != nil {
 			return err
-		}
-	}
-
-	return nil
-}
-
-func validatePorts(ports ...string) error {
-	for _, port := range ports {
-		if port == "" {
-			return errEmptyPort
-		}
-
-		addr, err := strconv.ParseInt(port, 10, 64)
-		if err != nil {
-			return errPortNotAValidNumber
-		}
-
-		if addr < 1024 {
-			return errPortReserved
-		}
-
-		if addr > 65535 {
-			return errPortBeyondRange
 		}
 	}
 

@@ -4,10 +4,11 @@
 // - protoc             v4.25.3
 // source: app/auth-api/gRPC/identity.proto
 
-package proto
+package identity
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
