@@ -50,7 +50,7 @@ services:
           path: go.mod
     build:
       context: ../
-      dockerfile: ../identity-server/app/auth-api/proto/GRPCDockerfile
+      dockerfile: ../identity-server/app/proto/GRPCDockerfile
     ports:
       - 8096:8096
     environment:

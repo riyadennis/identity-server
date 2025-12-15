@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/riyadennis/identity-server/app/auth-api/mocks"
+	"github.com/riyadennis/identity-server/app/mocks"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
@@ -123,7 +123,7 @@ func TestLoginAuthenticationKeyFound(t *testing.T) {
 	}, &mocks.Authenticator{ReturnVal: true},
 		&store.TokenConfig{
 			Issuer:         "TEST",
-			KeyPath:        "../../../business/validation/testdata/",
+			KeyPath:        "../../business/validation/testdata/",
 			PrivateKeyName: "test_private.pem",
 			PublicKeyName:  "test_public.pem",
 		}, logger)

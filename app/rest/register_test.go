@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/riyadennis/identity-server/app/auth-api/mocks"
+	"github.com/riyadennis/identity-server/app/mocks"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 

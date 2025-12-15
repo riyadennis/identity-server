@@ -9,8 +9,8 @@ import (
 	// initialise migration settings
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/riyadennis/identity-server/app/server"
 
-	"github.com/riyadennis/identity-server/app/auth-api/server"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 )
