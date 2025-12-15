@@ -1,32 +1,58 @@
-package proto
+package identity
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/riyadennis/identity-server/business"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 type Server struct {
 	unImplementedServer UnimplementedIdentityServer
+	Server              *grpc.Server
 	Store               store.Store
 	Authenticator       store.Authenticator
 	Logger              *logrus.Logger
 	TokenConfig         *store.TokenConfig
+	ServerError         chan error
+	ShutDown            chan os.Signal
 }
 
 func NewServer(logger *logrus.Logger, tc *store.TokenConfig, st store.Store, auth store.Authenticator) *Server {
-	return &Server{
+	gs := grpc.NewServer()
+	s := &Server{
 		unImplementedServer: UnimplementedIdentityServer{},
+		Server:              gs,
 		Store:               st,
 		Authenticator:       auth,
 		Logger:              logger,
 		TokenConfig:         tc,
+		ShutDown:            make(chan os.Signal, 1),
 	}
+	RegisterIdentityServer(gs, s)
+	return s
+}
+
+func (s *Server) Run(port string) error {
+	s.Logger.Infof("gRPC server running on port :%s", port)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	if err != nil {
+		return err
+	}
+	err = s.Server.Serve(listener)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Server) Login(ctx context.Context, request *LoginRequest) (*LoginResponse, error) {

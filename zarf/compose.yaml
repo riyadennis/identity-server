@@ -11,6 +11,7 @@ services:
       - MYSQL_USER=identity-server
       - MYSQL_PASSWORD=password
   go-server:
+    restart: on-failure
     develop:
       watch:
         - action: sync
@@ -23,10 +24,37 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8095:8095
-      - 8096:8096
     environment:
       - ENV=dev
       - REST_PORT=8095
+      - MYSQL_USERNAME=identity-server
+      - MYSQL_PASSWORD=password
+      - MYSQL_HOST=mysql-server
+      - MYSQL_DATABASE=identity-server
+      - MYSQL_PORT=3306
+      - ISSUER=open source
+      - KEY_PATH=/tmp/keys
+      - MIGRATION_PATH=/home/webuser/migration
+    depends_on:
+      - mysql-server
+    links:
+      - mysql-server
+  go-grpc-server:
+    restart: on-failure
+    develop:
+      watch:
+        - action: sync
+          path: ../
+          target: /home/webuser
+        - action: rebuild
+          path: go.mod
+    build:
+      context: ../
+      dockerfile: ../identity-server/app/auth-api/proto/GRPCDockerfile
+    ports:
+      - 8096:8096
+    environment:
+      - ENV=dev
       - GRPC_PORT=8096
       - MYSQL_USERNAME=identity-server
       - MYSQL_PASSWORD=password
