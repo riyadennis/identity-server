@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/riyadennis/identity-server/app/auth-api/mocks"
+	"github.com/riyadennis/identity-server/app/mocks"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

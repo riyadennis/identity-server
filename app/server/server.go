@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/riyadennis/identity-server/app/auth-api/rest"
+	"github.com/riyadennis/identity-server/app/rest"
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation"
 	"github.com/sirupsen/logrus"
