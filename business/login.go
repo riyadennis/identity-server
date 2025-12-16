@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/riyadennis/identity-server/foundation"
 	"github.com/sirupsen/logrus"
 
@@ -31,6 +32,24 @@ func NewHelper(s store.Store, a store.Authenticator, l *logrus.Logger) *Helper {
 		Authenticator: a,
 		Logger:        l,
 	}
+}
+func (h *Helper) Login(ctx context.Context, tc *store.TokenConfig, email, password string) (*store.Token, error) {
+	err := validation.ValidateEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	user, err := h.UserCredentialsInDB(ctx, email, password)
+	if err != nil {
+		//already logged
+		return nil, err
+	}
+	token, err := h.ManageToken(ctx, tc, user.ID)
+	if err != nil {
+		//already logged
+		return nil, err
+	}
+
+	return token, nil
 }
 
 func (h *Helper) UserCredentialsInDB(ctx context.Context, email, password string) (*store.User, error) {

@@ -1,0 +1,29 @@
+input LoginInput {
+    email: String
+    password: String
+}
+
+type LoginResponse {
+    status: Int
+    accessToken: String
+    expiry: String
+    tokenType: String
+    lastRefresh: String
+    tokenTTL: Int
+}
+
+type User {
+    id: ID!
+    email: String!
+    name: String
+    picture: String
+    emailVerified: Boolean!
+}
+
+type Query {
+    me: User!
+}
+
+type Mutation {
+    Login(input: LoginInput!): LoginResponse!
+}
