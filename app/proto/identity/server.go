@@ -10,7 +10,6 @@ import (
 
 	"github.com/riyadennis/identity-server/business"
 	"github.com/riyadennis/identity-server/business/store"
-	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -57,25 +56,19 @@ func (s *Server) Run(port string) error {
 
 func (s *Server) Login(ctx context.Context, request *LoginRequest) (*LoginResponse, error) {
 	s.Logger.Info("processing gRPC request to login")
-	err := validation.ValidateEmail(*request.Email)
-	if err != nil {
-		return nil, err
-	}
 	helper := business.NewHelper(s.Store, s.Authenticator, s.Logger)
-	user, err := helper.UserCredentialsInDB(ctx, *request.Email, *request.Password)
+	token, err := helper.Login(ctx, s.TokenConfig, *request.Email, *request.Password)
 	if err != nil {
 		return nil, err
 	}
-	token, err := helper.ManageToken(ctx, s.TokenConfig, user.ID)
-	if err != nil {
-		return nil, err
-	}
+
 	status := int32(http.StatusOK)
 	ttl, err := strconv.ParseInt(token.TokenTTL, 10, 32)
 	if err != nil {
 		return nil, err
 	}
 	int32ttl := int32(ttl)
+	
 	return &LoginResponse{
 		Status:      &status,
 		AccessToken: &token.AccessToken,
