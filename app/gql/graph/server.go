@@ -99,7 +99,7 @@ func (s *Server) Start(port string) error {
 		sErr = s.Server.Serve(listener)
 		if sErr != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
-				s.Logger.Error("failed to start http server: %v", sErr)
+				s.Logger.Errorf("failed to start http server: %v", sErr)
 				return
 			}
 		}
