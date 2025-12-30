@@ -67,7 +67,7 @@ func TestServer_Run_Error(t *testing.T) {
 }
 
 func TestServer_Run_Shutdown(t *testing.T) {
-	s, err := NewServer(logrus.New(), "8090")
+	s, err := NewServer(logrus.New(), "8030")
 	assert.NoError(t, err)
 	// Simulate shutdown signal after a short delay
 	go func() {

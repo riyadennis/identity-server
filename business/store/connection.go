@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 )
 
@@ -123,9 +123,9 @@ func GenerateToken(logger *logrus.Logger, issuer string, key []byte, expiry time
 		return nil, err
 	}
 
-	t, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"exp": expiry.Unix(),
-		"iss": issuer,
+	t, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(expiry),
+		Issuer:    issuer,
 	}).SignedString(privateKey)
 	if err != nil {
 		logger.Errorf("failed to sign using private key: %v", err)

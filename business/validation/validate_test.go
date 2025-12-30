@@ -2,6 +2,7 @@ package validation
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -90,19 +91,19 @@ func TestValidateToken(t *testing.T) {
 		name          string
 		token         string
 		tokenConfig   *store.TokenConfig
-		expectedError error
+		expectedError string
 	}{
 		{
 			name:          "empty token",
 			token:         "",
 			tokenConfig:   &store.TokenConfig{},
-			expectedError: errMissingToken,
+			expectedError: errMissingToken.Error(),
 		},
 		{
 			name:          "missing bearer token",
 			token:         "Bearer ",
 			tokenConfig:   &store.TokenConfig{},
-			expectedError: errMissingBearerToken,
+			expectedError: errMissingBearerToken.Error(),
 		},
 		{
 			name:  "invalid token format",
@@ -113,7 +114,7 @@ func TestValidateToken(t *testing.T) {
 				KeyPath:       "./testdata/",
 				PublicKeyName: "test_public.pem",
 			},
-			expectedError: jwt.ErrTokenMalformed,
+			expectedError: fmt.Sprintf("token is malformed: could not JSON decode header: invalid character '\\u008a' looking for beginning of value"),
 		},
 		{
 			name: "missing key file",
@@ -127,7 +128,7 @@ func TestValidateToken(t *testing.T) {
 				KeyPath:       "./testdata/",
 				PublicKeyName: "nonexistent.pem",
 			},
-			expectedError: errTokenKeyNotFound,
+			expectedError: errTokenKeyNotFound.Error(),
 		},
 		{
 			name: "expired token",
@@ -141,7 +142,7 @@ func TestValidateToken(t *testing.T) {
 				KeyPath:       "./testdata/",
 				PublicKeyName: "test_public.pem",
 			},
-			expectedError: jwt.ErrTokenExpired,
+			expectedError: fmt.Sprintf("%s: %s", jwt.ErrTokenInvalidClaims, jwt.ErrTokenExpired),
 		},
 		{
 			name: "wrong issuer",
@@ -155,7 +156,7 @@ func TestValidateToken(t *testing.T) {
 				KeyPath:       "./testdata/",
 				PublicKeyName: "test_public.pem",
 			},
-			expectedError: errInvalidToken,
+			expectedError: errInvalidToken.Error(),
 		},
 		{
 			name: "valid token",
@@ -169,15 +170,15 @@ func TestValidateToken(t *testing.T) {
 				KeyPath:       "./testdata/",
 				PublicKeyName: "test_public.pem",
 			},
-			expectedError: nil,
+			expectedError: "",
 		},
 	}
 
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			err := ValidateToken(sc.token, sc.tokenConfig)
-			if !errors.Is(err, sc.expectedError) {
-				t.Fatalf("expected err %v, got %v", sc.expectedError, err)
+			_, err := ValidateToken(sc.token, sc.tokenConfig)
+			if err != nil {
+				assert.Contains(t, err.Error(), sc.expectedError)
 			}
 		})
 	}

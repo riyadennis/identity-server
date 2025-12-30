@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/riyadennis/identity-server/business/store"
@@ -8,6 +9,8 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 	"github.com/sirupsen/logrus"
 )
+
+const userClaimsKey = "claims"
 
 type AuthConfig struct {
 	TokenConfig *store.TokenConfig
@@ -19,11 +22,13 @@ type AuthConfig struct {
 func (ac *AuthConfig) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerToken := r.Header.Get("Authorization")
-		if err := validation.ValidateToken(headerToken, ac.TokenConfig); err != nil {
+		claims, err := validation.ValidateToken(headerToken, ac.TokenConfig)
+		if err != nil {
 			ac.Logger.Errorf("invalid token: %v", err)
 			foundation.ErrorResponse(w, http.StatusUnauthorized, err, foundation.UnAuthorised)
 			return
 		}
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), userClaimsKey, claims)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
