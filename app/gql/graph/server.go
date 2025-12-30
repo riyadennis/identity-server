@@ -2,11 +2,14 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -19,6 +22,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/riyadennis/identity-server/app/gql/graph/generated"
 	"github.com/riyadennis/identity-server/business/store"
+	customMiddleware "github.com/riyadennis/identity-server/foundation/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -74,7 +78,7 @@ func NewServer(logger *logrus.Logger, port string, store store.Store,
 	return &Server{
 		Server: &http.Server{
 			Addr:    addr,
-			Handler: newRouter(srv),
+			Handler: newRouter(logger, tc, srv),
 		},
 		Store:         store,
 		Authenticator: auth,
@@ -108,7 +112,48 @@ func (s *Server) Start(port string) error {
 	return sErr
 }
 
-func newRouter(srv *handler.Server) http.Handler {
+type GraphQLRequest struct {
+	OperationName string `json:"operationName"`
+	Query         string `json:"query"`
+}
+
+// Public operations that don't require authentication
+var publicOperations = map[string]bool{
+	"Login":        true,
+	"register":     true,
+	"refreshToken": true,
+}
+
+func NeedsAuthMiddleWare(ac customMiddleware.AuthConfig) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, "Failed to read request", http.StatusBadRequest)
+				return
+			}
+
+			// Parse GraphQL request
+			var gqlReq GraphQLRequest
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				http.Error(w, "Invalid GraphQL request", http.StatusBadRequest)
+				return
+			}
+
+			// Restore body for next handler
+			r.Body = io.NopCloser(strings.NewReader(string(body)))
+
+			// Check if operation is public
+			if publicOperations[gqlReq.OperationName] {
+				next.ServeHTTP(w, r)
+			} else {
+				ac.Auth(next).ServeHTTP(w, r)
+			}
+		})
+	}
+}
+
+func newRouter(logger *logrus.Logger, tc *store.TokenConfig, srv *handler.Server) http.Handler {
 	chiRouter := chi.NewRouter()
 
 	chiRouter.Use(middleware.RequestID)
@@ -116,7 +161,11 @@ func newRouter(srv *handler.Server) http.Handler {
 	chiRouter.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"},
 	}))
-
+	ac := customMiddleware.AuthConfig{
+		TokenConfig: tc,
+		Logger:      logger,
+	}
+	chiRouter.Use(NeedsAuthMiddleWare(ac))
 	chiRouter.Handle("/", otelhttp.NewHandler(
 		playground.Handler("GraphQL playground", "/graphql"),
 		"graphql"))

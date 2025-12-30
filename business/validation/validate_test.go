@@ -175,7 +175,7 @@ func TestValidateToken(t *testing.T) {
 
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			err := ValidateToken(sc.token, sc.tokenConfig)
+			_, err := ValidateToken(sc.token, sc.tokenConfig)
 			if !errors.Is(err, sc.expectedError) {
 				t.Fatalf("expected err %v, got %v", sc.expectedError, err)
 			}

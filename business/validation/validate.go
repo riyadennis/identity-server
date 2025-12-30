@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/riyadennis/identity-server/business/store"
 )
@@ -64,13 +64,14 @@ func ValidateEmail(email string) error {
 
 	return nil
 }
-func ValidateToken(token string, tc *store.TokenConfig) error {
+
+func ValidateToken(token string, tc *store.TokenConfig) (*jwt.RegisteredClaims, error) {
 	if token == "" {
-		return errMissingToken
+		return nil, errMissingToken
 	}
 
 	if token[len(BearerSchema):] == "" {
-		return errMissingBearerToken
+		return nil, errMissingBearerToken
 	}
 
 	t, err := jwt.ParseWithClaims(
@@ -83,22 +84,22 @@ func ValidateToken(token string, tc *store.TokenConfig) error {
 		fetchKey(tc.KeyPath+tc.PublicKeyName),
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !t.Valid {
-		return errInvalidToken
+		return nil, errInvalidToken
 	}
 	claims, ok := t.Claims.(*jwt.RegisteredClaims)
 	if !ok {
-		return errInvalidToken
+		return nil, errInvalidToken
 	}
 	if claims.Issuer != tc.Issuer {
-		return errInvalidToken
+		return nil, errInvalidToken
 	}
 	if claims.ExpiresAt.Time.Before(time.Now().UTC()) {
-		return jwt.ErrTokenExpired
+		return nil, jwt.ErrTokenExpired
 	}
-	return nil
+	return claims, nil
 }
 
 func fetchKey(keyPath string) jwt.Keyfunc {
