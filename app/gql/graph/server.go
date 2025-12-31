@@ -158,8 +158,14 @@ func newRouter(logger *logrus.Logger, tc *store.TokenConfig, srv *handler.Server
 
 	chiRouter.Use(middleware.RequestID)
 	chiRouter.Use(middleware.Recoverer)
+
 	chiRouter.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://yourdomain.com"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
 	}))
 	ac := customMiddleware.AuthConfig{
 		TokenConfig: tc,
