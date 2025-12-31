@@ -19,6 +19,9 @@ func (s *Store) Read(ctx context.Context, email string) (*store.User, error) {
 	return s.User, s.Error
 }
 
+func (s *Store) Retrieve(ctx context.Context, id string) (*store.User, error) {
+	return s.User, s.Error
+}
 func (s *Store) Delete(id string) (int64, error) {
 	return 0, s.Error
 }

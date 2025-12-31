@@ -73,15 +73,13 @@ func ValidateToken(token string, tc *store.TokenConfig) (*jwt.RegisteredClaims, 
 	if token[len(BearerSchema):] == "" {
 		return nil, errMissingBearerToken
 	}
-
+	claims := &jwt.RegisteredClaims{
+		Issuer:    tc.Issuer,
+		IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(tc.TokenTTL)),
+	}
 	t, err := jwt.ParseWithClaims(
-		token[len(BearerSchema):],
-		&jwt.RegisteredClaims{
-			Issuer:    tc.Issuer,
-			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(tc.TokenTTL)),
-		},
-		fetchKey(tc.KeyPath+tc.PublicKeyName),
+		token[len(BearerSchema):], claims, fetchKey(tc.KeyPath+tc.PublicKeyName),
 	)
 	if err != nil {
 		return nil, err

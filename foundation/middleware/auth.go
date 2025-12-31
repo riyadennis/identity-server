@@ -10,7 +10,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const userClaimsKey = "claims"
+const (
+	UserClaimsKey  = "claims"
+	AccessTokenKey = "accessToken"
+)
 
 type AuthConfig struct {
 	TokenConfig *store.TokenConfig
@@ -28,7 +31,9 @@ func (ac *AuthConfig) Auth(next http.Handler) http.Handler {
 			foundation.ErrorResponse(w, http.StatusUnauthorized, err, foundation.UnAuthorised)
 			return
 		}
-		ctx := context.WithValue(r.Context(), userClaimsKey, claims)
+		ac.Logger.Infof("claims from middleware: %v", claims)
+		ctx := context.WithValue(r.Context(), UserClaimsKey, claims)
+		ctx = context.WithValue(ctx, AccessTokenKey, headerToken)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

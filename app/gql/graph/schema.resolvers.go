@@ -11,9 +11,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/riyadennis/identity-server/app/gql/graph/generated"
 	"github.com/riyadennis/identity-server/app/gql/graph/model"
 	"github.com/riyadennis/identity-server/business"
+	"github.com/riyadennis/identity-server/foundation/middleware"
 )
 
 // Login is the resolver for the Login field.
@@ -44,12 +46,29 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	accessToken, ok := ctx.Value("accessToken").(string)
+	accessToken, ok := ctx.Value(middleware.AccessTokenKey).(string)
+	r.Logger.Infof("accesstoken from resolver: %v", accessToken)
 	if !ok || accessToken == "" {
 		return nil, fmt.Errorf("unauthorized: no access token provided")
 	}
+	claims, ok := ctx.Value(middleware.UserClaimsKey).(*jwt.RegisteredClaims)
+	user, err := r.Store.Retrieve(ctx, claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+	
+	if user == nil {
+		return nil, fmt.Errorf("failed to find user for ID %s", claims.Subject)
+	}
 
-	return nil, nil
+	fullName := user.FirstName + " " + user.LastName
+	return &model.User{
+		ID:            claims.Subject,
+		Email:         user.Email,
+		Name:          &fullName,
+		Picture:       nil,
+		EmailVerified: false,
+	}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

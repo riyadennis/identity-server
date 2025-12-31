@@ -17,6 +17,7 @@ var (
 type Store interface {
 	Insert(ctx context.Context, u *User) (*User, error)
 	Read(ctx context.Context, email string) (*User, error)
+	Retrieve(ctx context.Context, id string) (*User, error)
 	Delete(id string) (int64, error)
 	Ping() error
 }

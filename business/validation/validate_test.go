@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
@@ -189,8 +189,10 @@ func generateTestToken(t *testing.T, issuer string, ttl time.Time) string {
 
 	privateKeyData, err := os.ReadFile("testdata/test_private.pem")
 	assert.NoError(t, err)
-
-	signedToken, err := store.GenerateToken(logrus.New(), issuer, privateKeyData, ttl)
+	
+	signedToken, err := store.GenerateToken(logrus.New(),
+		privateKeyData,
+		&jwt.RegisteredClaims{Issuer: issuer, ExpiresAt: jwt.NewNumericDate(ttl)})
 	assert.NoError(t, err)
 
 	return "Bearer " + signedToken.AccessToken

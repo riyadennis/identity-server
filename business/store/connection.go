@@ -116,17 +116,14 @@ func ConnectMYSQL(dbCfg *DBConnection) (*sql.DB, error) {
 	return conn, nil
 }
 
-func GenerateToken(logger *logrus.Logger, issuer string, key []byte, expiry time.Time) (*Token, error) {
+func GenerateToken(logger *logrus.Logger, key []byte, claims *jwt.RegisteredClaims) (*Token, error) {
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(key)
 	if err != nil {
 		logger.Printf("failed to parser private key: %v", err)
 		return nil, err
 	}
 
-	t, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(expiry),
-		Issuer:    issuer,
-	}).SignedString(privateKey)
+	t, err := jwt.NewWithClaims(jwt.SigningMethodRS256, claims).SignedString(privateKey)
 	if err != nil {
 		logger.Errorf("failed to sign using private key: %v", err)
 		return nil, err
@@ -135,8 +132,8 @@ func GenerateToken(logger *logrus.Logger, issuer string, key []byte, expiry time
 	return &Token{
 		Status:      200,
 		AccessToken: t,
-		Expiry:      expiry.String(),
+		Expiry:      claims.ExpiresAt.String(),
 		TokenType:   "Bearer",
-		TokenTTL:    fmt.Sprintf("%d", expiry.Unix()),
+		TokenTTL:    fmt.Sprintf("%d", claims.ExpiresAt.Unix()),
 	}, nil
 }
