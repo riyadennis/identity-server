@@ -31,7 +31,7 @@ func (ac *AuthConfig) Auth(next http.Handler) http.Handler {
 			foundation.ErrorResponse(w, http.StatusUnauthorized, err, foundation.UnAuthorised)
 			return
 		}
-		ac.Logger.Infof("claims from middleware: %v", claims)
+
 		ctx := context.WithValue(r.Context(), UserClaimsKey, claims)
 		ctx = context.WithValue(ctx, AccessTokenKey, headerToken)
 		next.ServeHTTP(w, r.WithContext(ctx))
