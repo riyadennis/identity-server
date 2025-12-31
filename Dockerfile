@@ -15,6 +15,7 @@ RUN apt-get update && \
     groupadd web && \
     useradd -ms /bin/bash webuser -g web && \
     mkdir -p /home/webuser; chown -R webuser.web /home/webuser && \
+    mkdir -p /var/folders; chown -R webuser.web /var/folders && \
     apt-get -yq --no-install-recommends install \
     language-pack-en-base \
     software-properties-common && \
@@ -27,6 +28,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 USER webuser
+WORKDIR /home/webuser
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder --chown=root:root --chmod=755  /identity/server /home/webuser/server
 COPY --from=builder --chown=root:root --chmod=755  /identity/migrations /home/webuser/migration

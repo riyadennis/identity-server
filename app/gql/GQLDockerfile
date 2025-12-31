@@ -15,6 +15,7 @@ RUN apt-get update && \
     groupadd web && \
     useradd -ms /bin/bash webuser -g web && \
     mkdir -p /home/webuser; chown -R webuser.web /home/webuser && \
+    mkdir -p /var/folders; chown -R webuser.web /var/folders && \
     apt-get -yq --no-install-recommends install \
     language-pack-en-base \
     software-properties-common && \

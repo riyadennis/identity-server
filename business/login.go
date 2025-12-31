@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/riyadennis/identity-server/foundation"
 	"github.com/sirupsen/logrus"
@@ -93,8 +94,19 @@ func (h *Helper) ManageToken(ctx context.Context, config *store.TokenConfig, use
 		}, nil
 	}
 	key, err := fetchPrivateKey(config.KeyPath+config.PrivateKeyName, config.KeyPath+config.PublicKeyName)
+	if err != nil {
+		h.Logger.Errorf("failed to fetch keys: %v", err)
+		return nil, err
+	}
 	expiryTime := time.Now().UTC().Add(120 * time.Hour)
-	token, err := store.GenerateToken(h.Logger, config.Issuer, key, expiryTime)
+	
+	token, err := store.GenerateToken(h.Logger, key, &jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(expiryTime),
+		Issuer:    config.Issuer,
+		Subject:   userID,
+		//need to change this later
+		Audience: jwt.ClaimStrings{"local"},
+	})
 	if err != nil {
 		h.Logger.Errorf("failed to generate token: %v", err)
 		return nil, err

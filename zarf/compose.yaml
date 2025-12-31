@@ -10,6 +10,8 @@ services:
       - MYSQL_DATABASE=identity-server
       - MYSQL_USER=identity-server
       - MYSQL_PASSWORD=password
+    volumes:
+      - mysql-data:/var/lib/mysql
   go-server:
     restart: on-failure
     develop:
@@ -33,12 +35,15 @@ services:
       - MYSQL_DATABASE=identity-server
       - MYSQL_PORT=3306
       - ISSUER=open source
-      - KEY_PATH=/tmp/keys
+      #  needs trailing slash
+      - KEY_PATH=/var/folders/
       - MIGRATION_PATH=/home/webuser/migration
     depends_on:
       - mysql-server
     links:
       - mysql-server
+    volumes:
+      - key-data:/var/folders
   go-grpc-server:
     restart: on-failure
     develop:
@@ -62,12 +67,15 @@ services:
       - MYSQL_DATABASE=identity-server
       - MYSQL_PORT=3306
       - ISSUER=open source
-      - KEY_PATH=/tmp/keys
+      # needs trailing slash
+      - KEY_PATH=/var/folders/
       - MIGRATION_PATH=/home/webuser/migration
     depends_on:
       - mysql-server
     links:
       - mysql-server
+    volumes:
+      - key-data:/var/folders
   go-gql-server:
     restart: on-failure
     develop:
@@ -91,9 +99,15 @@ services:
       - MYSQL_DATABASE=identity-server
       - MYSQL_PORT=3306
       - ISSUER=open source
-      - KEY_PATH=/tmp/keys
+      # needs trailing slash
+      - KEY_PATH=/var/folders/
       - MIGRATION_PATH=/home/webuser/migration
     depends_on:
       - mysql-server
     links:
       - mysql-server
+    volumes:
+      - key-data:/var/folders
+volumes:
+  mysql-data:
+  key-data:
