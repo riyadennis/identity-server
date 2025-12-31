@@ -44,10 +44,9 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 	}, nil
 }
 
-// Me is the resolver for the me field.
+// Me is the resolver for the me query.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	accessToken, ok := ctx.Value(middleware.AccessTokenKey).(string)
-	r.Logger.Infof("accesstoken from resolver: %v", accessToken)
 	if !ok || accessToken == "" {
 		return nil, fmt.Errorf("unauthorized: no access token provided")
 	}
@@ -56,7 +55,7 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if user == nil {
 		return nil, fmt.Errorf("failed to find user for ID %s", claims.Subject)
 	}
