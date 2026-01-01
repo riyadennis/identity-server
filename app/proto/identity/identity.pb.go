@@ -2,17 +2,16 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v4.25.3
-// source: app/auth-api/gRPC/identity.proto
+// source: app/proto/identity/identity.proto
 
 package identity
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -33,7 +32,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_app_auth_api_gRPC_identity_proto_msgTypes[0]
+	mi := &file_app_proto_identity_identity_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +44,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_app_auth_api_gRPC_identity_proto_msgTypes[0]
+	mi := &file_app_proto_identity_identity_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +57,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_app_auth_api_gRPC_identity_proto_rawDescGZIP(), []int{0}
+	return file_app_proto_identity_identity_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *LoginRequest) GetEmail() string {
@@ -90,7 +89,7 @@ type LoginResponse struct {
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_app_auth_api_gRPC_identity_proto_msgTypes[1]
+	mi := &file_app_proto_identity_identity_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -102,7 +101,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_app_auth_api_gRPC_identity_proto_msgTypes[1]
+	mi := &file_app_proto_identity_identity_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +114,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_app_auth_api_gRPC_identity_proto_rawDescGZIP(), []int{1}
+	return file_app_proto_identity_identity_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *LoginResponse) GetStatus() int32 {
@@ -160,11 +159,115 @@ func (x *LoginResponse) GetTokenTtl() int32 {
 	return 0
 }
 
-var File_app_auth_api_gRPC_identity_proto protoreflect.FileDescriptor
+type UserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_app_auth_api_gRPC_identity_proto_rawDesc = "" +
+func (x *UserRequest) Reset() {
+	*x = UserRequest{}
+	mi := &file_app_proto_identity_identity_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserRequest) ProtoMessage() {}
+
+func (x *UserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_proto_identity_identity_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserRequest.ProtoReflect.Descriptor instead.
+func (*UserRequest) Descriptor() ([]byte, []int) {
+	return file_app_proto_identity_identity_proto_rawDescGZIP(), []int{2}
+}
+
+type UserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            *string                `protobuf:"bytes,1,req,name=ID" json:"ID,omitempty"`
+	Email         *string                `protobuf:"bytes,2,req,name=email" json:"email,omitempty"`
+	Name          *string                `protobuf:"bytes,3,req,name=name" json:"name,omitempty"`
+	EmailVerified *bool                  `protobuf:"varint,4,opt,name=emailVerified" json:"emailVerified,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserResponse) Reset() {
+	*x = UserResponse{}
+	mi := &file_app_proto_identity_identity_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserResponse) ProtoMessage() {}
+
+func (x *UserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_proto_identity_identity_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserResponse.ProtoReflect.Descriptor instead.
+func (*UserResponse) Descriptor() ([]byte, []int) {
+	return file_app_proto_identity_identity_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *UserResponse) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *UserResponse) GetEmail() string {
+	if x != nil && x.Email != nil {
+		return *x.Email
+	}
+	return ""
+}
+
+func (x *UserResponse) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *UserResponse) GetEmailVerified() bool {
+	if x != nil && x.EmailVerified != nil {
+		return *x.EmailVerified
+	}
+	return false
+}
+
+var File_app_proto_identity_identity_proto protoreflect.FileDescriptor
+
+const file_app_proto_identity_identity_proto_rawDesc = "" +
 	"\n" +
-	" app/auth-api/gRPC/identity.proto\"@\n" +
+	"!app/proto/identity/identity.proto\"@\n" +
 	"\fLoginRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x02(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x02(\tR\bpassword\"\xc1\x01\n" +
@@ -175,57 +278,68 @@ const file_app_auth_api_gRPC_identity_proto_rawDesc = "" +
 	"\n" +
 	"token_type\x18\x04 \x01(\tR\ttokenType\x12!\n" +
 	"\flast_refresh\x18\x05 \x01(\tR\vlastRefresh\x12\x1b\n" +
-	"\ttoken_ttl\x18\x06 \x01(\x05R\btokenTtl22\n" +
+	"\ttoken_ttl\x18\x06 \x01(\x05R\btokenTtl\"\r\n" +
+	"\vUserRequest\"n\n" +
+	"\fUserResponse\x12\x0e\n" +
+	"\x02ID\x18\x01 \x02(\tR\x02ID\x12\x14\n" +
+	"\x05email\x18\x02 \x02(\tR\x05email\x12\x12\n" +
+	"\x04name\x18\x03 \x02(\tR\x04name\x12$\n" +
+	"\remailVerified\x18\x04 \x01(\bR\remailVerified2U\n" +
 	"\bIdentity\x12&\n" +
-	"\x05Login\x12\r.LoginRequest\x1a\x0e.LoginResponseB\tZ\a../gRPC"
+	"\x05Login\x12\r.LoginRequest\x1a\x0e.LoginResponse\x12!\n" +
+	"\x02Me\x12\f.UserRequest\x1a\r.UserResponseB\rZ\v../identity"
 
 var (
-	file_app_auth_api_gRPC_identity_proto_rawDescOnce sync.Once
-	file_app_auth_api_gRPC_identity_proto_rawDescData []byte
+	file_app_proto_identity_identity_proto_rawDescOnce sync.Once
+	file_app_proto_identity_identity_proto_rawDescData []byte
 )
 
-func file_app_auth_api_gRPC_identity_proto_rawDescGZIP() []byte {
-	file_app_auth_api_gRPC_identity_proto_rawDescOnce.Do(func() {
-		file_app_auth_api_gRPC_identity_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_app_auth_api_gRPC_identity_proto_rawDesc), len(file_app_auth_api_gRPC_identity_proto_rawDesc)))
+func file_app_proto_identity_identity_proto_rawDescGZIP() []byte {
+	file_app_proto_identity_identity_proto_rawDescOnce.Do(func() {
+		file_app_proto_identity_identity_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_app_proto_identity_identity_proto_rawDesc), len(file_app_proto_identity_identity_proto_rawDesc)))
 	})
-	return file_app_auth_api_gRPC_identity_proto_rawDescData
+	return file_app_proto_identity_identity_proto_rawDescData
 }
 
-var file_app_auth_api_gRPC_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_app_auth_api_gRPC_identity_proto_goTypes = []any{
+var file_app_proto_identity_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_app_proto_identity_identity_proto_goTypes = []any{
 	(*LoginRequest)(nil),  // 0: LoginRequest
 	(*LoginResponse)(nil), // 1: LoginResponse
+	(*UserRequest)(nil),   // 2: UserRequest
+	(*UserResponse)(nil),  // 3: UserResponse
 }
-var file_app_auth_api_gRPC_identity_proto_depIdxs = []int32{
+var file_app_proto_identity_identity_proto_depIdxs = []int32{
 	0, // 0: Identity.Login:input_type -> LoginRequest
-	1, // 1: Identity.Login:output_type -> LoginResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: Identity.Me:input_type -> UserRequest
+	1, // 2: Identity.Login:output_type -> LoginResponse
+	3, // 3: Identity.Me:output_type -> UserResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_app_auth_api_gRPC_identity_proto_init() }
-func file_app_auth_api_gRPC_identity_proto_init() {
-	if File_app_auth_api_gRPC_identity_proto != nil {
+func init() { file_app_proto_identity_identity_proto_init() }
+func file_app_proto_identity_identity_proto_init() {
+	if File_app_proto_identity_identity_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_auth_api_gRPC_identity_proto_rawDesc), len(file_app_auth_api_gRPC_identity_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_proto_identity_identity_proto_rawDesc), len(file_app_proto_identity_identity_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_app_auth_api_gRPC_identity_proto_goTypes,
-		DependencyIndexes: file_app_auth_api_gRPC_identity_proto_depIdxs,
-		MessageInfos:      file_app_auth_api_gRPC_identity_proto_msgTypes,
+		GoTypes:           file_app_proto_identity_identity_proto_goTypes,
+		DependencyIndexes: file_app_proto_identity_identity_proto_depIdxs,
+		MessageInfos:      file_app_proto_identity_identity_proto_msgTypes,
 	}.Build()
-	File_app_auth_api_gRPC_identity_proto = out.File
-	file_app_auth_api_gRPC_identity_proto_goTypes = nil
-	file_app_auth_api_gRPC_identity_proto_depIdxs = nil
+	File_app_proto_identity_identity_proto = out.File
+	file_app_proto_identity_identity_proto_goTypes = nil
+	file_app_proto_identity_identity_proto_depIdxs = nil
 }
