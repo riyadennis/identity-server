@@ -2,13 +2,12 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v4.25.3
-// source: app/auth-api/gRPC/identity.proto
+// source: app/proto/identity/identity.proto
 
 package identity
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -21,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Identity_Login_FullMethodName = "/Identity/Login"
+	Identity_Me_FullMethodName    = "/Identity/Me"
 )
 
 // IdentityClient is the client API for Identity service.
@@ -29,8 +29,8 @@ const (
 //
 // The Identity service definition.
 type IdentityClient interface {
-	// Sends a greeting
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	Me(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 }
 
 type identityClient struct {
@@ -51,14 +51,24 @@ func (c *identityClient) Login(ctx context.Context, in *LoginRequest, opts ...gr
 	return out, nil
 }
 
+func (c *identityClient) Me(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserResponse)
+	err := c.cc.Invoke(ctx, Identity_Me_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IdentityServer is the server API for Identity service.
 // All implementations must embed UnimplementedIdentityServer
 // for forward compatibility.
 //
 // The Identity service definition.
 type IdentityServer interface {
-	// Sends a greeting
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	Me(context.Context, *UserRequest) (*UserResponse, error)
 	mustEmbedUnimplementedIdentityServer()
 }
 
@@ -71,6 +81,9 @@ type UnimplementedIdentityServer struct{}
 
 func (UnimplementedIdentityServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedIdentityServer) Me(context.Context, *UserRequest) (*UserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Me not implemented")
 }
 func (UnimplementedIdentityServer) mustEmbedUnimplementedIdentityServer() {}
 func (UnimplementedIdentityServer) testEmbeddedByValue()                  {}
@@ -111,6 +124,24 @@ func _Identity_Login_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Identity_Me_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).Me(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_Me_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).Me(ctx, req.(*UserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Identity_ServiceDesc is the grpc.ServiceDesc for Identity service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -122,7 +153,11 @@ var Identity_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Login",
 			Handler:    _Identity_Login_Handler,
 		},
+		{
+			MethodName: "Me",
+			Handler:    _Identity_Me_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "app/auth-api/gRPC/identity.proto",
+	Metadata: "app/proto/identity/identity.proto",
 }

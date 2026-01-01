@@ -1,4 +1,4 @@
-option go_package = "../proto";
+option go_package = "../identity";
 
 // The request message containing the user's name.
 message LoginRequest {
@@ -15,9 +15,18 @@ message LoginResponse {
     optional string last_refresh = 5;
     optional int32 token_ttl = 6;
 }
+message UserRequest{
+    // Empty - authentication comes from gRPC metadata
+}
 
+message UserResponse{
+   required string ID = 1;
+   required string email=2;
+   required string name=3;
+   optional bool emailVerified = 4;
+}
 // The Identity service definition.
 service Identity {
-    // Sends a greeting
     rpc Login (LoginRequest) returns (LoginResponse);
+    rpc Me(UserRequest) returns (UserResponse);
 }
