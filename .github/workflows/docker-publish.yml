@@ -22,12 +22,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push REST Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: riyadennis/identity-server:latest
+      - name: Build and push GQL Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./app/gql/GQLDockerfile
+          push: true
+          tags: riyadennis/identity-gql-server:latest
+      - name: Build and push gRPC Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./app/proto/GRPCDockerfile
+          push: true
+          tags: riyadennis/identity-gRPC-server:latest
       - name: Image digest
         run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
+
