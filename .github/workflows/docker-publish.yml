@@ -42,7 +42,7 @@ jobs:
           context: .
           file: ./app/proto/GRPCDockerfile
           push: true
-          tags: riyadennis/identity-gRPC-server:latest
+          tags: riyadennis/identity-grpc-server:latest
       - name: Image digest
         run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
 
