@@ -22,27 +22,63 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Extract metadata for REST image
+        id: meta-rest
+        uses: docker/metadata-action@v5
+        with:
+          images: riyadennis/identity-server
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
       - name: Build and push REST Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: riyadennis/identity-server:latest
+          tags: ${{ steps.meta-rest.outputs.tags }}
+          labels: ${{ steps.meta-rest.outputs.labels }}
+
+      - name: Extract metadata for GQL image
+        id: meta-gql
+        uses: docker/metadata-action@v5
+        with:
+          images: riyadennis/identity-gql-server
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
       - name: Build and push GQL Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./app/gql/GQLDockerfile
           push: true
-          tags: riyadennis/identity-gql-server:latest
+          tags: ${{ steps.meta-gql.outputs.tags }}
+          labels: ${{ steps.meta-gql.outputs.labels }}
+
+      - name: Extract metadata for gRPC image
+        id: meta-grpc
+        uses: docker/metadata-action@v5
+        with:
+          images: riyadennis/identity-grpc-server
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
       - name: Build and push gRPC Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./app/proto/GRPCDockerfile
           push: true
-          tags: riyadennis/identity-grpc-server:latest
+          tags: ${{ steps.meta-grpc.outputs.tags }}
+          labels: ${{ steps.meta-grpc.outputs.labels }}
+
       - name: Image digest
-        run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
+        run: echo "Images pushed successfully"
 
