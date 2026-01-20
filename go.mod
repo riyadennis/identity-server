@@ -11,7 +11,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/google/uuid v1.6.0
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/swag v1.16.6
 	github.com/vektah/gqlparser/v2 v2.5.31
