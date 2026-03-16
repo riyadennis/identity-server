@@ -33,8 +33,8 @@ docker-run-test:
     -e ISSUER="riya-dennis" -p 8088:8088 --name identity-server-test --network backend riyadennis/identity-server
 
 tag:
-	git tag -a v0.1.7 -m "fixed docker build and push"
-	git push origin v0.1.7
+	 git tag -a v2.0.1 -m "get tagged images"
+	git push origin v2.0.1
 
 githubToken:
 	export GITHUB_TOKEN="your token"

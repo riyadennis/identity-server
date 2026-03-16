@@ -40,6 +40,28 @@ A Go-based identity management server providing user registration, authenticatio
 - `GET /liveness` - Kubernetes liveness probe
 - `GET /readiness` - Kubernetes readiness probe
 
+#### Register
+```bash
+curl -X POST http://localhost:8089/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "email": "jane.doe@example.com",
+    "password": "SecurePassword123!",
+    "company": "Acme Corp",
+    "post_code": "SW1A 1AA",
+    "terms": true
+  }'
+```
+
+#### Login
+Login uses HTTP Basic Auth (email:password):
+```bash
+curl -X POST http://localhost:8089/login \
+  -u "jane.doe@example.com:SecurePassword123!"
+```
+
 ### Protected Endpoints (require JWT)
 - `GET /user/home` - User profile access
 - `DELETE /admin/delete/:id` - User deletion
