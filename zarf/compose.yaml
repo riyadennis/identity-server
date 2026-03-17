@@ -37,7 +37,7 @@ services:
       - ISSUER=open source
       #  needs trailing slash
       - KEY_PATH=/var/folders/
-      - MIGRATION_PATH=/home/webuser/migration
+      - MIGRATION_PATH=/home/webuser/migrations
     depends_on:
       - mysql-server
     links:
@@ -69,7 +69,7 @@ services:
       - ISSUER=open source
       # needs trailing slash
       - KEY_PATH=/var/folders/
-      - MIGRATION_PATH=/home/webuser/migration
+      - MIGRATION_PATH=/home/webuser/migrations
     depends_on:
       - mysql-server
     links:
@@ -101,7 +101,7 @@ services:
       - ISSUER=open source
       # needs trailing slash
       - KEY_PATH=/var/folders/
-      - MIGRATION_PATH=/home/webuser/migration
+      - MIGRATION_PATH=/home/webuser/migrations
     depends_on:
       - mysql-server
     links:

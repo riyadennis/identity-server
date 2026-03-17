@@ -31,7 +31,7 @@ USER webuser
 WORKDIR /home/webuser
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder --chown=root:root --chmod=755  /identity/server /home/webuser/server
-COPY --from=builder --chown=root:root --chmod=755  /identity/migrations /home/webuser/migration
+COPY --from=builder --chown=root:root --chmod=755  /identity/migrations /home/webuser/migrations
 
 
 # Run the web service on container startup.
