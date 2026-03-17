@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -37,6 +40,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-rest.outputs.tags }}
           labels: ${{ steps.meta-rest.outputs.labels }}
@@ -56,6 +60,7 @@ jobs:
         with:
           context: .
           file: ./app/gql/GQLDockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-gql.outputs.tags }}
           labels: ${{ steps.meta-gql.outputs.labels }}
@@ -75,6 +80,7 @@ jobs:
         with:
           context: .
           file: ./app/proto/GRPCDockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-grpc.outputs.tags }}
           labels: ${{ steps.meta-grpc.outputs.labels }}

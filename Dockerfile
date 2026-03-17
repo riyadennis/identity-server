@@ -9,7 +9,7 @@ RUN go mod download
 
 RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -o server ./app/main.go
 
-FROM ubuntu:bionic
+FROM ubuntu:22.04
 
 RUN apt-get update && \
     groupadd web && \
