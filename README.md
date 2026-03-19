@@ -78,3 +78,7 @@ MYSQL_PORT="3306"
 MYSQL_HOST="127.0.0.1"
 MIGRATION_PATH="migrations"
 ```
+### Login Mutation example
+````
+mutation Login($input: LoginInput!) { Login(input: $input) { status accessToken expiry tokenType lastRefresh tokenTTL } }
+```
