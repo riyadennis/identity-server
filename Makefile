@@ -55,6 +55,9 @@ docs-fmt:
 docs-generate:
 	swag init -g app/main.go
 
+docs-generate-proto:
+	protoc --doc_out=docs --doc_opt=html,proto.html app/proto/identity/identity.proto
+
 claude:
 	npx @anthropic-ai/claude-code chat
 
