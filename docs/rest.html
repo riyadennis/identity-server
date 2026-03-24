@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>REST API Documentation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.12/swagger-ui.css" />
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .top-bar {
+      background: #89bf04;
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .top-bar h1 { font-size: 1.2em; margin: 0; }
+    .top-bar a { color: white; text-decoration: none; font-size: 0.9em; opacity: 0.85; }
+    .top-bar a:hover { opacity: 1; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>REST API Documentation</h1>
+    <a href="index.html">&#8592; Back to API Index</a>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = function() {
+      window.ui = SwaggerUIBundle({
+        url: "swagger.json",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis],
+        layout: "BaseLayout",
+      });
+    };
+  </script>
+</body>
+</html>

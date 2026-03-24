@@ -1,3 +1,5 @@
+syntax = "proto2";
+
 option go_package = "../identity";
 
 // The request message containing the user's name.

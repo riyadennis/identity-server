@@ -2,60 +2,197 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>API Documentation Index</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.12/swagger-ui.css" />
+  <title>Identity Server - API Documentation</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 32px; }
-    #links { margin-bottom: 2em; }
-    #links h1 { margin-bottom: 16px; }
-    .api-nav { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
-    .api-nav a {
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 40px 32px 32px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+    header p {
+      font-size: 1.05em;
+      color: #aab0c0;
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      margin: 48px auto;
+      padding: 0 24px;
+      width: 100%;
+    }
+
+    .description {
+      background: white;
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin-bottom: 36px;
+      border: 1px solid #ddd;
+      line-height: 1.7;
+      color: #444;
+    }
+    .description h2 {
+      font-size: 1.1em;
+      color: #1a1a2e;
+      margin-bottom: 12px;
+    }
+    .description ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+    .description li {
+      margin-bottom: 6px;
+    }
+    .description code {
+      background: #f0f0f0;
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 0.9em;
+      font-family: monospace;
+    }
+
+    .api-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 800px) {
+      .api-cards { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 500px) {
+      .api-cards { grid-template-columns: 1fr; }
+    }
+
+    .api-card {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .api-card .icon {
+      font-size: 2em;
+      line-height: 1;
+    }
+    .api-card h2 {
+      font-size: 1.2em;
+      color: #1a1a2e;
+    }
+    .api-card p {
+      color: #666;
+      font-size: 0.95em;
+      line-height: 1.6;
+      flex: 1;
+    }
+    .api-card a {
       display: inline-block;
-      padding: 10px 24px;
+      padding: 11px 24px;
       border-radius: 5px;
-      font-size: 1em;
       font-weight: bold;
+      font-size: 0.95em;
       text-decoration: none;
-      border: 2px solid transparent;
-      transition: background 0.15s, color 0.15s;
+      text-align: center;
+      transition: background 0.15s;
     }
-    .api-nav a.rest {
-      background: #89bf04;
-      color: white;
+
+    .card-rest a  { background: #89bf04; color: white; }
+    .card-rest a:hover { background: #6fa000; }
+
+    .card-graphql a { background: #e10098; color: white; }
+    .card-graphql a:hover { background: #b3007a; }
+
+    .card-proto a { background: #0066cc; color: white; }
+    .card-proto a:hover { background: #0052a3; }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: #999;
+      font-size: 0.85em;
+      border-top: 1px solid #e0e0e0;
+      background: white;
     }
-    .api-nav a.rest:hover {
-      background: #6fa000;
-    }
-    .api-nav a.graphql {
-      background: #e10098;
-      color: white;
-    }
-    .api-nav a.graphql:hover {
-      background: #b3007a;
-    }
-    ul { font-size: 1.1em; }
   </style>
 </head>
 <body>
-  <div id="links">
-    <h1>API Documentation</h1>
-    <nav class="api-nav">
-      <a class="rest" href="#swagger-ui">REST API</a>
-      <a class="graphql" href="graphql.html">GraphQL API</a>
-    </nav>
-  </div>
-  <div id="swagger-ui"></div>
-  <script src="swagger-ui-bundle.js"></script>
-  <script>
-    window.onload = function() {
-      window.ui = SwaggerUIBundle({
-        url: "swagger.json",
-        dom_id: '#swagger-ui',
-        deepLinking: true,
-        presets: [SwaggerUIBundle.presets.apis],
-        layout: "BaseLayout",
-      });
-    };
-  </script>
+
+  <header>
+    <h1>Identity Server</h1>
+    <p>API reference documentation for the Identity Server — a Go-based service for user registration, authentication, and JWT token management.</p>
+  </header>
+
+  <main>
+    <div class="description">
+      <h2>About this service</h2>
+      <p>
+        The Identity Server provides secure user identity management. It handles user registration,
+        credential validation, and issues signed JWT tokens for authenticated access to protected resources.
+      </p>
+      <ul>
+        <li>Register and authenticate users with hashed passwords (<code>bcrypt</code>)</li>
+        <li>Issue and validate JWT tokens signed with RSA-256 key pairs</li>
+        <li>Expose a <strong>REST</strong> HTTP API, a <strong>GraphQL</strong> API, and a <strong>gRPC</strong> service</li>
+        <li>Health check endpoints for liveness and readiness probes</li>
+      </ul>
+    </div>
+
+    <div class="api-cards">
+      <div class="api-card card-rest">
+        <div class="icon">&#128196;</div>
+        <h2>REST API</h2>
+        <p>
+          Standard HTTP endpoints for registration, login, user management, and health checks.
+          Documented with Swagger / OpenAPI.
+        </p>
+        <a href="rest.html">View REST Docs</a>
+      </div>
+
+      <div class="api-card card-graphql">
+        <div class="icon">&#128257;</div>
+        <h2>GraphQL API</h2>
+        <p>
+          A GraphQL interface exposing the <code>Login</code> mutation and the <code>me</code> query
+          for authenticated user profile access.
+        </p>
+        <a href="graphql.html">View GraphQL Docs</a>
+      </div>
+
+      <div class="api-card card-proto">
+        <div class="icon">&#128268;</div>
+        <h2>gRPC / Protobuf</h2>
+        <p>
+          A gRPC service definition exposing <code>Login</code> and <code>Me</code> RPCs
+          via Protocol Buffers.
+        </p>
+        <a href="proto.html">View Proto Docs</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Identity Server &mdash; API Documentation
+  </footer>
+
 </body>
 </html>
