@@ -24,6 +24,28 @@ type Query {
     me: User!
 }
 
+input RegisterInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    password: String!
+    company: String
+    postCode: String
+    terms: Boolean!
+}
+
+type RegisterResponse {
+    id: String
+    firstName: String
+    lastName: String
+    email: String
+    company: String
+    postCode: String
+    terms: Boolean
+    createdAt: String
+}
+
 type Mutation {
     Login(input: LoginInput!): LoginResponse!
+    Register(input: RegisterInput!): RegisterResponse!
 }

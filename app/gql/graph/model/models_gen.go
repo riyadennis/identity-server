@@ -22,6 +22,27 @@ type Mutation struct {
 type Query struct {
 }
 
+type RegisterInput struct {
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	Email     string  `json:"email"`
+	Password  string  `json:"password"`
+	Company   *string `json:"company,omitempty"`
+	PostCode  *string `json:"postCode,omitempty"`
+	Terms     bool    `json:"terms"`
+}
+
+type RegisterResponse struct {
+	ID        *string `json:"id,omitempty"`
+	FirstName *string `json:"firstName,omitempty"`
+	LastName  *string `json:"lastName,omitempty"`
+	Email     *string `json:"email,omitempty"`
+	Company   *string `json:"company,omitempty"`
+	PostCode  *string `json:"postCode,omitempty"`
+	Terms     *bool   `json:"terms,omitempty"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+}
+
 type User struct {
 	ID            string  `json:"id"`
 	Email         string  `json:"email"`
