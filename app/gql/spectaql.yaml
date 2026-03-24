@@ -1,0 +1,14 @@
+spectaql:
+  displayAllServers: true
+
+info:
+  title: Identity Server GraphQL API
+  description: GraphQL API for user authentication
+  x-url: http://localhost:8080/graphql
+
+servers:
+  - url: http://localhost:8080/graphql
+    description: Local dev
+
+introspection:
+  schemaFile: app/gql/graph/schema.graphqls

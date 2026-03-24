@@ -99,7 +99,7 @@ func (h *Helper) ManageToken(ctx context.Context, config *store.TokenConfig, use
 		return nil, err
 	}
 	expiryTime := time.Now().UTC().Add(120 * time.Hour)
-	
+
 	token, err := store.GenerateToken(h.Logger, key, &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(expiryTime),
 		Issuer:    config.Issuer,

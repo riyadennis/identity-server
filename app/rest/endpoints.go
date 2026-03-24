@@ -76,6 +76,6 @@ func LoadRESTEndpoints(tc *store.TokenConfig, logger *logrus.Logger, st store.St
 		r.Use(ac.Auth)
 		r.Delete(DeleteEndpoint, h.Delete)
 	})
-	
+
 	return r
 }
