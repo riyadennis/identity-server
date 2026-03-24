@@ -53,7 +53,7 @@ docs-fmt:
 	swag fmt
 
 docs-generate:
-	swag init -g app/auth-api/main.go
+	swag init -g app/main.go
 
 claude:
 	npx @anthropic-ai/claude-code chat

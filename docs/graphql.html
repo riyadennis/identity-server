@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GraphQL API Documentation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; color: #333; }
+
+    header {
+      background: #e10098;
+      color: white;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 1.6em; font-weight: bold; }
+    header .back-link { color: white; text-decoration: none; font-size: 0.9em; opacity: 0.85; }
+    header .back-link:hover { opacity: 1; text-decoration: underline; }
+
+    .container { max-width: 960px; margin: 32px auto; padding: 0 24px; }
+
+    .endpoint-info {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+    .endpoint-info h2 { font-size: 1em; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .endpoint-badge {
+      display: inline-block;
+      background: #e10098;
+      color: white;
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-size: 0.85em;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .endpoint-path { font-size: 1.1em; font-weight: bold; font-family: monospace; }
+
+    .section { margin-bottom: 28px; }
+    .section h2 {
+      font-size: 1.2em;
+      font-weight: bold;
+      border-bottom: 2px solid #e10098;
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+      color: #222;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: #f9f9f9;
+      border-bottom: 1px solid #ddd;
+      padding: 12px 20px;
+      font-weight: bold;
+      font-family: monospace;
+      font-size: 1em;
+    }
+    .card-body { padding: 16px 20px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+    th { text-align: left; padding: 8px 12px; background: #f5f5f5; border-bottom: 1px solid #ddd; color: #555; font-weight: bold; }
+    td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    .type-scalar { color: #0077cc; font-family: monospace; }
+    .type-object { color: #e10098; font-family: monospace; }
+    .required { color: #cc0000; font-weight: bold; }
+    .optional { color: #888; }
+
+    .schema-block {
+      background: #282c34;
+      color: #abb2bf;
+      border-radius: 4px;
+      padding: 16px 20px;
+      font-family: monospace;
+      font-size: 0.9em;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .schema-block .kw   { color: #c678dd; }
+    .schema-block .type { color: #e5c07b; }
+    .schema-block .field{ color: #61afef; }
+    .schema-block .scalar{ color: #98c379; }
+    .schema-block .comment { color: #5c6370; }
+
+    .example-block {
+      background: #282c34;
+      color: #abb2bf;
+      border-radius: 4px;
+      padding: 16px 20px;
+      font-family: monospace;
+      font-size: 0.88em;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .example-block .kw     { color: #c678dd; }
+    .example-block .field  { color: #61afef; }
+    .example-block .string { color: #98c379; }
+    .example-block .key    { color: #e5c07b; }
+
+    .tag {
+      display: inline-block;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 0.8em;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+    .tag-mutation { background: #ffeef8; color: #e10098; border: 1px solid #e10098; }
+    .tag-query    { background: #e8f4fd; color: #0077cc; border: 1px solid #0077cc; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>GraphQL API Documentation</h1>
+    <a class="back-link" href="index.html">&#8592; Back to API Index</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Endpoint -->
+  <div class="endpoint-info">
+    <h2>GraphQL Endpoint</h2>
+    <span class="endpoint-badge">POST</span>
+    <span class="endpoint-path">/query</span>
+    <p style="margin-top:10px; color:#555; font-size:0.95em;">
+      All GraphQL operations are sent as HTTP POST requests to <code>/query</code> with a JSON body containing <code>query</code>, optional <code>variables</code>, and optional <code>operationName</code>.
+    </p>
+  </div>
+
+  <!-- Schema -->
+  <div class="section">
+    <h2>Schema</h2>
+    <div class="schema-block"><span class="kw">input</span> <span class="type">LoginInput</span> {
+  <span class="field">email</span>:    <span class="scalar">String</span>
+  <span class="field">password</span>: <span class="scalar">String</span>
+}
+
+<span class="kw">type</span> <span class="type">LoginResponse</span> {
+  <span class="field">status</span>:      <span class="scalar">Int</span>
+  <span class="field">accessToken</span>: <span class="scalar">String</span>
+  <span class="field">expiry</span>:      <span class="scalar">String</span>
+  <span class="field">tokenType</span>:   <span class="scalar">String</span>
+  <span class="field">lastRefresh</span>: <span class="scalar">String</span>
+  <span class="field">tokenTTL</span>:    <span class="scalar">Int</span>
+}
+
+<span class="kw">type</span> <span class="type">User</span> {
+  <span class="field">id</span>:            <span class="scalar">ID!</span>
+  <span class="field">email</span>:         <span class="scalar">String!</span>
+  <span class="field">name</span>:          <span class="scalar">String</span>
+  <span class="field">picture</span>:       <span class="scalar">String</span>
+  <span class="field">emailVerified</span>: <span class="scalar">Boolean!</span>
+}
+
+<span class="kw">type</span> <span class="type">Query</span> {
+  <span class="field">me</span>: <span class="type">User!</span>
+}
+
+<span class="kw">type</span> <span class="type">Mutation</span> {
+  <span class="field">Login</span>(<span class="field">input</span>: <span class="type">LoginInput!</span>): <span class="type">LoginResponse!</span>
+}</div>
+  </div>
+
+  <!-- Mutations -->
+  <div class="section">
+    <h2>Mutations</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="tag tag-mutation">MUTATION</span> Login
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom:16px; color:#555;">Authenticates a user and returns a JWT access token.</p>
+
+        <h3 style="font-size:0.95em; margin-bottom:8px;">Input: <code>LoginInput</code></h3>
+        <table style="margin-bottom:20px;">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>email</code></td>
+              <td><span class="type-scalar">String</span></td>
+              <td><span class="optional">Optional</span></td>
+              <td>The user's email address</td>
+            </tr>
+            <tr>
+              <td><code>password</code></td>
+              <td><span class="type-scalar">String</span></td>
+              <td><span class="optional">Optional</span></td>
+              <td>The user's password (plain text, hashed server-side)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size:0.95em; margin-bottom:8px;">Response: <code>LoginResponse</code></h3>
+        <table style="margin-bottom:20px;">
+          <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>status</code></td>      <td><span class="type-scalar">Int</span></td>    <td>HTTP-style status code (e.g. 200)</td></tr>
+            <tr><td><code>accessToken</code></td> <td><span class="type-scalar">String</span></td> <td>JWT bearer token</td></tr>
+            <tr><td><code>expiry</code></td>       <td><span class="type-scalar">String</span></td> <td>Token expiry timestamp (ISO 8601)</td></tr>
+            <tr><td><code>tokenType</code></td>    <td><span class="type-scalar">String</span></td> <td>Token type, typically <code>Bearer</code></td></tr>
+            <tr><td><code>lastRefresh</code></td>  <td><span class="type-scalar">String</span></td> <td>Last refresh timestamp (ISO 8601)</td></tr>
+            <tr><td><code>tokenTTL</code></td>     <td><span class="type-scalar">Int</span></td>    <td>Token time-to-live in seconds</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size:0.95em; margin-bottom:8px;">Example Request</h3>
+        <div class="example-block"><span class="kw">mutation</span> {
+  <span class="field">Login</span>(<span class="field">input</span>: {
+    <span class="field">email</span>:    <span class="string">"user@example.com"</span>
+    <span class="field">password</span>: <span class="string">"secret"</span>
+  }) {
+    <span class="field">status</span>
+    <span class="field">accessToken</span>
+    <span class="field">expiry</span>
+    <span class="field">tokenType</span>
+    <span class="field">tokenTTL</span>
+  }
+}</div>
+
+        <h3 style="font-size:0.95em; margin:16px 0 8px;">Example Response</h3>
+        <div class="example-block">{
+  <span class="key">"data"</span>: {
+    <span class="key">"Login"</span>: {
+      <span class="key">"status"</span>:      <span class="string">200</span>,
+      <span class="key">"accessToken"</span>: <span class="string">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
+      <span class="key">"expiry"</span>:      <span class="string">"2026-03-29T12:00:00Z"</span>,
+      <span class="key">"tokenType"</span>:   <span class="string">"Bearer"</span>,
+      <span class="key">"tokenTTL"</span>:    <span class="string">432000</span>
+    }
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Queries -->
+  <div class="section">
+    <h2>Queries</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="tag tag-query">QUERY</span> me
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom:16px; color:#555;">Returns the currently authenticated user's profile. Requires a valid JWT bearer token.</p>
+
+        <h3 style="font-size:0.95em; margin-bottom:8px;">Response: <code>User</code></h3>
+        <table style="margin-bottom:20px;">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td>            <td><span class="type-scalar">ID</span></td>      <td><span class="required">Required</span></td> <td>Unique user identifier</td></tr>
+            <tr><td><code>email</code></td>         <td><span class="type-scalar">String</span></td>  <td><span class="required">Required</span></td> <td>User's email address</td></tr>
+            <tr><td><code>name</code></td>          <td><span class="type-scalar">String</span></td>  <td><span class="optional">Optional</span></td> <td>User's display name</td></tr>
+            <tr><td><code>picture</code></td>       <td><span class="type-scalar">String</span></td>  <td><span class="optional">Optional</span></td> <td>URL of user's profile picture</td></tr>
+            <tr><td><code>emailVerified</code></td> <td><span class="type-scalar">Boolean</span></td> <td><span class="required">Required</span></td> <td>Whether the email has been verified</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size:0.95em; margin-bottom:8px;">Example Request</h3>
+        <div class="example-block"><span class="kw">query</span> {
+  <span class="field">me</span> {
+    <span class="field">id</span>
+    <span class="field">email</span>
+    <span class="field">name</span>
+    <span class="field">emailVerified</span>
+  }
+}</div>
+
+        <h3 style="font-size:0.95em; margin:16px 0 8px;">Example Response</h3>
+        <div class="example-block">{
+  <span class="key">"data"</span>: {
+    <span class="key">"me"</span>: {
+      <span class="key">"id"</span>:            <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+      <span class="key">"email"</span>:         <span class="string">"user@example.com"</span>,
+      <span class="key">"name"</span>:          <span class="string">"Jane Doe"</span>,
+      <span class="key">"emailVerified"</span>: <span class="string">true</span>
+    }
+  }
+}</div>
+
+        <p style="margin-top:16px; font-size:0.9em; color:#888;">
+          <strong>Authorization:</strong> include the JWT token as an HTTP header:
+          <code>Authorization: Bearer &lt;accessToken&gt;</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
