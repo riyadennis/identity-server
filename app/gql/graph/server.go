@@ -120,7 +120,7 @@ type GraphQLRequest struct {
 // Public operations that don't require authentication
 var publicOperations = map[string]bool{
 	"Login":        true,
-	"register":     true,
+	"Register":     true,
 	"refreshToken": true,
 }
 
