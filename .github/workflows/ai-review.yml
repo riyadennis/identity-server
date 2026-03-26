@@ -9,12 +9,12 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: openai-review-${{ github.event.pull_request.number }}
+  group: ai-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   openai-review:
-    name: OpenAI Code Review
+    name: AI Code Review
     runs-on: ubuntu-latest
 
     steps:
