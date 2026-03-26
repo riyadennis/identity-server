@@ -19,7 +19,10 @@ const (
 	openaiModel  = "llama-3.3-70b-versatile"
 	maxDiffLines = 500
 	maxTokens    = 1024
+	httpTimeout  = 30 * time.Second
 )
+
+var httpClient = &http.Client{Timeout: httpTimeout}
 
 type openaiRequest struct {
 	Model     string          `json:"model"`
@@ -111,7 +114,7 @@ Diff:
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+apiKey)
 
-		resp, err = http.DefaultClient.Do(req)
+		resp, err = httpClient.Do(req)
 		if err != nil {
 			return "", err
 		}
@@ -124,13 +127,16 @@ Diff:
 		resp.Body.Close()
 
 		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			log.Printf("rate limited by OpenAI (429): %s — retrying in %s (attempt %d/%d)",
+			log.Printf("rate limited (429): %s — retrying in %s (attempt %d/%d)",
 				string(respBody), retryDelays[attempt], attempt+1, maxRetries)
 			time.Sleep(retryDelays[attempt])
 			continue
 		}
 
 		return "", fmt.Errorf("openai API returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+	if resp == nil {
+		return "", fmt.Errorf("no response received after %d attempts", maxRetries)
 	}
 	defer resp.Body.Close()
 
@@ -161,7 +167,7 @@ func postGitHubComment(token, repo, prNumber, body string) error {
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
