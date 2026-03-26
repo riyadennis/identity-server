@@ -7,8 +7,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
+
+const maxDiffLines = 500
 
 const (
 	geminiURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -52,7 +55,7 @@ func main() {
 		return
 	}
 
-	review, err := callGemini(apiKey, string(diff))
+	review, err := callGemini(apiKey, truncateDiff(string(diff)))
 	if err != nil {
 		log.Fatalf("gemini review failed: %v", err)
 	}
@@ -62,6 +65,15 @@ func main() {
 	}
 
 	log.Println("review posted successfully")
+}
+
+func truncateDiff(diff string) string {
+	lines := strings.Split(diff, "\n")
+	if len(lines) <= maxDiffLines {
+		return diff
+	}
+	log.Printf("diff truncated from %d to %d lines to stay within API quota", len(lines), maxDiffLines)
+	return strings.Join(lines[:maxDiffLines], "\n") + "\n\n[diff truncated — showing first 500 lines only]"
 }
 
 func callGemini(apiKey, diff string) (string, error) {
