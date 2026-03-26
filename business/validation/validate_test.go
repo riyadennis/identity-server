@@ -114,7 +114,7 @@ func TestValidateToken(t *testing.T) {
 				KeyPath:       "./testdata/",
 				PublicKeyName: "test_public.pem",
 			},
-			expectedError: fmt.Sprintf("token is malformed: could not JSON decode header: invalid character '\\u008a' looking for beginning of value"),
+			expectedError: "token is malformed: could not JSON decode header: invalid character '\\u008a' looking for beginning of value",
 		},
 		{
 			name: "missing key file",
@@ -189,7 +189,7 @@ func generateTestToken(t *testing.T, issuer string, ttl time.Time) string {
 
 	privateKeyData, err := os.ReadFile("testdata/test_private.pem")
 	assert.NoError(t, err)
-	
+
 	signedToken, err := store.GenerateToken(logrus.New(),
 		privateKeyData,
 		&jwt.RegisteredClaims{Issuer: issuer, ExpiresAt: jwt.NewNumericDate(ttl)})

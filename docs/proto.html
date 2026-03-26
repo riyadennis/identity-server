@@ -63,57 +63,57 @@
       }
 
       td p:nth-child(1) {
-        text-indent: 0;  
+        text-indent: 0;
       }
 
-       
-      .field-table td:nth-child(1) {  
+
+      .field-table td:nth-child(1) {
         width: 10em;
       }
-      .field-table td:nth-child(2) {  
+      .field-table td:nth-child(2) {
         width: 10em;
       }
-      .field-table td:nth-child(3) {  
+      .field-table td:nth-child(3) {
         width: 6em;
       }
-      .field-table td:nth-child(4) {  
+      .field-table td:nth-child(4) {
         width: auto;
       }
 
-       
-      .extension-table td:nth-child(1) {  
+
+      .extension-table td:nth-child(1) {
         width: 10em;
       }
-      .extension-table td:nth-child(2) {  
+      .extension-table td:nth-child(2) {
         width: 10em;
       }
-      .extension-table td:nth-child(3) {  
+      .extension-table td:nth-child(3) {
         width: 10em;
       }
-      .extension-table td:nth-child(4) {  
+      .extension-table td:nth-child(4) {
         width: 5em;
       }
-      .extension-table td:nth-child(5) {  
+      .extension-table td:nth-child(5) {
         width: auto;
       }
 
-       
-      .enum-table td:nth-child(1) {  
+
+      .enum-table td:nth-child(1) {
         width: 10em;
       }
-      .enum-table td:nth-child(2) {  
+      .enum-table td:nth-child(2) {
         width: 10em;
       }
-      .enum-table td:nth-child(3) {  
+      .enum-table td:nth-child(3) {
         width: auto;
       }
 
-       
+
       .scalar-value-types-table tr {
         height: 3em;
       }
 
-       
+
       #toc-container ul {
         list-style-type: none;
         padding-left: 1em;
@@ -124,7 +124,7 @@
         font-weight: bold;
       }
 
-       
+
       .file-heading {
         width: 100%;
         display: table;
@@ -140,7 +140,7 @@
         display: table-cell;
       }
 
-       
+
       .badge {
         width: 1.6em;
         height: 1.6em;
@@ -160,7 +160,7 @@
       }
     </style>
 
-    
+
     <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
   </head>
 
@@ -172,198 +172,198 @@
 
     <div id="toc-container">
       <ul id="toc">
-        
-          
+
+
           <li>
             <a href="#app%2fproto%2fidentity%2fidentity.proto">app/proto/identity/identity.proto</a>
             <ul>
-              
+
                 <li>
                   <a href="#.LoginRequest"><span class="badge">M</span>LoginRequest</a>
                 </li>
-              
+
                 <li>
                   <a href="#.LoginResponse"><span class="badge">M</span>LoginResponse</a>
                 </li>
-              
+
                 <li>
                   <a href="#.UserRequest"><span class="badge">M</span>UserRequest</a>
                 </li>
-              
+
                 <li>
                   <a href="#.UserResponse"><span class="badge">M</span>UserResponse</a>
                 </li>
-              
-              
-              
-              
+
+
+
+
                 <li>
                   <a href="#.Identity"><span class="badge">S</span>Identity</a>
                 </li>
-              
+
             </ul>
           </li>
-        
+
         <li><a href="#scalar-value-types">Scalar Value Types</a></li>
       </ul>
     </div>
 
-    
-      
+
+
       <div class="file-heading">
         <h2 id="app/proto/identity/identity.proto">app/proto/identity/identity.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
 
-      
+
         <h3 id=".LoginRequest">LoginRequest</h3>
         <p>The request message containing the user's name.</p>
 
-        
+
           <table class="field-table">
             <thead>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
-              
+
                 <tr>
                   <td>email</td>
                   <td><a href="#string">string</a></td>
                   <td>required</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>password</td>
                   <td><a href="#string">string</a></td>
                   <td>required</td>
                   <td><p> </p></td>
                 </tr>
-              
+
             </tbody>
           </table>
 
-          
 
-        
-      
+
+
+
         <h3 id=".LoginResponse">LoginResponse</h3>
         <p>The response message containing the greetings</p>
 
-        
+
           <table class="field-table">
             <thead>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
-              
+
                 <tr>
                   <td>status</td>
                   <td><a href="#int32">int32</a></td>
                   <td>required</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>access_token</td>
                   <td><a href="#string">string</a></td>
                   <td>optional</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>expiry</td>
                   <td><a href="#string">string</a></td>
                   <td>optional</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>token_type</td>
                   <td><a href="#string">string</a></td>
                   <td>optional</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>last_refresh</td>
                   <td><a href="#string">string</a></td>
                   <td>optional</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>token_ttl</td>
                   <td><a href="#int32">int32</a></td>
                   <td>optional</td>
                   <td><p> </p></td>
                 </tr>
-              
+
             </tbody>
           </table>
 
-          
 
-        
-      
+
+
+
         <h3 id=".UserRequest">UserRequest</h3>
         <p>Empty - authentication comes from gRPC metadata</p>
 
-        
 
-        
-      
+
+
+
         <h3 id=".UserResponse">UserResponse</h3>
         <p></p>
 
-        
+
           <table class="field-table">
             <thead>
               <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
             </thead>
             <tbody>
-              
+
                 <tr>
                   <td>ID</td>
                   <td><a href="#string">string</a></td>
                   <td>required</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>email</td>
                   <td><a href="#string">string</a></td>
                   <td>required</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>name</td>
                   <td><a href="#string">string</a></td>
                   <td>required</td>
                   <td><p> </p></td>
                 </tr>
-              
+
                 <tr>
                   <td>emailVerified</td>
                   <td><a href="#bool">bool</a></td>
                   <td>optional</td>
                   <td><p> </p></td>
                 </tr>
-              
+
             </tbody>
           </table>
 
-          
 
-        
-      
 
-      
 
-      
 
-      
+
+
+
+
+
+
         <h3 id=".Identity">Identity</h3>
         <p>The Identity service definition.</p>
         <table class="enum-table">
@@ -371,26 +371,26 @@
             <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
           </thead>
           <tbody>
-            
+
               <tr>
                 <td>Login</td>
                 <td><a href="#LoginRequest">.LoginRequest</a></td>
                 <td><a href="#LoginResponse">.LoginResponse</a></td>
                 <td><p></p></td>
               </tr>
-            
+
               <tr>
                 <td>Me</td>
                 <td><a href="#UserRequest">.UserRequest</a></td>
                 <td><a href="#UserResponse">.UserResponse</a></td>
                 <td><p></p></td>
               </tr>
-            
+
           </tbody>
         </table>
 
-        
-    
+
+
 
     <h2 id="scalar-value-types">Scalar Value Types</h2>
     <table class="scalar-value-types-table">
@@ -398,7 +398,7 @@
         <tr><td>.proto Type</td><td>Notes</td><td>C++</td><td>Java</td><td>Python</td><td>Go</td><td>C#</td><td>PHP</td><td>Ruby</td></tr>
       </thead>
       <tbody>
-        
+
           <tr id="double">
             <td>double</td>
             <td></td>
@@ -410,7 +410,7 @@
             <td>float</td>
             <td>Float</td>
           </tr>
-        
+
           <tr id="float">
             <td>float</td>
             <td></td>
@@ -422,7 +422,7 @@
             <td>float</td>
             <td>Float</td>
           </tr>
-        
+
           <tr id="int32">
             <td>int32</td>
             <td>Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint32 instead.</td>
@@ -434,7 +434,7 @@
             <td>integer</td>
             <td>Bignum or Fixnum (as required)</td>
           </tr>
-        
+
           <tr id="int64">
             <td>int64</td>
             <td>Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint64 instead.</td>
@@ -446,7 +446,7 @@
             <td>integer/string</td>
             <td>Bignum</td>
           </tr>
-        
+
           <tr id="uint32">
             <td>uint32</td>
             <td>Uses variable-length encoding.</td>
@@ -458,7 +458,7 @@
             <td>integer</td>
             <td>Bignum or Fixnum (as required)</td>
           </tr>
-        
+
           <tr id="uint64">
             <td>uint64</td>
             <td>Uses variable-length encoding.</td>
@@ -470,7 +470,7 @@
             <td>integer/string</td>
             <td>Bignum or Fixnum (as required)</td>
           </tr>
-        
+
           <tr id="sint32">
             <td>sint32</td>
             <td>Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int32s.</td>
@@ -482,7 +482,7 @@
             <td>integer</td>
             <td>Bignum or Fixnum (as required)</td>
           </tr>
-        
+
           <tr id="sint64">
             <td>sint64</td>
             <td>Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int64s.</td>
@@ -494,7 +494,7 @@
             <td>integer/string</td>
             <td>Bignum</td>
           </tr>
-        
+
           <tr id="fixed32">
             <td>fixed32</td>
             <td>Always four bytes. More efficient than uint32 if values are often greater than 2^28.</td>
@@ -506,7 +506,7 @@
             <td>integer</td>
             <td>Bignum or Fixnum (as required)</td>
           </tr>
-        
+
           <tr id="fixed64">
             <td>fixed64</td>
             <td>Always eight bytes. More efficient than uint64 if values are often greater than 2^56.</td>
@@ -518,7 +518,7 @@
             <td>integer/string</td>
             <td>Bignum</td>
           </tr>
-        
+
           <tr id="sfixed32">
             <td>sfixed32</td>
             <td>Always four bytes.</td>
@@ -530,7 +530,7 @@
             <td>integer</td>
             <td>Bignum or Fixnum (as required)</td>
           </tr>
-        
+
           <tr id="sfixed64">
             <td>sfixed64</td>
             <td>Always eight bytes.</td>
@@ -542,7 +542,7 @@
             <td>integer/string</td>
             <td>Bignum</td>
           </tr>
-        
+
           <tr id="bool">
             <td>bool</td>
             <td></td>
@@ -554,7 +554,7 @@
             <td>boolean</td>
             <td>TrueClass/FalseClass</td>
           </tr>
-        
+
           <tr id="string">
             <td>string</td>
             <td>A string must always contain UTF-8 encoded or 7-bit ASCII text.</td>
@@ -566,7 +566,7 @@
             <td>string</td>
             <td>String (UTF-8)</td>
           </tr>
-        
+
           <tr id="bytes">
             <td>bytes</td>
             <td>May contain any arbitrary sequence of bytes.</td>
@@ -578,9 +578,8 @@
             <td>string</td>
             <td>String (ASCII-8BIT)</td>
           </tr>
-        
+
       </tbody>
     </table>
   </body>
 </html>
-
