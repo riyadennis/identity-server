@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -81,21 +82,37 @@ Diff:
 		return "", err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, geminiURL+"?key="+apiKey, bytes.NewReader(body))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
+	const maxRetries = 3
+	retryDelays := []time.Duration{10 * time.Second, 30 * time.Second, 60 * time.Second}
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+	var resp *http.Response
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		reqCopy, err := http.NewRequest(http.MethodPost, geminiURL+"?key="+apiKey, bytes.NewReader(body))
+		if err != nil {
+			return "", err
+		}
+		reqCopy.Header.Set("Content-Type", "application/json")
 
-	if resp.StatusCode != http.StatusOK {
+		resp, err = http.DefaultClient.Do(reqCopy)
+		if err != nil {
+			return "", err
+		}
+
+		if resp.StatusCode == http.StatusOK {
+			break
+		}
+
+		resp.Body.Close()
+
+		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
+			log.Printf("rate limited by Gemini API (429), retrying in %s (attempt %d/%d)", retryDelays[attempt], attempt+1, maxRetries)
+			time.Sleep(retryDelays[attempt])
+			continue
+		}
+
 		return "", fmt.Errorf("gemini API returned status %d", resp.StatusCode)
 	}
+	defer resp.Body.Close()
 
 	var result geminiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
