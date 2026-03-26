@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	openaiURL = "https://api.openai.com/v1/chat/completions"
+	openaiURL = "https://api.groq.com/openai/v1/chat/completions"
 	githubURL = "https://api.github.com"
 
-	openaiModel  = "gpt-4o-mini"
+	openaiModel  = "llama-3.3-70b-versatile"
 	maxDiffLines = 500
 	maxTokens    = 1024
 )
