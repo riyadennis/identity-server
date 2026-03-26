@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/riyadennis/identity-server/app/mocks"
+	"github.com/riyadennis/identity-server/business/store"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
@@ -76,4 +78,15 @@ func TestServer_Run_Shutdown(t *testing.T) {
 	}()
 	err = s.Run()
 	assert.NoError(t, err)
+}
+
+func TestRESTHandler(t *testing.T) {
+	s, err := NewServer(logrus.New(), "8091")
+	assert.NoError(t, err)
+	// Verify RESTHandler sets the handler without panicking
+	s.RESTHandler(
+		&store.TokenConfig{},
+		&mocks.Store{},
+		&mocks.Authenticator{},
+	)
 }

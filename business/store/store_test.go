@@ -14,6 +14,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPing(t *testing.T) {
+	t.Run("ping success", func(t *testing.T) {
+		conn, mock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
+		assert.NoError(t, err)
+		mock.ExpectPing()
+		db := &MYSQL{Conn: conn}
+		assert.NoError(t, db.Ping())
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("ping failure", func(t *testing.T) {
+		conn, mock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
+		assert.NoError(t, err)
+		mock.ExpectPing().WillReturnError(errors.New("connection refused"))
+		db := &MYSQL{Conn: conn}
+		assert.EqualError(t, db.Ping(), "connection refused")
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
 func TestDBInsertSuccess(t *testing.T) {
 	scenarios := []struct {
 		name        string

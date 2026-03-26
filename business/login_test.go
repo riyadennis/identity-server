@@ -107,6 +107,73 @@ func TestUserCredentialsInDB(t *testing.T) {
 	}
 }
 
+func TestLogin(t *testing.T) {
+	futureExpiry := time.Now().Add(2 * time.Hour)
+	testCases := []struct {
+		name          string
+		email         string
+		password      string
+		mockStore     store.Store
+		mockAuth      store.Authenticator
+		expectedError bool
+	}{
+		{
+			name:          "invalid email format",
+			email:         "not-an-email",
+			password:      "password123",
+			mockStore:     &mocks.Store{},
+			mockAuth:      &mocks.Authenticator{},
+			expectedError: true,
+		},
+		{
+			name:          "store read fails",
+			email:         "test@example.com",
+			password:      "password123",
+			mockStore:     &mocks.Store{Error: errors.New("db error")},
+			mockAuth:      &mocks.Authenticator{},
+			expectedError: true,
+		},
+		{
+			name:     "successful login with existing token",
+			email:    "test@example.com",
+			password: "correctpassword",
+			mockStore: &mocks.Store{
+				User: &store.User{
+					ID:    "user123",
+					Email: "test@example.com",
+				},
+			},
+			mockAuth: &mocks.Authenticator{
+				ReturnVal: true,
+				Token: &store.TokenRecord{
+					Id:     "token123",
+					Token:  "existing-jwt-token",
+					Expiry: futureExpiry,
+					TTL:    "3600",
+				},
+			},
+			expectedError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			logger := logrus.New()
+			logger.SetOutput(os.Stderr)
+
+			helper := NewHelper(tc.mockStore, tc.mockAuth, logger)
+			token, err := helper.Login(context.Background(), &store.TokenConfig{}, tc.email, tc.password)
+			if tc.expectedError {
+				assert.Error(t, err)
+				assert.Nil(t, token)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, token)
+			}
+		})
+	}
+}
+
 func TestManageToken(t *testing.T) {
 	// Create a temporary directory for test keys
 	tempDir, err := os.MkdirTemp("", "test-keys")

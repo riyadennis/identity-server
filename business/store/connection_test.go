@@ -1,14 +1,22 @@
 package store
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"os"
 	// initialise mysql driver
 	// initialise migration settings
 	"testing"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConnect(t *testing.T) {
@@ -83,4 +91,36 @@ func TestConnect(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateToken(t *testing.T) {
+	logger := logrus.New()
+	logger.SetOutput(os.Stderr)
+
+	t.Run("invalid key bytes", func(t *testing.T) {
+		_, err := GenerateToken(logger, []byte("not valid pem"), &jwt.RegisteredClaims{})
+		assert.Error(t, err)
+	})
+
+	t.Run("valid RSA key generates token", func(t *testing.T) {
+		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		assert.NoError(t, err)
+
+		privPEM := pem.EncodeToMemory(&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		})
+
+		expiry := time.Now().Add(1 * time.Hour)
+		token, err := GenerateToken(logger, privPEM, &jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiry),
+			Issuer:    "test-issuer",
+			Subject:   "user-123",
+		})
+		assert.NoError(t, err)
+		assert.NotNil(t, token)
+		assert.NotEmpty(t, token.AccessToken)
+		assert.Equal(t, 200, token.Status)
+		assert.Equal(t, "Bearer", token.TokenType)
+	})
 }
