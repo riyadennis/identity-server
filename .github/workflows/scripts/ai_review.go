@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -11,29 +12,30 @@ import (
 	"time"
 )
 
-const maxDiffLines = 500
-
 const (
-	geminiURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+	openaiURL = "https://api.openai.com/v1/chat/completions"
 	githubURL = "https://api.github.com"
+
+	openaiModel  = "gpt-4o-mini"
+	maxDiffLines = 500
+	maxTokens    = 1024
 )
 
-type geminiRequest struct {
-	Contents []geminiContent `json:"contents"`
+type openaiRequest struct {
+	Model     string          `json:"model"`
+	MaxTokens int             `json:"max_tokens"`
+	Messages  []openaiMessage `json:"messages"`
 }
 
-type geminiContent struct {
-	Parts []geminiPart `json:"parts"`
+type openaiMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
-type geminiPart struct {
-	Text string `json:"text"`
-}
-
-type geminiResponse struct {
-	Candidates []struct {
-		Content geminiContent `json:"content"`
-	} `json:"candidates"`
+type openaiResponse struct {
+	Choices []struct {
+		Message openaiMessage `json:"message"`
+	} `json:"choices"`
 }
 
 type githubCommentRequest struct {
@@ -41,7 +43,7 @@ type githubCommentRequest struct {
 }
 
 func main() {
-	apiKey := mustEnv("GEMINI_API_KEY")
+	apiKey := mustEnv("OPENAI_API_KEY")
 	githubToken := mustEnv("GITHUB_TOKEN")
 	prNumber := mustEnv("PR_NUMBER")
 	repo := mustEnv("REPO")
@@ -55,9 +57,9 @@ func main() {
 		return
 	}
 
-	review, err := callGemini(apiKey, truncateDiff(string(diff)))
+	review, err := callOpenAI(apiKey, truncateDiff(string(diff)))
 	if err != nil {
-		log.Fatalf("gemini review failed: %v", err)
+		log.Fatalf("openai review failed: %v", err)
 	}
 
 	if err := postGitHubComment(githubToken, repo, prNumber, review); err != nil {
@@ -72,11 +74,11 @@ func truncateDiff(diff string) string {
 	if len(lines) <= maxDiffLines {
 		return diff
 	}
-	log.Printf("diff truncated from %d to %d lines to stay within API quota", len(lines), maxDiffLines)
+	log.Printf("diff truncated from %d to %d lines to stay within API limits", len(lines), maxDiffLines)
 	return strings.Join(lines[:maxDiffLines], "\n") + "\n\n[diff truncated — showing first 500 lines only]"
 }
 
-func callGemini(apiKey, diff string) (string, error) {
+func callOpenAI(apiKey, diff string) (string, error) {
 	prompt := fmt.Sprintf(`You are a senior software engineer performing a code review.
 Review the following git diff and provide concise, actionable feedback.
 Focus on: bugs, security issues, performance problems, and code clarity.
@@ -85,10 +87,13 @@ Format your response in markdown.
 Diff:
 %s`, diff)
 
-	body, err := json.Marshal(geminiRequest{
-		Contents: []geminiContent{{
-			Parts: []geminiPart{{Text: prompt}},
-		}},
+	body, err := json.Marshal(openaiRequest{
+		Model:     openaiModel,
+		MaxTokens: maxTokens,
+		Messages: []openaiMessage{
+			{Role: "system", Content: "You are a senior software engineer performing code reviews."},
+			{Role: "user", Content: prompt},
+		},
 	})
 	if err != nil {
 		return "", err
@@ -99,13 +104,14 @@ Diff:
 
 	var resp *http.Response
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		reqCopy, err := http.NewRequest(http.MethodPost, geminiURL+"?key="+apiKey, bytes.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, openaiURL, bytes.NewReader(body))
 		if err != nil {
 			return "", err
 		}
-		reqCopy.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+apiKey)
 
-		resp, err = http.DefaultClient.Do(reqCopy)
+		resp, err = http.DefaultClient.Do(req)
 		if err != nil {
 			return "", err
 		}
@@ -114,33 +120,35 @@ Diff:
 			break
 		}
 
+		respBody, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
 
 		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			log.Printf("rate limited by Gemini API (429), retrying in %s (attempt %d/%d)", retryDelays[attempt], attempt+1, maxRetries)
+			log.Printf("rate limited by OpenAI (429): %s — retrying in %s (attempt %d/%d)",
+				string(respBody), retryDelays[attempt], attempt+1, maxRetries)
 			time.Sleep(retryDelays[attempt])
 			continue
 		}
 
-		return "", fmt.Errorf("gemini API returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("openai API returned status %d: %s", resp.StatusCode, string(respBody))
 	}
 	defer resp.Body.Close()
 
-	var result geminiResponse
+	var result openaiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err
 	}
-	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("gemini returned no content")
+	if len(result.Choices) == 0 {
+		return "", fmt.Errorf("openai returned no content")
 	}
 
-	return result.Candidates[0].Content.Parts[0].Text, nil
+	return result.Choices[0].Message.Content, nil
 }
 
 func postGitHubComment(token, repo, prNumber, body string) error {
 	url := fmt.Sprintf("%s/repos/%s/issues/%s/comments", githubURL, repo, prNumber)
 
-	payload, err := json.Marshal(githubCommentRequest{Body: "## Gemini Code Review\n\n" + body})
+	payload, err := json.Marshal(githubCommentRequest{Body: "## OpenAI Code Review\n\n" + body})
 	if err != nil {
 		return err
 	}

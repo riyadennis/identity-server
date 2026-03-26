@@ -1,4 +1,4 @@
-name: Gemini PR Review
+name: OpenAI PR Review
 
 on:
   pull_request:
@@ -9,12 +9,12 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: gemini-review-${{ github.event.pull_request.number }}
+  group: openai-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  gemini-review:
-    name: Gemini Code Review
+  openai-review:
+    name: OpenAI Code Review
     runs-on: ubuntu-latest
 
     steps:
@@ -35,10 +35,10 @@ jobs:
           git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr_diff.txt
           echo "Diff size: $(wc -l < /tmp/pr_diff.txt) lines"
 
-      - name: Run Gemini Review
+      - name: Run OpenAI Review
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-        run: go run .github/workflows/scripts/gemini_review.go
+        run: go run .github/workflows/scripts/ai_review.go
