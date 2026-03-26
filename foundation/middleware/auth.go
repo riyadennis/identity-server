@@ -10,9 +10,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type contextKey string
+
 const (
-	UserClaimsKey  = "claims"
-	AccessTokenKey = "accessToken"
+	UserClaimsKey  contextKey = "claims"
+	AccessTokenKey contextKey = "accessToken"
 )
 
 type AuthConfig struct {

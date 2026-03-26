@@ -25,7 +25,6 @@ var (
 
 type ProtoServer struct {
 	Server *grpc.Server
-	port   string
 }
 
 // Server have all the setup needed to run and shut down a http server

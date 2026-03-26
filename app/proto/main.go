@@ -30,8 +30,8 @@ func main() {
 	server := identity.NewServer(logger, cfg.Token, st, auth)
 	signal.Notify(server.ShutDown, os.Interrupt, syscall.SIGTERM)
 	var wt sync.WaitGroup
+	wt.Add(1)
 	go func() {
-		wt.Add(1)
 		err = server.Run(os.Getenv("GRPC_PORT"))
 		if err != nil {
 			logger.Fatalf("failed to run gRPC server: %v", err)

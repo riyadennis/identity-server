@@ -1,0 +1,9 @@
+linters-settings:
+  govet:
+    enable-all: false
+
+issues:
+  exclude-dirs:
+    - zarf
+    - docs
+    - vendor

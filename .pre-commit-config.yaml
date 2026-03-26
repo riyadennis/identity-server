@@ -1,0 +1,54 @@
+exclude: "^zarf/"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: no-commit-to-branch
+        args: ["--branch", "main"]
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: commitlint
+        name: Commit Lint
+        entry: commitlint lint --message
+        stages: [commit-msg]
+        language: system
+        description: "Commit Lint to Conventional Commits pattern"
+      - id: go-mod-tidy
+        name: go mod tidy
+        entry: go mod tidy
+        stages: [pre-commit]
+        language: system
+        pass_filenames: false
+      - id: go-fmt
+        name: go fmt
+        entry: gofmt -l -w -s
+        types: [go]
+        exclude: "(^|/)vendor/"
+        stages: [pre-commit]
+        language: system
+        pass_filenames: true
+      - id: go-test
+        name: go test
+        entry: go test ./...
+        types: [go]
+        stages: [pre-commit]
+        language: system
+        pass_filenames: false
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint run
+        types: [go]
+        stages: [pre-commit]
+        language: system
+        pass_filenames: false
+        description: "Run golangci-lint only on go files staged on this commit"
+
+  - repo: https://github.com/guionardo/govuln
+    rev: v0.1.0
+    hooks:
+      - id: go-vulncheck

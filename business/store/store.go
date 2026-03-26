@@ -60,9 +60,9 @@ func (m *MYSQL) Insert(ctx context.Context, u *User) (*User, error) {
 
 	id := uuid.New().String()
 
-	insert, err := m.Conn.Prepare(`INSERT INTO identity_users 
+	insert, err := m.Conn.Prepare(`INSERT INTO identity_users
 (id, first_name, last_name,password,
- email, company, post_code, terms) 
+ email, company, post_code, terms)
  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		logrus.Errorf("failed to prepare user insert: %v", err)
@@ -95,7 +95,7 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
        post_code,
        created_at,
        updated_at
-		FROM identity_users 
+		FROM identity_users
 		where id = ? limit 1`)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ var ReadQuery = `SELECT id,
        post_code,
        created_at,
        updated_at
-		FROM identity_users 
+		FROM identity_users
 		where email = ?`
 
 // Read will fetch data from auth for a user as per the email

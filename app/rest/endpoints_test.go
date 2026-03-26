@@ -79,7 +79,8 @@ func TestHome(t *testing.T) {
 	Home(w, nil)
 	body := &foundation.Response{}
 	dec := json.NewDecoder(w.Body)
-	dec.Decode(body)
+	err := dec.Decode(body)
+	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, body.Status)
 	assert.Equal(t, "Authorised", body.Message)
 	assert.Equal(t, "", body.ErrorCode)

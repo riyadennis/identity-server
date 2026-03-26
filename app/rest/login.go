@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	errEmailNotFound   = errors.New("email not found")
 	errTokenGeneration = errors.New("key not found")
 )
 

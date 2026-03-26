@@ -22,8 +22,8 @@ type Auth struct {
 	Logger *logrus.Logger
 }
 
-var authQuery = `SELECT password FROM 
-identity_users 
+var authQuery = `SELECT password FROM
+identity_users
 where email = ?`
 
 // Authenticate checks the validity of a given password for an email
@@ -61,8 +61,8 @@ type TokenRecord struct {
 	UpdatedAt string
 }
 
-var tokenQuery = `SELECT id,token,ttl,expiry,last_used FROM 
-login_tokens 
+var tokenQuery = `SELECT id,token,ttl,expiry,last_used FROM
+login_tokens
 where user_id = ?`
 
 func (a *Auth) FetchLoginToken(userID string) (*TokenRecord, error) {

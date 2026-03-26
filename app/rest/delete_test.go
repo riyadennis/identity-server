@@ -92,7 +92,7 @@ func TestHandlerDelete(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
