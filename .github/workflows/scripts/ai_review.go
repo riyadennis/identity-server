@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -23,6 +22,11 @@ const (
 	maxRetries   = 3
 )
 
+var prompt = `You are a senior software engineer performing a code review.
+Review the following git diff and provide concise, actionable feedback.
+Focus on: bugs, security issues, performance problems, and code clarity.
+Format your response in markdown.`
+
 var httpClient = &http.Client{Timeout: httpTimeout}
 
 type aiRequest struct {
@@ -36,7 +40,7 @@ type Message struct {
 	Content string `json:"content"`
 }
 
-type openaiResponse struct {
+type aiResponse struct {
 	Choices []struct {
 		Message Message `json:"message"`
 	} `json:"choices"`
@@ -47,10 +51,22 @@ type githubCommentRequest struct {
 }
 
 func main() {
-	apiKey := mustEnv("GROQ_API_KEY")
-	githubToken := mustEnv("GITHUB_TOKEN")
-	prNumber := mustEnv("PR_NUMBER")
-	repo := mustEnv("REPO")
+	apiKey, err := mustEnv("GROQ_API_KEY")
+	if err != nil {
+		log.Fatalf("Invalid API key: %v", err)
+	}
+	githubToken, err := mustEnv("GITHUB_TOKEN")
+	if err != nil {
+		log.Fatalf("Failed to fetch github token: %v", err)
+	}
+	prNumber, err := mustEnv("PR_NUMBER")
+	if err != nil {
+		log.Fatalf("Failed to fetch PR number: %v", err)
+	}
+	repo, err := mustEnv("REPO")
+	if err != nil {
+		log.Fatalf("Failed to fetch repo name: %v", err)
+	}
 
 	diff, err := os.ReadFile("/tmp/pr_diff.txt")
 	if err != nil {
@@ -83,79 +99,73 @@ func truncateDiff(diff string) string {
 }
 
 func callAI(apiKey, diff string) (string, error) {
-	prompt := fmt.Sprintf(`You are a senior software engineer performing a code review.
-Review the following git diff and provide concise, actionable feedback.
-Focus on: bugs, security issues, performance problems, and code clarity.
-Format your response in markdown.
-
-Diff:
-%s`, diff)
-
-	body, err := json.Marshal(aiRequest{
+	fullPrompt := fmt.Sprintf(`%s Diff: %s`, prompt, diff)
+	request := aiRequest{
 		Model:     aiModel,
 		MaxTokens: maxTokens,
 		Messages: []Message{
 			{Role: "system", Content: "You are a senior software engineer performing code reviews."},
-			{Role: "user", Content: prompt},
+			{Role: "user", Content: fullPrompt},
 		},
-	})
-	if err != nil {
-		return "", err
 	}
 
 	retryDelays := []time.Duration{10 * time.Second, 30 * time.Second, 60 * time.Second}
 
-	var resp *http.Response
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		req, err := http.NewRequest(http.MethodPost, aiURL, bytes.NewReader(body))
-		if err != nil {
-			return "", err
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-
-		resp, err = httpClient.Do(req)
+		result, rateLimited, err := requestAIReview(apiKey, request)
 		if err != nil {
 			return "", err
 		}
 
-		if resp.StatusCode == http.StatusOK {
-			break
-		}
-
-		respBody, _ := io.ReadAll(resp.Body)
-		err = resp.Body.Close()
-		if err != nil {
-			return "", err
-		}
-
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			log.Printf("rate limited (429): %s — retrying in %s (attempt %d/%d)",
-				string(respBody), retryDelays[attempt], attempt+1, maxRetries)
+		if rateLimited && attempt < maxRetries {
+			log.Printf("rate limited (429) — retrying in %s (attempt %d/%d)",
+				retryDelays[attempt], attempt+1, maxRetries)
 			time.Sleep(retryDelays[attempt])
 			continue
 		}
 
-		return "", fmt.Errorf("AI API returned status %d: %s", resp.StatusCode, string(respBody))
-	}
-	if resp == nil {
-		return "", fmt.Errorf("no response received after %d attempts", maxRetries)
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
+		if result == nil || len(result.Choices) == 0 {
+			return "", fmt.Errorf("AI returned no content")
+		}
 
-	var result openaiResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", err
-	}
-	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("AI returned no content")
+		return result.Choices[0].Message.Content, nil
 	}
 
-	return result.Choices[0].Message.Content, nil
+	return "", fmt.Errorf("AI review failed after %d attempts", maxRetries)
 }
 
+func requestAIReview(apiKey string, request aiRequest) (*aiResponse, bool, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, false, err
+	}
+	req, err := http.NewRequest(http.MethodPost, aiURL, bytes.NewReader(body))
+	if err != nil {
+		return nil, false, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return nil, true, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, false, fmt.Errorf("failed to get AI review, getting response code %d", resp.StatusCode)
+	}
+
+	var result aiResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, false, err
+	}
+
+	return &result, false, nil
+}
 func postGitHubComment(token, repo, prNumber, body string) error {
 	url := fmt.Sprintf("%s/repos/%s/issues/%s/comments", githubURL, repo, prNumber)
 
@@ -184,10 +194,10 @@ func postGitHubComment(token, repo, prNumber, body string) error {
 	return nil
 }
 
-func mustEnv(key string) string {
+func mustEnv(key string) (string, error) {
 	v := os.Getenv(key)
 	if v == "" {
-		log.Fatalf("required environment variable %s is not set", key)
+		return "", fmt.Errorf("required environment variable %s is not set", key)
 	}
-	return v
+	return v, nil
 }
