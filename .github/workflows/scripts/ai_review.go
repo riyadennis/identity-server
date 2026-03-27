@@ -20,6 +20,7 @@ const (
 	maxDiffLines = 500
 	maxTokens    = 1024
 	httpTimeout  = 30 * time.Second
+	maxRetries   = 3
 )
 
 var httpClient = &http.Client{Timeout: httpTimeout}
@@ -102,7 +103,6 @@ Diff:
 		return "", err
 	}
 
-	const maxRetries = 3
 	retryDelays := []time.Duration{10 * time.Second, 30 * time.Second, 60 * time.Second}
 
 	var resp *http.Response
@@ -124,7 +124,10 @@ Diff:
 		}
 
 		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		err = resp.Body.Close()
+		if err != nil {
+			return "", err
+		}
 
 		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
 			log.Printf("rate limited (429): %s — retrying in %s (attempt %d/%d)",
@@ -138,7 +141,9 @@ Diff:
 	if resp == nil {
 		return "", fmt.Errorf("no response received after %d attempts", maxRetries)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	var result openaiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
