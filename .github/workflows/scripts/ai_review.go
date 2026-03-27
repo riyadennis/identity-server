@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -13,31 +12,37 @@ import (
 )
 
 const (
-	openaiURL = "https://api.groq.com/openai/v1/chat/completions"
+	aiURL     = "https://api.groq.com/openai/v1/chat/completions"
 	githubURL = "https://api.github.com"
 
-	openaiModel  = "llama-3.3-70b-versatile"
+	aiModel      = "llama-3.3-70b-versatile"
 	maxDiffLines = 500
 	maxTokens    = 1024
 	httpTimeout  = 30 * time.Second
+	maxRetries   = 3
 )
+
+var prompt = `You are a senior software engineer performing a code review.
+Review the following git diff and provide concise, actionable feedback.
+Focus on: bugs, security issues, performance problems, and code clarity.
+Format your response in markdown.`
 
 var httpClient = &http.Client{Timeout: httpTimeout}
 
-type openaiRequest struct {
-	Model     string          `json:"model"`
-	MaxTokens int             `json:"max_tokens"`
-	Messages  []openaiMessage `json:"messages"`
+type aiRequest struct {
+	Model     string    `json:"model"`
+	MaxTokens int       `json:"max_tokens"`
+	Messages  []Message `json:"messages"`
 }
 
-type openaiMessage struct {
+type Message struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-type openaiResponse struct {
+type aiResponse struct {
 	Choices []struct {
-		Message openaiMessage `json:"message"`
+		Message Message `json:"message"`
 	} `json:"choices"`
 }
 
@@ -46,10 +51,22 @@ type githubCommentRequest struct {
 }
 
 func main() {
-	apiKey := mustEnv("OPENAI_API_KEY")
-	githubToken := mustEnv("GITHUB_TOKEN")
-	prNumber := mustEnv("PR_NUMBER")
-	repo := mustEnv("REPO")
+	apiKey, err := mustEnv("GROQ_API_KEY")
+	if err != nil {
+		log.Fatalf("Invalid API key: %v", err)
+	}
+	githubToken, err := mustEnv("GITHUB_TOKEN")
+	if err != nil {
+		log.Fatalf("Failed to fetch github token: %v", err)
+	}
+	prNumber, err := mustEnv("PR_NUMBER")
+	if err != nil {
+		log.Fatalf("Failed to fetch PR number: %v", err)
+	}
+	repo, err := mustEnv("REPO")
+	if err != nil {
+		log.Fatalf("Failed to fetch repo name: %v", err)
+	}
 
 	diff, err := os.ReadFile("/tmp/pr_diff.txt")
 	if err != nil {
@@ -60,9 +77,9 @@ func main() {
 		return
 	}
 
-	review, err := callOpenAI(apiKey, truncateDiff(string(diff)))
+	review, err := callAI(apiKey, truncateDiff(string(diff)))
 	if err != nil {
-		log.Fatalf("openai review failed: %v", err)
+		log.Fatalf("AI review failed: %v", err)
 	}
 
 	if err := postGitHubComment(githubToken, repo, prNumber, review); err != nil {
@@ -81,80 +98,78 @@ func truncateDiff(diff string) string {
 	return strings.Join(lines[:maxDiffLines], "\n") + "\n\n[diff truncated — showing first 500 lines only]"
 }
 
-func callOpenAI(apiKey, diff string) (string, error) {
-	prompt := fmt.Sprintf(`You are a senior software engineer performing a code review.
-Review the following git diff and provide concise, actionable feedback.
-Focus on: bugs, security issues, performance problems, and code clarity.
-Format your response in markdown.
-
-Diff:
-%s`, diff)
-
-	body, err := json.Marshal(openaiRequest{
-		Model:     openaiModel,
+func callAI(apiKey, diff string) (string, error) {
+	fullPrompt := fmt.Sprintf(`%s Diff: %s`, prompt, diff)
+	request := aiRequest{
+		Model:     aiModel,
 		MaxTokens: maxTokens,
-		Messages: []openaiMessage{
+		Messages: []Message{
 			{Role: "system", Content: "You are a senior software engineer performing code reviews."},
-			{Role: "user", Content: prompt},
+			{Role: "user", Content: fullPrompt},
 		},
-	})
-	if err != nil {
-		return "", err
 	}
 
-	const maxRetries = 3
 	retryDelays := []time.Duration{10 * time.Second, 30 * time.Second, 60 * time.Second}
 
-	var resp *http.Response
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		req, err := http.NewRequest(http.MethodPost, openaiURL, bytes.NewReader(body))
-		if err != nil {
-			return "", err
-		}
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-
-		resp, err = httpClient.Do(req)
+		result, rateLimited, err := requestAIReview(apiKey, request)
 		if err != nil {
 			return "", err
 		}
 
-		if resp.StatusCode == http.StatusOK {
-			break
-		}
-
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
-
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			log.Printf("rate limited (429): %s — retrying in %s (attempt %d/%d)",
-				string(respBody), retryDelays[attempt], attempt+1, maxRetries)
+		if rateLimited && attempt < maxRetries {
+			log.Printf("rate limited (429) — retrying in %s (attempt %d/%d)",
+				retryDelays[attempt], attempt+1, maxRetries)
 			time.Sleep(retryDelays[attempt])
 			continue
 		}
 
-		return "", fmt.Errorf("openai API returned status %d: %s", resp.StatusCode, string(respBody))
+		if result == nil || len(result.Choices) == 0 {
+			return "", fmt.Errorf("AI returned no content")
+		}
+
+		return result.Choices[0].Message.Content, nil
 	}
-	if resp == nil {
-		return "", fmt.Errorf("no response received after %d attempts", maxRetries)
+
+	return "", fmt.Errorf("AI review failed after %d attempts", maxRetries)
+}
+
+func requestAIReview(apiKey string, request aiRequest) (*aiResponse, bool, error) {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, false, err
+	}
+	req, err := http.NewRequest(http.MethodPost, aiURL, bytes.NewReader(body))
+	if err != nil {
+		return nil, false, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, false, err
 	}
 	defer resp.Body.Close()
 
-	var result openaiResponse
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return nil, true, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, false, fmt.Errorf("failed to get AI review, getting response code %d", resp.StatusCode)
+	}
+
+	var result aiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", err
-	}
-	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("openai returned no content")
+		return nil, false, err
 	}
 
-	return result.Choices[0].Message.Content, nil
+	return &result, false, nil
 }
-
 func postGitHubComment(token, repo, prNumber, body string) error {
 	url := fmt.Sprintf("%s/repos/%s/issues/%s/comments", githubURL, repo, prNumber)
 
-	payload, err := json.Marshal(githubCommentRequest{Body: "## OpenAI Code Review\n\n" + body})
+	payload, err := json.Marshal(githubCommentRequest{Body: "## AI Code Review\n\n" + body})
 	if err != nil {
 		return err
 	}
@@ -179,10 +194,10 @@ func postGitHubComment(token, repo, prNumber, body string) error {
 	return nil
 }
 
-func mustEnv(key string) string {
+func mustEnv(key string) (string, error) {
 	v := os.Getenv(key)
 	if v == "" {
-		log.Fatalf("required environment variable %s is not set", key)
+		return "", fmt.Errorf("required environment variable %s is not set", key)
 	}
-	return v
+	return v, nil
 }
