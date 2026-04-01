@@ -4,6 +4,8 @@ services:
   mysql-server:
     image: mysql:8.0
     ports:
+      # Host port 3307 avoids conflict with dashboard/docker-compose.yml which uses 3306.
+      # Internal services connect via mysql-server:3306 — unaffected by this mapping.
       - 3307:3306
     environment:
       - MYSQL_ROOT_PASSWORD=password
@@ -11,7 +13,8 @@ services:
       - MYSQL_USER=identity-server
       - MYSQL_PASSWORD=password
     volumes:
-      - mysql-data:/var/lib/mysql
+      # Renamed from mysql-data to avoid sharing the volume with dashboard/docker-compose.yml.
+      - identity_mysql_data:/var/lib/mysql
   go-server:
     restart: on-failure
     develop:
@@ -33,7 +36,7 @@ services:
       - MYSQL_PASSWORD=password
       - MYSQL_HOST=mysql-server
       - MYSQL_DATABASE=identity-server
-      - MYSQL_PORT=3307
+      - MYSQL_PORT=3306
       - ISSUER=open source
       #  needs trailing slash
       - KEY_PATH=/var/folders/
@@ -43,7 +46,7 @@ services:
     links:
       - mysql-server
     volumes:
-      - key-data:/var/folders
+      - identity_key_data:/var/folders
   go-grpc-server:
     restart: on-failure
     develop:
@@ -65,7 +68,7 @@ services:
       - MYSQL_PASSWORD=password
       - MYSQL_HOST=mysql-server
       - MYSQL_DATABASE=identity-server
-      - MYSQL_PORT=3307
+      - MYSQL_PORT=3306
       - ISSUER=open source
       # needs trailing slash
       - KEY_PATH=/var/folders/
@@ -75,7 +78,7 @@ services:
     links:
       - mysql-server
     volumes:
-      - key-data:/var/folders
+      - identity_key_data:/var/folders
   go-gql-server:
     restart: on-failure
     develop:
@@ -97,7 +100,7 @@ services:
       - MYSQL_PASSWORD=password
       - MYSQL_HOST=mysql-server
       - MYSQL_DATABASE=identity-server
-      - MYSQL_PORT=3307
+      - MYSQL_PORT=3306
       - ISSUER=open source
       # needs trailing slash
       - KEY_PATH=/var/folders/
@@ -107,7 +110,8 @@ services:
     links:
       - mysql-server
     volumes:
-      - key-data:/var/folders
+      - identity_key_data:/var/folders
 volumes:
-  mysql-data:
-  key-data:
+  # Renamed from mysql-data / key-data to avoid collisions with dashboard/docker-compose.yml.
+  identity_mysql_data:
+  identity_key_data:
