@@ -20,6 +20,8 @@ type Store interface {
 	Retrieve(ctx context.Context, id string) (*User, error)
 	Delete(id string) (int64, error)
 	Ping() error
+	UpdateRole(ctx context.Context, userID string, role string) error
+	ListByRole(ctx context.Context, role string) ([]*User, error)
 }
 
 // User holds data from the registration request body
@@ -32,6 +34,7 @@ type User struct {
 	Company   string `json:"company"`
 	PostCode  string `json:"post_code"`
 	Terms     bool   `json:"terms"`
+	Role      string `json:"role"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
@@ -192,4 +195,48 @@ func (m *MYSQL) Delete(id string) (int64, error) {
 
 func (m *MYSQL) Ping() error {
 	return m.Conn.Ping()
+}
+
+// UpdateRole sets the role for a user identified by userID.
+func (m *MYSQL) UpdateRole(ctx context.Context, userID string, role string) error {
+	stmt, err := m.Conn.Prepare(`UPDATE identity_users SET role = ? WHERE id = ?`)
+	if err != nil {
+		return err
+	}
+	result, err := stmt.ExecContext(ctx, role, userID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("user not found")
+	}
+	return nil
+}
+
+// ListByRole returns all users with the given role.
+func (m *MYSQL) ListByRole(ctx context.Context, role string) ([]*User, error) {
+	rows, err := m.Conn.QueryContext(ctx,
+		`SELECT id, first_name, last_name, email, company, post_code, role, created_at, updated_at
+		 FROM identity_users WHERE role = ?`, role)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		u := &User{}
+		if err := rows.Scan(
+			&u.ID, &u.FirstName, &u.LastName, &u.Email,
+			&u.Company, &u.PostCode, &u.Role, &u.CreatedAt, &u.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, nil
 }

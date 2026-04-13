@@ -20,8 +20,20 @@ type User {
     emailVerified: Boolean!
 }
 
+enum Role {
+    ADMIN
+    USER
+}
+
+type RoleResponse {
+    userId: String!
+    role: Role!
+}
+
 type Query {
     me: User!
+    getUserRole(userId: String!): RoleResponse!
+    listUsersByRole(role: Role!): [User!]!
 }
 
 input RegisterInput {
@@ -48,4 +60,5 @@ type RegisterResponse {
 type Mutation {
     Login(input: LoginInput!): LoginResponse!
     Register(input: RegisterInput!): RegisterResponse!
+    assignRole(userId: String!, role: Role!): RoleResponse!
 }
