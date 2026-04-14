@@ -1,0 +1,34 @@
+version: "0.5"
+
+environment:
+  - ENV=dev
+  - KEY_PATH=.
+
+processes:
+  mysql:
+    command: docker compose -f zarf/compose.yaml up mysql-server
+    readiness_probe:
+      exec:
+        command: "docker exec identity-server-mysql-server-1 mysqladmin ping -h localhost -u identity-server -ppassword"
+      initial_delay_seconds: 10
+      period_seconds: 5
+      failure_threshold: 10
+
+  rest-server:
+    command: go run app/main.go
+    depends_on:
+      mysql:
+        condition: process_healthy
+    readiness_probe:
+      http_get:
+        host: 127.0.0.1
+        port: 8095
+        path: /liveness
+      initial_delay_seconds: 5
+      period_seconds: 3
+
+  gql-server:
+    command: go run app/gql/main.go
+    depends_on:
+      mysql:
+        condition: process_healthy

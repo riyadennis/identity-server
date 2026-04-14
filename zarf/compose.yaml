@@ -4,9 +4,7 @@ services:
   mysql-server:
     image: mysql:8.0
     ports:
-      # Host port 3307 avoids conflict with dashboard/docker-compose.yml which uses 3306.
-      # Internal services connect via mysql-server:3306 — unaffected by this mapping.
-      - 3307:3306
+      - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=identity-server
@@ -15,6 +13,12 @@ services:
     volumes:
       # Renamed from mysql-data to avoid sharing the volume with dashboard/docker-compose.yml.
       - identity_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "identity-server", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
   go-server:
     restart: on-failure
     develop:
@@ -42,7 +46,8 @@ services:
       - KEY_PATH=/var/folders/
       - MIGRATION_PATH=/home/webuser/migrations
     depends_on:
-      - mysql-server
+      mysql-server:
+        condition: service_healthy
     links:
       - mysql-server
     volumes:
@@ -74,7 +79,8 @@ services:
       - KEY_PATH=/var/folders/
       - MIGRATION_PATH=/home/webuser/migrations
     depends_on:
-      - mysql-server
+      mysql-server:
+        condition: service_healthy
     links:
       - mysql-server
     volumes:
@@ -106,7 +112,8 @@ services:
       - KEY_PATH=/var/folders/
       - MIGRATION_PATH=/home/webuser/migrations
     depends_on:
-      - mysql-server
+      mysql-server:
+        condition: service_healthy
     links:
       - mysql-server
     volumes:
