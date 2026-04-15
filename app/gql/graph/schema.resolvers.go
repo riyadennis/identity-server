@@ -103,6 +103,10 @@ func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInp
 
 // AssignRole is the resolver for the assignRole field.
 func (r *mutationResolver) AssignRole(ctx context.Context, userID string, role model.Role) (*model.RoleResponse, error) {
+	if err := callerIsAdmin(ctx, r.Store, r.Logger); err != nil {
+		return nil, err
+	}
+
 	r.Logger.Infof("assigning role %s to user %s", role, userID)
 
 	if err := r.Store.UpdateRole(ctx, userID, role.String()); err != nil {

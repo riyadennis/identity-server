@@ -89,17 +89,7 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 		return nil, errEmptyDBConnection
 	}
 
-	fetch, err := m.Conn.Prepare(
-		`SELECT
-       first_name,
-       last_name,
-       email,
-       company,
-       post_code,
-       created_at,
-       updated_at
-		FROM identity_users
-		where id = ? limit 1`)
+	fetch, err := m.Conn.Prepare(RetrieveQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +104,7 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 		&user.PostCode,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.Role,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -126,6 +117,8 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 	user.ID = id
 	return user, nil
 }
+
+var RetrieveQuery = `SELECT first_name, last_name, email, company, post_code, created_at, updated_at, role FROM identity_users where id = ? limit 1`
 
 var ReadQuery = `SELECT id,
        first_name,
