@@ -32,3 +32,9 @@ processes:
     depends_on:
       mysql:
         condition: process_healthy
+
+  grpc-server:
+    command: go run app/proto/main.go
+    depends_on:
+      mysql:
+        condition: process_healthy

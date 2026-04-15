@@ -32,8 +32,8 @@ docker-run-test:
     -e ISSUER="riya-dennis" -p 8088:8088 --name identity-server-test --network backend riyadennis/identity-server
 
 tag:
-	 git tag -a v2.3.1 -m "fix migrations folder error"
-	git push origin v2.3.1
+	git tag -a v2.7.0 -m "fix migrations folder error"
+	git push origin v2.7.0
 
 githubToken:
 	export GITHUB_TOKEN="your token"
