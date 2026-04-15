@@ -101,6 +101,24 @@ func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInp
 	}, nil
 }
 
+// AssignRole is the resolver for the assignRole field.
+func (r *mutationResolver) AssignRole(ctx context.Context, userID string, role model.Role) (*model.RoleResponse, error) {
+	if err := callerIsAdmin(ctx, r.Store, r.Logger); err != nil {
+		return nil, err
+	}
+
+	r.Logger.Infof("assigning role %s to user %s", role, userID)
+
+	if err := r.Store.UpdateRole(ctx, userID, role.String()); err != nil {
+		return nil, fmt.Errorf("failed to assign role: %w", err)
+	}
+
+	return &model.RoleResponse{
+		UserID: userID,
+		Role:   role,
+	}, nil
+}
+
 // Me is the resolver for the me query.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	accessToken, ok := ctx.Value(middleware.AccessTokenKey).(string)
@@ -125,6 +143,51 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 		Picture:       nil,
 		EmailVerified: false,
 	}, nil
+}
+
+// GetUserRole is the resolver for the getUserRole field.
+func (r *queryResolver) GetUserRole(ctx context.Context, userID string) (*model.RoleResponse, error) {
+	r.Logger.Infof("fetching role for user %s", userID)
+
+	user, err := r.Store.Retrieve(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	}
+	if user == nil {
+		return nil, fmt.Errorf("user %s not found", userID)
+	}
+
+	role := model.Role(user.Role)
+	if !role.IsValid() {
+		return nil, fmt.Errorf("invalid role %q for user %s", user.Role, userID)
+	}
+
+	return &model.RoleResponse{
+		UserID: userID,
+		Role:   role,
+	}, nil
+}
+
+// ListUsersByRole is the resolver for the listUsersByRole field.
+func (r *queryResolver) ListUsersByRole(ctx context.Context, role model.Role) ([]*model.User, error) {
+	r.Logger.Infof("listing users with role %s", role)
+
+	users, err := r.Store.ListByRole(ctx, role.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to list users by role: %w", err)
+	}
+
+	result := make([]*model.User, 0, len(users))
+	for _, u := range users {
+		fullName := u.FirstName + " " + u.LastName
+		result = append(result, &model.User{
+			ID:            u.ID,
+			Email:         u.Email,
+			Name:          &fullName,
+			EmailVerified: false,
+		})
+	}
+	return result, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

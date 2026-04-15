@@ -61,11 +61,11 @@ func TestDBInsertSuccess(t *testing.T) {
 				mock.ExpectPrepare("INSERT INTO identity_users").ExpectExec().
 					WithArgs(sqlmock.AnyArg(), "John", "Doe", "check", "john.doe@test.com", "Arctura", "12345", true).
 					WillReturnResult(sqlmock.NewResult(1, 1))
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+				mock.ExpectPrepare(regexp.QuoteMeta(RetrieveQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
-					WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
-						AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now()))
+					WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at", "role"}).
+						AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now(), "user"))
 				return NewDB(conn)
 			}(),
 			user: &User{
@@ -156,7 +156,7 @@ func TestDBRetrieve(t *testing.T) {
 			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+				mock.ExpectPrepare(regexp.QuoteMeta(RetrieveQuery)).
 					WillReturnError(errors.New("error"))
 				return NewDB(conn)
 			}(),
@@ -167,7 +167,7 @@ func TestDBRetrieve(t *testing.T) {
 			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+				mock.ExpectPrepare(regexp.QuoteMeta(RetrieveQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnError(errors.New("error"))
@@ -180,7 +180,7 @@ func TestDBRetrieve(t *testing.T) {
 			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+				mock.ExpectPrepare(regexp.QuoteMeta(RetrieveQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnError(sql.ErrNoRows)
@@ -192,13 +192,13 @@ func TestDBRetrieve(t *testing.T) {
 			db: func() *MYSQL {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
-				mock.ExpectPrepare(regexp.QuoteMeta("SELECT first_name, last_name, email, company, post_code, created_at, updated_at FROM identity_users where id = ? limit 1")).
+				mock.ExpectPrepare(regexp.QuoteMeta(RetrieveQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnRows(
 						sqlmock.NewRows(
-							[]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
-							AddRow("john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01"))
+							[]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at", "role"}).
+							AddRow("john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01", "user"))
 				return NewDB(conn)
 			}(),
 			user: &User{
@@ -209,6 +209,7 @@ func TestDBRetrieve(t *testing.T) {
 				PostCode:  "12345",
 				CreatedAt: "2024-01-01",
 				UpdatedAt: "2024-01-01",
+				Role:      "user",
 			},
 		},
 	}

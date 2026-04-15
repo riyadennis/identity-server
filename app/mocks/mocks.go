@@ -28,6 +28,15 @@ func (s *Store) Delete(id string) (int64, error) {
 func (s *Store) Ping() error {
 	return s.Error
 }
+func (s *Store) UpdateRole(ctx context.Context, userID string, role string) error {
+	return s.Error
+}
+func (s *Store) ListByRole(ctx context.Context, role string) ([]*store.User, error) {
+	if s.User == nil {
+		return nil, s.Error
+	}
+	return []*store.User{s.User}, s.Error
+}
 
 type Authenticator struct {
 	ReturnVal bool

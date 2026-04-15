@@ -175,3 +175,9 @@ func (s *insertMockStore) Retrieve(ctx context.Context, id string) (*store.User,
 }
 func (s *insertMockStore) Delete(id string) (int64, error) { return 0, nil }
 func (s *insertMockStore) Ping() error                     { return nil }
+func (s *insertMockStore) UpdateRole(ctx context.Context, userID string, role string) error {
+	return nil
+}
+func (s *insertMockStore) ListByRole(ctx context.Context, role string) ([]*store.User, error) {
+	return nil, nil
+}
