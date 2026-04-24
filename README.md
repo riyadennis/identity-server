@@ -79,6 +79,32 @@ MYSQL_HOST="127.0.0.1"
 MIGRATION_PATH="migrations"
 ```
 ### Login Mutation example
-````
+```
 mutation Login($input: LoginInput!) { Login(input: $input) { status accessToken expiry tokenType lastRefresh tokenTTL } }
 ```
+
+## GraphQL API Documentation
+
+The GraphQL API docs are generated using [SpectaQL](https://github.com/anvilco/spectaql) from the schema at `app/gql/graph/schema.graphqls`.
+
+### Install SpectaQL
+
+```bash
+npm install -g spectaql
+```
+
+### Generate docs
+
+```bash
+npx spectaql app/gql/spectaql.yaml -t docs/graphql
+```
+
+This outputs static HTML documentation to the `docs/graphql/` directory.
+
+### Preview docs locally
+
+```bash
+npx spectaql app/gql/spectaql.yaml -t docs/graphql -D
+```
+
+The `-D` flag starts a development server so you can view the docs in your browser.
