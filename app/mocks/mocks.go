@@ -37,6 +37,12 @@ func (s *Store) ListByRole(ctx context.Context, role string) ([]*store.User, err
 	}
 	return []*store.User{s.User}, s.Error
 }
+func (s *Store) ListAll(ctx context.Context) ([]*store.User, error) {
+	if s.User == nil {
+		return nil, s.Error
+	}
+	return []*store.User{s.User}, s.Error
+}
 
 type Authenticator struct {
 	ReturnVal bool

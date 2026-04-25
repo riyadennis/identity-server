@@ -1,0 +1,27 @@
+info:
+  name: Me
+  type: graphql
+  seq: 1
+
+graphql:
+  method: POST
+  url: "{{base_url}}/graphql"
+  body:
+    query: |-
+      query Me { me { 
+      	id 
+      	email
+      	name
+      	picture
+      	emailVerified
+      } 
+      }
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

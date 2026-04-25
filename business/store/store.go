@@ -22,6 +22,7 @@ type Store interface {
 	Ping() error
 	UpdateRole(ctx context.Context, userID string, role string) error
 	ListByRole(ctx context.Context, role string) ([]*User, error)
+	ListAll(ctx context.Context) ([]*User, error)
 }
 
 // User holds data from the registration request body
@@ -208,6 +209,30 @@ func (m *MYSQL) UpdateRole(ctx context.Context, userID string, role string) erro
 		return errors.New("user not found")
 	}
 	return nil
+}
+
+// ListAll returns all registered users.
+func (m *MYSQL) ListAll(ctx context.Context) ([]*User, error) {
+	rows, err := m.Conn.QueryContext(ctx,
+		`SELECT id, first_name, last_name, email, company, post_code, role, created_at, updated_at
+		 FROM identity_users`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		u := &User{}
+		if err := rows.Scan(
+			&u.ID, &u.FirstName, &u.LastName, &u.Email,
+			&u.Company, &u.PostCode, &u.Role, &u.CreatedAt, &u.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, nil
 }
 
 // ListByRole returns all users with the given role.

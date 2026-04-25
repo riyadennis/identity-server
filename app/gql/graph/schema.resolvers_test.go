@@ -181,3 +181,6 @@ func (s *insertMockStore) UpdateRole(ctx context.Context, userID string, role st
 func (s *insertMockStore) ListByRole(ctx context.Context, role string) ([]*store.User, error) {
 	return nil, nil
 }
+func (s *insertMockStore) ListAll(ctx context.Context) ([]*store.User, error) {
+	return nil, nil
+}

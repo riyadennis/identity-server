@@ -124,6 +124,25 @@ var publicOperations = map[string]bool{
 	"refreshToken": true,
 }
 
+// operationName returns the operation name from the request, falling back
+// to parsing the query string when the operationName JSON field is absent
+// (as is the case with clients like Bruno).
+func operationName(req GraphQLRequest) string {
+	if req.OperationName != "" {
+		return req.OperationName
+	}
+	query := strings.TrimSpace(req.Query)
+	for _, prefix := range []string{"mutation ", "query ", "subscription "} {
+		if strings.HasPrefix(query, prefix) {
+			rest := strings.TrimSpace(query[len(prefix):])
+			if end := strings.IndexAny(rest, "({ "); end > 0 {
+				return strings.TrimSpace(rest[:end])
+			}
+		}
+	}
+	return ""
+}
+
 func NeedsAuthMiddleWare(ac customMiddleware.AuthConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +163,7 @@ func NeedsAuthMiddleWare(ac customMiddleware.AuthConfig) func(http.Handler) http
 			r.Body = io.NopCloser(strings.NewReader(string(body)))
 
 			// Check if operation is public
-			if publicOperations[gqlReq.OperationName] {
+			if publicOperations[operationName(gqlReq)] {
 				next.ServeHTTP(w, r)
 			} else {
 				ac.Auth(next).ServeHTTP(w, r)
