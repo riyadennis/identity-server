@@ -1,0 +1,28 @@
+info:
+  name: List Users
+  type: graphql
+  seq: 3
+
+graphql:
+  method: POST
+  url: http://localhost:8097/graphql
+  body:
+    query: |
+      query listUsers {
+        listUsers {
+          id
+          email
+          name
+          picture
+          emailVerified
+        }
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuIHNvdXJjZSIsInN1YiI6ImE1NDEwMWJhLTE5MDUtNGIzYi05NjE0LWJhMjI2M2I2ODI0MyIsImF1ZCI6WyJsb2NhbCJdLCJleHAiOjE3Nzc0ODQ3NDV9.dloqUWTCtxCz0zBfEovsf87CqIe-y6LdyvPjKjydBeW_lZH8WnWPb5MyBQLnBPCBMHuC4p4QDlsjh9rOePjpM1XGT2Ou5g5nnnp7IW8NPl2zNWpQZ2dJP7HnkOl4CjOicpWwaG3PjXZfeF0U6EmQhXG5zemN7Z1X1hWve2k3UcbVDS4ecU2mt1gVEWFiCvRF4-JDdCPg4ysuCZiKUkVDszQOIpb5l6aN4QSNU7PlJSRMuyChg4Z4zSRYUeCunWkE3YcJNzMbeXuY6NWfBFF_1Zz3MfgrsbkLGu60djTrtuqfz3ZxKnuGrbrrtojKe3B-AIAMAfhLJpyG_UojgTTSbw
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
