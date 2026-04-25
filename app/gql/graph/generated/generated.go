@@ -53,6 +53,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetUserRole        func(childComplexity int, userID string) int
+		ListUsers          func(childComplexity int) int
 		ListUsersByRole    func(childComplexity int, role model.Role) int
 		Me                 func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
@@ -96,6 +97,7 @@ type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
 	GetUserRole(ctx context.Context, userID string) (*model.RoleResponse, error)
 	ListUsersByRole(ctx context.Context, role model.Role) ([]*model.User, error)
+	ListUsers(ctx context.Context) ([]*model.User, error)
 }
 
 type executableSchema graphql.ExecutableSchemaState[ResolverRoot, DirectiveRoot, ComplexityRoot]
@@ -195,6 +197,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Query.GetUserRole(childComplexity, args["userId"].(string)), true
 
+	case "Query.listUsers":
+		if e.ComplexityRoot.Query.ListUsers == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.ListUsers(childComplexity), true
 	case "Query.listUsersByRole":
 		if e.ComplexityRoot.Query.ListUsersByRole == nil {
 			break
@@ -440,6 +448,7 @@ type Query {
     me: User!
     getUserRole(userId: String!): RoleResponse!
     listUsersByRole(role: Role!): [User!]!
+    listUsers: [User!]!
 }
 
 input RegisterInput {
@@ -1089,6 +1098,47 @@ func (ec *executionContext) fieldContext_Query_listUsersByRole(ctx context.Conte
 	if fc.Args, err = ec.field_Query_listUsersByRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_listUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_listUsers,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().ListUsers(ctx)
+		},
+		nil,
+		ec.marshalNUser2ᚕᚖgithubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐUserᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_listUsers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "picture":
+				return ec.fieldContext_User_picture(ctx, field)
+			case "emailVerified":
+				return ec.fieldContext_User_emailVerified(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -3443,6 +3493,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_listUsersByRole(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "listUsers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_listUsers(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
