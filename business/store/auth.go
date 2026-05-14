@@ -26,7 +26,7 @@ var authQuery = `SELECT password FROM
 identity_users
 where email = ?`
 
-// Authenticate checks the validity of a given password for an email
+// Authenticate checks the validity of a given password for an email.
 func (a *Auth) Authenticate(email, inputPassword string) (bool, error) {
 	login, err := a.Conn.Prepare(authQuery)
 	if err != nil {

@@ -29,10 +29,10 @@ import (
 )
 
 var (
-	// ErrFailedToStartListener means that the listener couldn't be started
+	// ErrFailedToStartListener means that the listener couldn't be started.
 	ErrFailedToStartListener = errors.New("failed to start listener")
 
-	// ErrFailedToStartServer means that the server couldn't be started
+	// ErrFailedToStartServer means that the server couldn't be started.
 	ErrFailedToStartServer = errors.New("failed to start server")
 )
 
@@ -53,7 +53,8 @@ type Server struct {
 }
 
 func NewServer(logger *logrus.Logger, port string, store store.Store,
-	auth store.Authenticator, tc *store.TokenConfig) *Server {
+	auth store.Authenticator, tc *store.TokenConfig,
+) *Server {
 	resolver := NewResolver(logger, tc, store, auth)
 	srv := handler.New(generated.NewExecutableSchema(
 		generated.Config{
@@ -112,12 +113,13 @@ func (s *Server) Start(port string) error {
 	return sErr
 }
 
+// GraphQLRequest is used to distinguish public and private graphql operations
 type GraphQLRequest struct {
 	OperationName string `json:"operationName"`
 	Query         string `json:"query"`
 }
 
-// Public operations that don't require authentication
+// Public operations that don't require authentication.
 var publicOperations = map[string]bool{
 	"Login":        true,
 	"Register":     true,

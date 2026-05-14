@@ -14,27 +14,26 @@ import (
 )
 
 const (
-	// RegisterEndpoint is to create a new user
+	// RegisterEndpoint is to create a new user.
 	RegisterEndpoint = "/register"
 
-	// DeleteEndpoint is to delete a user
+	// DeleteEndpoint is to delete a user.
 	DeleteEndpoint = "/delete/{userID}"
 
-	// LoginEndPoint creates a token for the  user of credentials are valid
+	// LoginEndPoint creates a token for the  user of credentials are valid.
 	LoginEndPoint = "/login"
 
-	// HomeEndPoint is the details end point that a
-	// logged-in user with a valid token can access
+	// logged-in user with a valid token can access.
 	HomeEndPoint = "/home"
 
-	// LivenessEndPoint is for kubernetes to check when to restart the container
+	// LivenessEndPoint is for kubernetes to check when to restart the container.
 	LivenessEndPoint = "/liveness"
 
-	// ReadinessEndPoint is for kubernetes to check when the container is read to accept traffic
+	// ReadinessEndPoint is for kubernetes to check when the container is read to accept traffic.
 	ReadinessEndPoint = "/readiness"
 )
 
-// LoadRESTEndpoints adds REST endpoints to the router
+// LoadRESTEndpoints adds REST endpoints to the router.
 func LoadRESTEndpoints(tc *store.TokenConfig, logger *logrus.Logger, st store.Store, auth store.Authenticator) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

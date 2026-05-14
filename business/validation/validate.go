@@ -27,11 +27,11 @@ var (
 )
 
 const (
-	// BearerSchema is expected prefix for token from authorisation header
+	// BearerSchema is expected prefix for token from authorisation header.
 	BearerSchema = "Bearer "
 )
 
-// ValidateUser checks registration request validity
+// ValidateUser checks registration request validity.
 func ValidateUser(u *store.User) error {
 	if u == nil {
 		return errEmptyUser

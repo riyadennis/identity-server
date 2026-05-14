@@ -5,21 +5,20 @@ import (
 	"net/http"
 )
 
-// Response is the response structure for error messages
-// and success messages
+// and success messages.
 type Response struct {
 	Status    int    `json:"status"`
 	Message   string `json:"message"`
 	ErrorCode string `json:"error-code"`
 }
 
-// ErrorResponse give details to the user about the error that occurred
+// ErrorResponse give details to the user about the error that occurred.
 func ErrorResponse(w http.ResponseWriter, code int, errr error, customCode string) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = JSONResponse(w, code, errr.Error(), customCode)
 }
 
-// JSONResponse converts response into a json
+// JSONResponse converts response into a json.
 func JSONResponse(w http.ResponseWriter, status int, message, errCode string) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -31,7 +30,7 @@ func JSONResponse(w http.ResponseWriter, status int, message, errCode string) er
 	return nil
 }
 
-// NewResponse creates an instance of response structure
+// NewResponse creates an instance of response structure.
 func NewResponse(status int, message, errCode string) *Response {
 	return &Response{
 		Status:    status,

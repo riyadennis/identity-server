@@ -166,6 +166,7 @@ func checkResponse(t *testing.T, expected, actual *LoginResponse) {
 		assert.Equal(t, expected.Status, actual.Status)
 	}
 }
+
 func TestLogin_InvalidTokenTTL(t *testing.T) {
 	mockStore := &mocks.Store{
 		User: &store.User{

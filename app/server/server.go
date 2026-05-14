@@ -27,7 +27,7 @@ type ProtoServer struct {
 	Server *grpc.Server
 }
 
-// Server have all the setup needed to run and shut down a http server
+// Server have all the setup needed to run and shut down a http server.
 type Server struct {
 	Logger      *logrus.Logger
 	restServer  http.Server
@@ -35,7 +35,7 @@ type Server struct {
 	ShutDown    chan os.Signal
 }
 
-// NewServer creates a server instance with error and shutdown channels initialized
+// NewServer creates a server instance with error and shutdown channels initialized.
 func NewServer(logger *logrus.Logger, restPort string) (*Server, error) {
 	errChan := make(chan error, 2)
 	shutdown := make(chan os.Signal, 1)
@@ -68,8 +68,7 @@ func (s *Server) RESTHandler(tc *store.TokenConfig, st store.Store, auth store.A
 	s.restServer.Handler = rest.LoadRESTEndpoints(tc, s.Logger, st, auth)
 }
 
-// Run registers routes and starts a webserver
-// and waits to receive from shutdown and error channels
+// and waits to receive from shutdown and error channels.
 func (s *Server) Run() error {
 	// Start the rest server
 	go func() {

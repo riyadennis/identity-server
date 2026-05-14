@@ -5,8 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	// initialise mysql driver
-	// initialise migration settings
+	// initialise migration settings.
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/riyadennis/identity-server/app/server"
@@ -41,5 +40,4 @@ func main() {
 	if err != nil {
 		logger.Fatalf("error running server: %v", err)
 	}
-
 }

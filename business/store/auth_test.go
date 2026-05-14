@@ -14,9 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	testExpiry = time.Now().Add(time.Hour * 24)
-)
+var testExpiry = time.Now().Add(time.Hour * 24)
 
 func TestAuthenticate(t *testing.T) {
 	testcases := []struct {
@@ -89,7 +87,6 @@ func TestAuthenticate(t *testing.T) {
 			assert.Equal(t, testCase.expectedResult, authenticated)
 		})
 	}
-
 }
 
 func TestAuth_FetchLoginToken(t *testing.T) {

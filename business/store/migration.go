@@ -16,8 +16,7 @@ var (
 	errInvalidDataInDB         = errors.New("invalid data in auth")
 )
 
-// Migrate runs migration on the auth specified in the connection
-// will create all the tables in the migrations folder
+// will create all the tables in the migrations folder.
 func Migrate(db *sql.DB, dbName, migrationPath string) error {
 	if db == nil {
 		return errEmptyDBConnection
