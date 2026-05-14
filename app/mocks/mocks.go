@@ -22,21 +22,32 @@ func (s *Store) Read(ctx context.Context, email string) (*store.User, error) {
 func (s *Store) Retrieve(ctx context.Context, id string) (*store.User, error) {
 	return s.User, s.Error
 }
+
 func (s *Store) Delete(id string) (int64, error) {
 	return 0, s.Error
 }
+
 func (s *Store) Ping() error {
 	return s.Error
 }
+
 func (s *Store) UpdateRole(ctx context.Context, userID string, role string) error {
 	return s.Error
 }
+
 func (s *Store) ListByRole(ctx context.Context, role string) ([]*store.User, error) {
 	if s.User == nil {
 		return nil, s.Error
 	}
 	return []*store.User{s.User}, s.Error
 }
+func (s *Store) ListAll(ctx context.Context) ([]*store.User, error) {
+	if s.User == nil {
+		return nil, s.Error
+	}
+	return []*store.User{s.User}, s.Error
+}
+
 func (s *Store) ListAll(ctx context.Context) ([]*store.User, error) {
 	if s.User == nil {
 		return nil, s.Error
@@ -53,9 +64,11 @@ type Authenticator struct {
 func (ma *Authenticator) Authenticate(email, password string) (bool, error) {
 	return ma.ReturnVal, ma.Error
 }
+
 func (ma *Authenticator) FetchLoginToken(userID string) (*store.TokenRecord, error) {
 	return ma.Token, nil
 }
+
 func (ma *Authenticator) SaveLoginToken(ctx context.Context, t *store.TokenRecord) error {
 	return nil
 }

@@ -297,6 +297,9 @@ const docTemplate = `{
                 "post_code": {
                     "type": "string"
                 },
+                "role": {
+                    "type": "string"
+                },
                 "terms": {
                     "type": "boolean"
                 },

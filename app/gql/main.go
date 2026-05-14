@@ -5,8 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	// initialise mysql driver
-	// initialise migration settings
+	// initialise migration settings.
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
 
@@ -35,5 +34,4 @@ func main() {
 	}
 
 	<-s.ShutDown
-
 }

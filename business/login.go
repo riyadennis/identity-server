@@ -34,6 +34,7 @@ func NewHelper(s store.Store, a store.Authenticator, l *logrus.Logger) *Helper {
 		Logger:        l,
 	}
 }
+
 func (h *Helper) Login(ctx context.Context, tc *store.TokenConfig, email, password string) (*store.Token, error) {
 	err := validation.ValidateEmail(email)
 	if err != nil {
@@ -41,12 +42,12 @@ func (h *Helper) Login(ctx context.Context, tc *store.TokenConfig, email, passwo
 	}
 	user, err := h.UserCredentialsInDB(ctx, email, password)
 	if err != nil {
-		//already logged
+		// already logged
 		return nil, err
 	}
 	token, err := h.ManageToken(ctx, tc, user.ID)
 	if err != nil {
-		//already logged
+		// already logged
 		return nil, err
 	}
 
@@ -104,7 +105,7 @@ func (h *Helper) ManageToken(ctx context.Context, config *store.TokenConfig, use
 		ExpiresAt: jwt.NewNumericDate(expiryTime),
 		Issuer:    config.Issuer,
 		Subject:   userID,
-		//need to change this later
+		// need to change this later
 		Audience: jwt.ClaimStrings{"local"},
 	})
 	if err != nil {

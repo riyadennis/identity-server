@@ -159,26 +159,33 @@ func TestRegister_Success(t *testing.T) {
 	assert.Equal(t, testEmail, *resp.Email)
 }
 
-// insertMockStore returns empty user on Read (not found) and created on Insert
+// insertMockStore returns empty user on Read (not found) and created on Insert.
 type insertMockStore struct {
 	created *store.User
 }
 
-func (s *insertMockStore) Insert(ctx context.Context, u *store.User) (*store.User, error) {
+func (s *insertMockStore) Insert(_ context.Context, _ *store.User) (*store.User, error) {
 	return s.created, nil
 }
-func (s *insertMockStore) Read(ctx context.Context, email string) (*store.User, error) {
+
+func (s *insertMockStore) Read(_ context.Context, _ string) (*store.User, error) {
 	return &store.User{}, nil // empty — email not found
 }
-func (s *insertMockStore) Retrieve(ctx context.Context, id string) (*store.User, error) {
+
+func (s *insertMockStore) Retrieve(_ context.Context, _ string) (*store.User, error) {
 	return s.created, nil
 }
-func (s *insertMockStore) Delete(id string) (int64, error) { return 0, nil }
-func (s *insertMockStore) Ping() error                     { return nil }
-func (s *insertMockStore) UpdateRole(ctx context.Context, userID string, role string) error {
+func (s *insertMockStore) Delete(_ string) (int64, error) { return 0, nil }
+func (s *insertMockStore) Ping() error                    { return nil }
+func (s *insertMockStore) UpdateRole(_ context.Context, _ string, _ string) error {
 	return nil
 }
-func (s *insertMockStore) ListByRole(ctx context.Context, role string) ([]*store.User, error) {
+
+func (s *insertMockStore) ListByRole(_ context.Context, _ string) ([]*store.User, error) {
+	return nil, nil
+}
+
+func (s *insertMockStore) ListAll(_ context.Context) ([]*store.User, error) {
 	return nil, nil
 }
 func (s *insertMockStore) ListAll(ctx context.Context) ([]*store.User, error) {

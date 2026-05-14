@@ -2,6 +2,20 @@ linters-settings:
   govet:
     enable-all: false
 
+# .golangci.yml
+linters:
+  enable:
+    - errcheck        # unchecked errors
+    - errorlint       # incorrect error wrapping
+    - govet           # vet checks
+    - staticcheck     # broad static analysis
+    - revive          # style (replaces golint)
+    - exhaustive      # exhaustive switch on enums
+    - noctx           # HTTP requests without context
+    - godot           # comment punctuation
+    - misspell        # typos
+    - gofumpt         # stricter gofmt
+
 issues:
   exclude-dirs:
     - zarf

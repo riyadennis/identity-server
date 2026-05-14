@@ -9,11 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	errEmptyUser = errors.New("empty user")
-)
+var errEmptyUser = errors.New("empty user")
 
-// Store have CRUD functions for user management
+// Store have CRUD functions for user management.
 type Store interface {
 	Insert(ctx context.Context, u *User) (*User, error)
 	Read(ctx context.Context, email string) (*User, error)
@@ -25,7 +23,7 @@ type Store interface {
 	ListAll(ctx context.Context) ([]*User, error)
 }
 
-// User holds data from the registration request body
+// User holds data from the registration request body.
 type User struct {
 	ID        string `json:"id"`
 	FirstName string `json:"first_name"`
@@ -40,19 +38,19 @@ type User struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
-// MYSQL implements store interface
+// MYSQL implements store interface.
 type MYSQL struct {
 	Conn *sql.DB
 }
 
-// NewDB creates a new instance if the MYSQL
+// NewDB creates a new instance if the MYSQL.
 func NewDB(database *sql.DB) *MYSQL {
 	return &MYSQL{
 		Conn: database,
 	}
 }
 
-// Insert creates a new user during registration
+// Insert creates a new user during registration.
 func (m *MYSQL) Insert(ctx context.Context, u *User) (*User, error) {
 	if m.Conn == nil {
 		return nil, errEmptyDBConnection
@@ -83,8 +81,7 @@ func (m *MYSQL) Insert(ctx context.Context, u *User) (*User, error) {
 	return m.Retrieve(ctx, id)
 }
 
-// Retrieve will fetch data from auth for a user as per the id
-// will return nil if the user is not found
+// will return nil if the user is not found.
 func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 	if m.Conn == nil {
 		return nil, errEmptyDBConnection
@@ -132,8 +129,7 @@ var ReadQuery = `SELECT id,
 		FROM identity_users
 		where email = ?`
 
-// Read will fetch data from auth for a user as per the email
-// will return nil if the user is not found
+// will return nil if the user is not found.
 func (m *MYSQL) Read(ctx context.Context, email string) (*User, error) {
 	if m.Conn == nil {
 		return nil, errEmptyDBConnection
@@ -157,7 +153,6 @@ func (m *MYSQL) Read(ctx context.Context, email string) (*User, error) {
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)
-
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				logrus.Infof("user not found :: %s", email)
@@ -171,7 +166,7 @@ func (m *MYSQL) Read(ctx context.Context, email string) (*User, error) {
 	return user, nil
 }
 
-// Delete removes a user from auth as per the ID
+// Delete removes a user from auth as per the ID.
 func (m *MYSQL) Delete(id string) (int64, error) {
 	remove, err := m.Conn.Prepare(`DELETE  FROM identity_users WHERE id = ?`)
 	if err != nil {

@@ -136,6 +136,7 @@ func TestDeleteRoute_ValidToken(t *testing.T) {
 	// In a real scenario, you'd need to setup proper token validation or mock the auth middleware
 	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 }
+
 func TestHomeRoute_ValidToken(t *testing.T) {
 	router := setupTestRouter(nil, nil)
 

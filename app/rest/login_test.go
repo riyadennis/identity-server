@@ -132,7 +132,8 @@ func TestLoginAuthenticationKeyFound(t *testing.T) {
 	re := response(t, rr.Body)
 
 	assert.Equal(t, &foundation.Response{
-		Status: http.StatusOK}, re)
+		Status: http.StatusOK,
+	}, re)
 }
 
 func loginRequest(t *testing.T, email, password string) *http.Request {
@@ -142,6 +143,7 @@ func loginRequest(t *testing.T, email, password string) *http.Request {
 	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(credentials)))
 	return req
 }
+
 func expectedResponse(t *testing.T, message string) *foundation.Response {
 	t.Helper()
 	return &foundation.Response{
@@ -150,6 +152,7 @@ func expectedResponse(t *testing.T, message string) *foundation.Response {
 		ErrorCode: foundation.InvalidRequest,
 	}
 }
+
 func response(t *testing.T, body io.Reader) *foundation.Response {
 	t.Helper()
 	var re *foundation.Response

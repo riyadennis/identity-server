@@ -7,8 +7,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"os"
-	// initialise mysql driver
-	// initialise migration settings
+	// initialise migration settings.
 	"testing"
 	"time"
 

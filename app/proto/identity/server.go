@@ -84,7 +84,7 @@ func (s *Server) Login(ctx context.Context, request *LoginRequest) (*LoginRespon
 	}, nil
 }
 
-func (s *Server) Me(ctx context.Context, ur *UserRequest) (*UserResponse, error) {
+func (s *Server) Me(ctx context.Context, _ *UserRequest) (*UserResponse, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "missing metadata")

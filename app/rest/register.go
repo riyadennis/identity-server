@@ -12,8 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Handler have common setup needed to run the handlers
-// its helps to reuse open db connection
+// its helps to reuse open db connection.
 type Handler struct {
 	Store         store.Store
 	Authenticator store.Authenticator
@@ -22,7 +21,8 @@ type Handler struct {
 }
 
 func NewHandler(store store.Store, authenticator store.Authenticator,
-	tc *store.TokenConfig, logger *logrus.Logger) *Handler {
+	tc *store.TokenConfig, logger *logrus.Logger,
+) *Handler {
 	return &Handler{
 		Store:         store,
 		Authenticator: authenticator,

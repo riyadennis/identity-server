@@ -44,7 +44,7 @@ type DBConnection struct {
 	MigrationPath string
 }
 
-// Token has credentials present in a token
+// Token has credentials present in a token.
 type Token struct {
 	Status      int    `json:"status"`
 	AccessToken string `json:"access_token"`
@@ -74,7 +74,7 @@ func NewENVConfig() *Config {
 	}
 }
 
-// ConnectMYSQL opens a connection to mysql
+// ConnectMYSQL opens a connection to mysql.
 func ConnectMYSQL(dbCfg *DBConnection) (*sql.DB, error) {
 	if dbCfg == nil {
 		return nil, errInvalidDBConfig

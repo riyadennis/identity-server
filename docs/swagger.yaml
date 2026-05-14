@@ -41,6 +41,8 @@ definitions:
         type: string
       post_code:
         type: string
+      role:
+        type: string
       terms:
         type: boolean
       updated_at:

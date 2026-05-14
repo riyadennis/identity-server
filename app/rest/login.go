@@ -10,11 +10,9 @@ import (
 	"github.com/riyadennis/identity-server/foundation"
 )
 
-var (
-	errTokenGeneration = errors.New("key not found")
-)
+var errTokenGeneration = errors.New("key not found")
 
-// UserLogin have data needed for a user to login
+// UserLogin have data needed for a user to login.
 type UserLogin struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
