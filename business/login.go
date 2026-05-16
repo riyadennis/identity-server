@@ -85,7 +85,7 @@ func (h *Helper) ManageToken(ctx context.Context, config *store.TokenConfig, use
 
 	// token is present and not expired
 	if tr != nil && tr.Expiry.After(time.Now()) {
-		h.Logger.Printf("token already exists with id: %s", tr.Id)
+		h.Logger.Printf("token already exists with id: %s", tr.ID)
 		return &store.Token{
 			Status:      http.StatusOK,
 			AccessToken: tr.Token,
@@ -113,7 +113,7 @@ func (h *Helper) ManageToken(ctx context.Context, config *store.TokenConfig, use
 		return nil, err
 	}
 	err = h.Authenticator.SaveLoginToken(ctx, &store.TokenRecord{
-		UserId: userID,
+		UserID: userID,
 		Token:  token.AccessToken,
 		Expiry: expiryTime,
 		TTL:    fmt.Sprintf("%d", expiryTime.Unix()),

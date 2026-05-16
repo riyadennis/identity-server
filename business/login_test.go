@@ -146,7 +146,7 @@ func TestLogin(t *testing.T) {
 			mockAuth: &mocks.Authenticator{
 				ReturnVal: true,
 				Token: &store.TokenRecord{
-					Id:     "token123",
+					ID:     "token123",
 					Token:  "existing-jwt-token",
 					Expiry: futureExpiry,
 					TTL:    "3600",
@@ -215,7 +215,7 @@ func TestManageToken(t *testing.T) {
 			userID:    "user123",
 			mockStore: &mocks.Store{},
 			mockAuth: &mocks.Authenticator{Token: &store.TokenRecord{
-				Id:     "token123",
+				ID:     "token123",
 				Token:  "existing-jwt-token",
 				Expiry: futureExpiry,
 				TTL:    "3600",
@@ -235,7 +235,7 @@ func TestManageToken(t *testing.T) {
 				pastExpiry := time.Now().Add(-2 * time.Hour)
 				return &mocks.Authenticator{
 					Token: &store.TokenRecord{
-						Id:     "token123",
+						ID:     "token123",
 						Token:  "expired-jwt-token",
 						Expiry: pastExpiry,
 						TTL:    "3600",
@@ -262,7 +262,7 @@ func TestManageToken(t *testing.T) {
 				},
 			},
 			mockAuth: &mocks.Authenticator{Token: &store.TokenRecord{
-				Id:     "token123",
+				ID:     "token123",
 				Token:  "existing-jwt-token",
 				Expiry: futureExpiry,
 				TTL:    "3600",
@@ -287,7 +287,7 @@ func TestManageToken(t *testing.T) {
 				},
 			},
 			mockAuth: &mocks.Authenticator{Token: &store.TokenRecord{
-				Id:     "token123",
+				ID:     "token123",
 				Token:  "existing-jwt-token",
 				Expiry: futureExpiry,
 				TTL:    "3600",

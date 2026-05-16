@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -173,7 +174,7 @@ func response(t *testing.T, body io.Reader) *foundation.Response {
 func request(t *testing.T, endpoint, content string) *http.Request {
 	t.Helper()
 	body := strings.NewReader(content)
-	req, err := http.NewRequest("POST",
+	req, err := http.NewRequestWithContext(context.Background(), "POST",
 		endpoint, body)
 	if err != nil {
 		t.Error(err)
