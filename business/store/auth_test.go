@@ -242,7 +242,7 @@ func prepareFailedAuth(t *testing.T, query string) *Auth {
 func validTokenRecord(t *testing.T) *TokenRecord {
 	t.Helper()
 	return &TokenRecord{
-		Id:       "123",
+		ID:       "123",
 		Token:    "token",
 		Expiry:   testExpiry,
 		TTL:      "123",

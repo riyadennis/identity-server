@@ -11,19 +11,19 @@ type Store struct {
 	*store.User
 }
 
-func (s *Store) Insert(ctx context.Context, u *store.User) (*store.User, error) {
+func (s *Store) Insert(_ context.Context, _ *store.User) (*store.User, error) {
 	return s.User, s.Error
 }
 
-func (s *Store) Read(ctx context.Context, email string) (*store.User, error) {
+func (s *Store) Read(_ context.Context, _ string) (*store.User, error) {
 	return s.User, s.Error
 }
 
-func (s *Store) Retrieve(ctx context.Context, id string) (*store.User, error) {
+func (s *Store) Retrieve(_ context.Context, _ string) (*store.User, error) {
 	return s.User, s.Error
 }
 
-func (s *Store) Delete(id string) (int64, error) {
+func (s *Store) Delete(_ string) (int64, error) {
 	return 0, s.Error
 }
 
@@ -31,24 +31,18 @@ func (s *Store) Ping() error {
 	return s.Error
 }
 
-func (s *Store) UpdateRole(ctx context.Context, userID string, role string) error {
+func (s *Store) UpdateRole(_ context.Context, _ string, _ string) error {
 	return s.Error
 }
 
-func (s *Store) ListByRole(ctx context.Context, role string) ([]*store.User, error) {
-	if s.User == nil {
-		return nil, s.Error
-	}
-	return []*store.User{s.User}, s.Error
-}
-func (s *Store) ListAll(ctx context.Context) ([]*store.User, error) {
+func (s *Store) ListByRole(_ context.Context, _ string) ([]*store.User, error) {
 	if s.User == nil {
 		return nil, s.Error
 	}
 	return []*store.User{s.User}, s.Error
 }
 
-func (s *Store) ListAll(ctx context.Context) ([]*store.User, error) {
+func (s *Store) ListAll(_ context.Context) ([]*store.User, error) {
 	if s.User == nil {
 		return nil, s.Error
 	}
@@ -61,14 +55,14 @@ type Authenticator struct {
 	Token     *store.TokenRecord
 }
 
-func (ma *Authenticator) Authenticate(email, password string) (bool, error) {
+func (ma *Authenticator) Authenticate(_, _ string) (bool, error) {
 	return ma.ReturnVal, ma.Error
 }
 
-func (ma *Authenticator) FetchLoginToken(userID string) (*store.TokenRecord, error) {
+func (ma *Authenticator) FetchLoginToken(_ string) (*store.TokenRecord, error) {
 	return ma.Token, nil
 }
 
-func (ma *Authenticator) SaveLoginToken(ctx context.Context, t *store.TokenRecord) error {
+func (ma *Authenticator) SaveLoginToken(_ context.Context, _ *store.TokenRecord) error {
 	return nil
 }

@@ -179,8 +179,8 @@ func TestLogin_InvalidTokenTTL(t *testing.T) {
 	mockAuth := &mocks.Authenticator{
 		ReturnVal: true,
 		Token: &store.TokenRecord{
-			Id:     "token-id",
-			UserId: testUserID,
+			ID:     "token-id",
+			UserID: testUserID,
 			Token:  testToken,
 			TTL:    "invalid-ttl", // This will cause strconv.ParseInt to fail
 			Expiry: expiryTime,

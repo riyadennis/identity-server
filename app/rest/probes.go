@@ -38,7 +38,7 @@ func Liveness(w http.ResponseWriter, _ *http.Request) {
 
 // @Router			/readiness [get].
 func Ready(store store.Store) http.HandlerFunc {
-	return func(w http.ResponseWriter, request *http.Request) {
+	return func(w http.ResponseWriter, _ *http.Request) {
 		if err := store.Ping(); err != nil {
 			foundation.ErrorResponse(w, http.StatusInternalServerError, err, foundation.DatabaseError)
 			return

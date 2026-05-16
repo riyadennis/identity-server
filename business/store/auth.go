@@ -51,8 +51,8 @@ func (a *Auth) Authenticate(email, inputPassword string) (bool, error) {
 }
 
 type TokenRecord struct {
-	Id        string
-	UserId    string
+	ID        string
+	UserID    string
 	Token     string
 	TTL       string
 	Expiry    time.Time
@@ -72,7 +72,7 @@ func (a *Auth) FetchLoginToken(userID string) (*TokenRecord, error) {
 	}
 	token := &TokenRecord{}
 	tokenRow := query.QueryRow(userID)
-	err = tokenRow.Scan(&token.Id, &token.Token, &token.TTL, &token.Expiry, &token.LastUsed)
+	err = tokenRow.Scan(&token.ID, &token.Token, &token.TTL, &token.Expiry, &token.LastUsed)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (a *Auth) SaveLoginToken(ctx context.Context, t *TokenRecord) error {
 		return err
 	}
 	id := uuid.New().String()
-	result, err := saveStmt.ExecContext(ctx, id, t.UserId, t.Token, t.TTL, t.Expiry)
+	result, err := saveStmt.ExecContext(ctx, id, t.UserID, t.Token, t.TTL, t.Expiry)
 	if err != nil {
 		a.Logger.Errorf("failed to save token: %v", err)
 		return err

@@ -188,6 +188,3 @@ func (s *insertMockStore) ListByRole(_ context.Context, _ string) ([]*store.User
 func (s *insertMockStore) ListAll(_ context.Context) ([]*store.User, error) {
 	return nil, nil
 }
-func (s *insertMockStore) ListAll(ctx context.Context) ([]*store.User, error) {
-	return nil, nil
-}

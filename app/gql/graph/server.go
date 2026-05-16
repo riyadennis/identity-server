@@ -113,8 +113,8 @@ func (s *Server) Start(port string) error {
 	return sErr
 }
 
-// GraphQLRequest is used to distinguish public and private graphql operations
-type GraphQLRequest struct {
+// QLRequest is used to distinguish public and private graphql operations.
+type QLRequest struct {
 	OperationName string `json:"operationName"`
 	Query         string `json:"query"`
 }
@@ -129,7 +129,7 @@ var publicOperations = map[string]bool{
 // operationName returns the operation name from the request, falling back
 // to parsing the query string when the operationName JSON field is absent
 // (as is the case with clients like Bruno).
-func operationName(req GraphQLRequest) string {
+func operationName(req QLRequest) string {
 	if req.OperationName != "" {
 		return req.OperationName
 	}
@@ -155,7 +155,7 @@ func NeedsAuthMiddleWare(ac customMiddleware.AuthConfig) func(http.Handler) http
 			}
 
 			// Parse GraphQL request
-			var gqlReq GraphQLRequest
+			var gqlReq QLRequest
 			if err := json.Unmarshal(body, &gqlReq); err != nil {
 				http.Error(w, "Invalid GraphQL request", http.StatusBadRequest)
 				return
