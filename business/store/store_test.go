@@ -293,6 +293,226 @@ func TestDB_Read(t *testing.T) {
 	}
 }
 
+func TestDB_UpdateRole(t *testing.T) {
+	scenarios := []struct {
+		name        string
+		db          *MYSQL
+		userID      string
+		role        string
+		expectedErr error
+	}{
+		{
+			name: "prepare failed",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(`UPDATE identity_users SET role`).
+					WillReturnError(errors.New("error"))
+				return NewDB(conn)
+			}(),
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "exec failed",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(`UPDATE identity_users SET role`).
+					ExpectExec().WillReturnError(errors.New("exec error"))
+				return NewDB(conn)
+			}(),
+			userID:      "user-123",
+			role:        "admin",
+			expectedErr: errors.New("exec error"),
+		},
+		{
+			name: "user not found",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(`UPDATE identity_users SET role`).
+					ExpectExec().WillReturnResult(sqlmock.NewResult(0, 0))
+				return NewDB(conn)
+			}(),
+			userID:      "nonexistent",
+			role:        "admin",
+			expectedErr: errors.New("user not found"),
+		},
+		{
+			name: "success",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectPrepare(`UPDATE identity_users SET role`).
+					ExpectExec().WillReturnResult(sqlmock.NewResult(0, 1))
+				return NewDB(conn)
+			}(),
+			userID: "user-123",
+			role:   "admin",
+		},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			err := sc.db.UpdateRole(context.Background(), sc.userID, sc.role)
+			assert.Equal(t, sc.expectedErr, err)
+		})
+	}
+}
+
+func TestDB_ListAll(t *testing.T) {
+	scenarios := []struct {
+		name           string
+		db             *MYSQL
+		expectedUsers  []*User
+		expectedErr    error
+		expectedErrMsg string
+	}{
+		{
+			name: "query failed",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WillReturnError(errors.New("query error"))
+				return NewDB(conn)
+			}(),
+			expectedErr: errors.New("query error"),
+		},
+		{
+			name: "scan error",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
+						AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil))
+				return NewDB(conn)
+			}(),
+			expectedErrMsg: `sql: Scan error on column index 0, name "id": converting NULL to string is unsupported`,
+		},
+		{
+			name: "empty result",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}))
+				return NewDB(conn)
+			}(),
+			expectedUsers: nil,
+		},
+		{
+			name: "success",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
+						AddRow("1", "John", "Doe", "john@test.com", "Acme", "12345", "user", "2024-01-01", "2024-01-01").
+						AddRow("2", "Jane", "Doe", "jane@test.com", "Acme", "12345", "admin", "2024-01-01", "2024-01-01"))
+				return NewDB(conn)
+			}(),
+			expectedUsers: []*User{
+				{ID: "1", FirstName: "John", LastName: "Doe", Email: "john@test.com", Company: "Acme", PostCode: "12345", Role: "user", CreatedAt: "2024-01-01", UpdatedAt: "2024-01-01"},
+				{ID: "2", FirstName: "Jane", LastName: "Doe", Email: "jane@test.com", Company: "Acme", PostCode: "12345", Role: "admin", CreatedAt: "2024-01-01", UpdatedAt: "2024-01-01"},
+			},
+		},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			users, err := sc.db.ListAll(context.Background())
+			if sc.expectedErrMsg != "" {
+				assert.EqualError(t, err, sc.expectedErrMsg)
+			} else {
+				assert.Equal(t, sc.expectedErr, err)
+			}
+			assert.Equal(t, sc.expectedUsers, users)
+		})
+	}
+}
+
+func TestDB_ListByRole(t *testing.T) {
+	scenarios := []struct {
+		name           string
+		db             *MYSQL
+		role           string
+		expectedUsers  []*User
+		expectedErr    error
+		expectedErrMsg string
+	}{
+		{
+			name: "query failed",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WillReturnError(errors.New("query error"))
+				return NewDB(conn)
+			}(),
+			role:        "admin",
+			expectedErr: errors.New("query error"),
+		},
+		{
+			name: "scan error",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
+						AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil))
+				return NewDB(conn)
+			}(),
+			role:           "admin",
+			expectedErrMsg: `sql: Scan error on column index 0, name "id": converting NULL to string is unsupported`,
+		},
+		{
+			name: "empty result",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}))
+				return NewDB(conn)
+			}(),
+			role:          "admin",
+			expectedUsers: nil,
+		},
+		{
+			name: "success",
+			db: func() *MYSQL {
+				conn, mock, err := sqlmock.New()
+				assert.NoError(t, err)
+				mock.ExpectQuery(`SELECT id, first_name`).
+					WithArgs("admin").
+					WillReturnRows(sqlmock.NewRows(
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
+						AddRow("1", "John", "Doe", "john@test.com", "Acme", "12345", "admin", "2024-01-01", "2024-01-01"))
+				return NewDB(conn)
+			}(),
+			role: "admin",
+			expectedUsers: []*User{
+				{ID: "1", FirstName: "John", LastName: "Doe", Email: "john@test.com", Company: "Acme", PostCode: "12345", Role: "admin", CreatedAt: "2024-01-01", UpdatedAt: "2024-01-01"},
+			},
+		},
+	}
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			users, err := sc.db.ListByRole(context.Background(), sc.role)
+			if sc.expectedErrMsg != "" {
+				assert.EqualError(t, err, sc.expectedErrMsg)
+			} else {
+				assert.Equal(t, sc.expectedErr, err)
+			}
+			assert.Equal(t, sc.expectedUsers, users)
+		})
+	}
+}
+
 func TestDB_Delete(t *testing.T) {
 	scenarios := []struct {
 		name                 string

@@ -9,6 +9,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGenerateKeys_InvalidPrivateKeyPath(t *testing.T) {
+	err := GenerateKeys("/nonexistent/dir/private.pem", "/tmp/public.pem")
+	assert.Error(t, err)
+}
+
+func TestGenerateKeys_InvalidPublicKeyPath(t *testing.T) {
+	privateKeyFile, err := os.CreateTemp("", "test_private_*.pem")
+	assert.NoError(t, err)
+	defer os.Remove(privateKeyFile.Name())
+	privateKeyFile.Close()
+
+	err = GenerateKeys(privateKeyFile.Name(), "/nonexistent/dir/public.pem")
+	assert.Error(t, err)
+}
+
 func TestGenerateKeys(t *testing.T) {
 	privateKeyFile, err := os.CreateTemp("", "test_private_*.pem")
 	assert.NoError(t, err, "failed to create temp private key file")
