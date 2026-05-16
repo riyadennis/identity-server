@@ -60,7 +60,8 @@ jobs:
 
     - name: generate test coverage
       run: |
-        go test -v ./... -covermode=count -coverprofile=coverage.out
+        COVERPKG=$(go list ./... | grep -v -E '(generated|docs|app/proto$|app/gql$|app/mocks|app/gql/graph/model)' | tr '\n' ',')
+        go test -v ./... -covermode=count -coverpkg="$COVERPKG" -coverprofile=coverage.out
         go tool cover -func=coverage.out -o=coverage.out
 
     - name: Go Coverage Badge  # Pass the `coverage.out` output to this action
