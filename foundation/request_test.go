@@ -3,10 +3,12 @@ package foundation
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/riyadennis/identity-server/business/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRequestBody(t *testing.T) {
@@ -44,4 +46,22 @@ func TestRequestBody(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("nil request", func(t *testing.T) {
+		err := RequestBody(nil, &store.User{})
+		assert.Equal(t, errEmptyRequest, err)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		body := `{"first_name":"John","last_name":"Doe","email":"john@test.com"}`
+		req := httptest.NewRequest("POST", "/register", strings.NewReader(body))
+		req.Header.Set("content-type", "application/json")
+
+		var user store.User
+		err := RequestBody(req, &user)
+		require.NoError(t, err)
+		assert.Equal(t, "John", user.FirstName)
+		assert.Equal(t, "Doe", user.LastName)
+		assert.Equal(t, "john@test.com", user.Email)
+	})
 }
