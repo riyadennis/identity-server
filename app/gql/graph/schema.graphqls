@@ -61,5 +61,6 @@ type RegisterResponse {
 type Mutation {
     Login(input: LoginInput!): LoginResponse!
     Register(input: RegisterInput!): RegisterResponse!
+    createUser(input: RegisterInput!): RegisterResponse!
     assignRole(userId: String!, role: Role!): RoleResponse!
 }

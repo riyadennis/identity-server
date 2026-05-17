@@ -59,13 +59,13 @@ func TestDBInsertSuccess(t *testing.T) {
 				conn, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectPrepare("INSERT INTO identity_users").ExpectExec().
-					WithArgs(sqlmock.AnyArg(), "John", "Doe", "check", "john.doe@test.com", "Arctura", "12345", true).
+					WithArgs(sqlmock.AnyArg(), "John", "Doe", "check", "john.doe@test.com", "Arctura", "12345", true, "").
 					WillReturnResult(sqlmock.NewResult(1, 1))
 				mock.ExpectPrepare(regexp.QuoteMeta(RetrieveQuery)).
 					ExpectQuery().
 					WithArgs(sqlmock.AnyArg()).
-					WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at", "role"}).
-						AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", time.Now(), time.Now(), "user"))
+					WillReturnRows(sqlmock.NewRows([]string{"first_name", "last_name", "email", "company", "post_code", "created_by", "created_at", "updated_at", "role"}).
+						AddRow("John", "Doe", "john.doe@test.com", "Arctura", "12345", "", time.Now(), time.Now(), "user"))
 				return NewDB(conn)
 			}(),
 			user: &User{
@@ -197,8 +197,8 @@ func TestDBRetrieve(t *testing.T) {
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnRows(
 						sqlmock.NewRows(
-							[]string{"first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at", "role"}).
-							AddRow("john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01", "user"))
+							[]string{"first_name", "last_name", "email", "company", "post_code", "created_by", "created_at", "updated_at", "role"}).
+							AddRow("john", "doe", "john.doe@gmail.com", "Arctura", "12345", "", "2024-01-01", "2024-01-01", "user"))
 				return NewDB(conn)
 			}(),
 			user: &User{
@@ -254,8 +254,8 @@ func TestDB_Read(t *testing.T) {
 				mock.ExpectQuery(ReadQuery).
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
-						AddRow(nil, nil, nil, nil, nil, nil, nil, nil))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "created_at", "updated_at"}).
+						AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil))
 				return NewDB(conn)
 			}(),
 			expectedErr: errInvalidDataInDB,
@@ -268,8 +268,8 @@ func TestDB_Read(t *testing.T) {
 				mock.ExpectQuery(ReadQuery).
 					WithArgs(sqlmock.AnyArg()).
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_at", "updated_at"}).
-						AddRow(123, "john", "doe", "john.doe@gmail.com", "Arctura", "12345", "2024-01-01", "2024-01-01"))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "created_at", "updated_at"}).
+						AddRow(123, "john", "doe", "john.doe@gmail.com", "Arctura", "12345", "", "2024-01-01", "2024-01-01"))
 				return NewDB(conn)
 			}(),
 			user: &User{
@@ -385,8 +385,8 @@ func TestDB_ListAll(t *testing.T) {
 				assert.NoError(t, err)
 				mock.ExpectQuery(`SELECT id, first_name`).
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
-						AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "role", "created_at", "updated_at"}).
+						AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil))
 				return NewDB(conn)
 			}(),
 			expectedErrMsg: `sql: Scan error on column index 0, name "id": converting NULL to string is unsupported`,
@@ -398,7 +398,7 @@ func TestDB_ListAll(t *testing.T) {
 				assert.NoError(t, err)
 				mock.ExpectQuery(`SELECT id, first_name`).
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "role", "created_at", "updated_at"}))
 				return NewDB(conn)
 			}(),
 			expectedUsers: nil,
@@ -410,14 +410,14 @@ func TestDB_ListAll(t *testing.T) {
 				assert.NoError(t, err)
 				mock.ExpectQuery(`SELECT id, first_name`).
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
-						AddRow("1", "John", "Doe", "john@test.com", "Acme", "12345", "user", "2024-01-01", "2024-01-01").
-						AddRow("2", "Jane", "Doe", "jane@test.com", "Acme", "12345", "admin", "2024-01-01", "2024-01-01"))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "role", "created_at", "updated_at"}).
+						AddRow("1", "John", "Doe", "john@test.com", "Acme", "12345", "", "user", "2024-01-01", "2024-01-01").
+						AddRow("2", "Jane", "Doe", "jane@test.com", "Acme", "12345", "admin-uuid", "admin", "2024-01-01", "2024-01-01"))
 				return NewDB(conn)
 			}(),
 			expectedUsers: []*User{
 				{ID: "1", FirstName: "John", LastName: "Doe", Email: "john@test.com", Company: "Acme", PostCode: "12345", Role: "user", CreatedAt: "2024-01-01", UpdatedAt: "2024-01-01"},
-				{ID: "2", FirstName: "Jane", LastName: "Doe", Email: "jane@test.com", Company: "Acme", PostCode: "12345", Role: "admin", CreatedAt: "2024-01-01", UpdatedAt: "2024-01-01"},
+				{ID: "2", FirstName: "Jane", LastName: "Doe", Email: "jane@test.com", Company: "Acme", PostCode: "12345", CreatedBy: "admin-uuid", Role: "admin", CreatedAt: "2024-01-01", UpdatedAt: "2024-01-01"},
 			},
 		},
 	}
@@ -462,8 +462,8 @@ func TestDB_ListByRole(t *testing.T) {
 				assert.NoError(t, err)
 				mock.ExpectQuery(`SELECT id, first_name`).
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
-						AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "role", "created_at", "updated_at"}).
+						AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil))
 				return NewDB(conn)
 			}(),
 			role:           "admin",
@@ -476,7 +476,7 @@ func TestDB_ListByRole(t *testing.T) {
 				assert.NoError(t, err)
 				mock.ExpectQuery(`SELECT id, first_name`).
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "role", "created_at", "updated_at"}))
 				return NewDB(conn)
 			}(),
 			role:          "admin",
@@ -490,8 +490,8 @@ func TestDB_ListByRole(t *testing.T) {
 				mock.ExpectQuery(`SELECT id, first_name`).
 					WithArgs("admin").
 					WillReturnRows(sqlmock.NewRows(
-						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "role", "created_at", "updated_at"}).
-						AddRow("1", "John", "Doe", "john@test.com", "Acme", "12345", "admin", "2024-01-01", "2024-01-01"))
+						[]string{"id", "first_name", "last_name", "email", "company", "post_code", "created_by", "role", "created_at", "updated_at"}).
+						AddRow("1", "John", "Doe", "john@test.com", "Acme", "12345", "", "admin", "2024-01-01", "2024-01-01"))
 				return NewDB(conn)
 			}(),
 			role: "admin",

@@ -33,6 +33,7 @@ type User struct {
 	Company   string `json:"company"`
 	PostCode  string `json:"post_code"`
 	Terms     bool   `json:"terms"`
+	CreatedBy string `json:"created_by"`
 	Role      string `json:"role"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
@@ -63,16 +64,16 @@ func (m *MYSQL) Insert(ctx context.Context, u *User) (*User, error) {
 	id := uuid.New().String()
 
 	insert, err := m.Conn.Prepare(`INSERT INTO identity_users
-(id, first_name, last_name,password,
- email, company, post_code, terms)
- VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+(id, first_name, last_name, password,
+ email, company, post_code, terms, created_by)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		logrus.Errorf("failed to prepare user insert: %v", err)
 		return nil, err
 	}
 
 	_, err = insert.ExecContext(ctx, id, u.FirstName, u.LastName,
-		u.Password, u.Email, u.Company, u.PostCode, u.Terms)
+		u.Password, u.Email, u.Company, u.PostCode, u.Terms, u.CreatedBy)
 	if err != nil {
 		logrus.Errorf("failed to insert user data: %v", err)
 		return nil, err
@@ -100,6 +101,7 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 		&user.Email,
 		&user.Company,
 		&user.PostCode,
+		&user.CreatedBy,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.Role,
@@ -116,7 +118,7 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 	return user, nil
 }
 
-var RetrieveQuery = `SELECT first_name, last_name, email, company, post_code, created_at, updated_at, role FROM identity_users where id = ? limit 1`
+var RetrieveQuery = `SELECT first_name, last_name, email, company, post_code, created_by, created_at, updated_at, role FROM identity_users where id = ? limit 1`
 
 var ReadQuery = `SELECT id,
        first_name,
@@ -124,6 +126,7 @@ var ReadQuery = `SELECT id,
        email,
        company,
        post_code,
+       created_by,
        created_at,
        updated_at
 		FROM identity_users
@@ -150,6 +153,7 @@ func (m *MYSQL) Read(ctx context.Context, email string) (*User, error) {
 			&user.Email,
 			&user.Company,
 			&user.PostCode,
+			&user.CreatedBy,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)
@@ -209,7 +213,7 @@ func (m *MYSQL) UpdateRole(ctx context.Context, userID string, role string) erro
 // ListAll returns all registered users.
 func (m *MYSQL) ListAll(ctx context.Context) ([]*User, error) {
 	rows, err := m.Conn.QueryContext(ctx,
-		`SELECT id, first_name, last_name, email, company, post_code, role, created_at, updated_at
+		`SELECT id, first_name, last_name, email, company, post_code, created_by, role, created_at, updated_at
 		 FROM identity_users`)
 	if err != nil {
 		return nil, err
@@ -221,7 +225,7 @@ func (m *MYSQL) ListAll(ctx context.Context) ([]*User, error) {
 		u := &User{}
 		if err := rows.Scan(
 			&u.ID, &u.FirstName, &u.LastName, &u.Email,
-			&u.Company, &u.PostCode, &u.Role, &u.CreatedAt, &u.UpdatedAt,
+			&u.Company, &u.PostCode, &u.CreatedBy, &u.Role, &u.CreatedAt, &u.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -233,7 +237,7 @@ func (m *MYSQL) ListAll(ctx context.Context) ([]*User, error) {
 // ListByRole returns all users with the given role.
 func (m *MYSQL) ListByRole(ctx context.Context, role string) ([]*User, error) {
 	rows, err := m.Conn.QueryContext(ctx,
-		`SELECT id, first_name, last_name, email, company, post_code, role, created_at, updated_at
+		`SELECT id, first_name, last_name, email, company, post_code, created_by, role, created_at, updated_at
 		 FROM identity_users WHERE role = ?`, role)
 	if err != nil {
 		return nil, err
@@ -245,7 +249,7 @@ func (m *MYSQL) ListByRole(ctx context.Context, role string) ([]*User, error) {
 		u := &User{}
 		if err := rows.Scan(
 			&u.ID, &u.FirstName, &u.LastName, &u.Email,
-			&u.Company, &u.PostCode, &u.Role, &u.CreatedAt, &u.UpdatedAt,
+			&u.Company, &u.PostCode, &u.CreatedBy, &u.Role, &u.CreatedAt, &u.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

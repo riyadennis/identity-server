@@ -1,0 +1,41 @@
+info:
+  name: Create User
+  type: graphql
+  seq: 5
+
+graphql:
+  method: POST
+  url: http://localhost:8097/graphql
+  body:
+    query: |-
+      mutation createUser($input: RegisterInput!) { createUser(input: $input) { 
+      	id
+      	firstName
+      	lastName
+      	email
+      	company 
+      	postCode
+      	terms
+      	createdAt
+      } }
+    variables: |-
+      {
+      	"input": {
+      		"firstName": "Riya",
+      		"lastName": "Dennis",
+      		"email": "riya@example11.com",
+      		"password": "SecurePassword123!",
+      		"company": "Acrtura",
+      		"postCode": "SW1A 1AA",
+      		"terms": true
+      	}
+      }
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
