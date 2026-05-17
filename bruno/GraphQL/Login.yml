@@ -10,6 +10,7 @@ graphql:
     - name: Content-Type
       value: application/json
   body:
+    operationName: Login
     query: |
       mutation Login($input: LoginInput!) {
         Login(input: $input) {
@@ -28,7 +29,7 @@ graphql:
           "password": "SecurePassword123!"
         }
       }
-  auth: inherit
+  auth: none
 
 settings:
   encodeUrl: true
