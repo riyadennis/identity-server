@@ -21,6 +21,7 @@ type Store interface {
 	UpdateRole(ctx context.Context, userID string, role string) error
 	ListByRole(ctx context.Context, role string) ([]*User, error)
 	ListAll(ctx context.Context) ([]*User, error)
+	ToggleActive(ctx context.Context, userID string) (bool, error)
 }
 
 // User holds data from the registration request body.
@@ -34,6 +35,7 @@ type User struct {
 	PostCode  string `json:"post_code"`
 	Terms     bool   `json:"terms"`
 	CreatedBy string `json:"created_by"`
+	Active    bool   `json:"active"`
 	Role      string `json:"role"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
@@ -65,15 +67,15 @@ func (m *MYSQL) Insert(ctx context.Context, u *User) (*User, error) {
 
 	insert, err := m.Conn.Prepare(`INSERT INTO identity_users
 (id, first_name, last_name, password,
- email, company, post_code, terms, created_by)
- VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+ email, company, post_code, terms, created_by, active)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		logrus.Errorf("failed to prepare user insert: %v", err)
 		return nil, err
 	}
 
 	_, err = insert.ExecContext(ctx, id, u.FirstName, u.LastName,
-		u.Password, u.Email, u.Company, u.PostCode, u.Terms, u.CreatedBy)
+		u.Password, u.Email, u.Company, u.PostCode, u.Terms, u.CreatedBy, u.Active)
 	if err != nil {
 		logrus.Errorf("failed to insert user data: %v", err)
 		return nil, err
@@ -102,6 +104,7 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 		&user.Company,
 		&user.PostCode,
 		&user.CreatedBy,
+		&user.Active,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 		&user.Role,
@@ -118,7 +121,7 @@ func (m *MYSQL) Retrieve(ctx context.Context, id string) (*User, error) {
 	return user, nil
 }
 
-var RetrieveQuery = `SELECT first_name, last_name, email, company, post_code, created_by, created_at, updated_at, role FROM identity_users where id = ? limit 1`
+var RetrieveQuery = `SELECT first_name, last_name, email, company, post_code, created_by, active, created_at, updated_at, role FROM identity_users where id = ? limit 1`
 
 var ReadQuery = `SELECT id,
        first_name,
@@ -127,6 +130,7 @@ var ReadQuery = `SELECT id,
        company,
        post_code,
        created_by,
+       active,
        created_at,
        updated_at
 		FROM identity_users
@@ -154,6 +158,7 @@ func (m *MYSQL) Read(ctx context.Context, email string) (*User, error) {
 			&user.Company,
 			&user.PostCode,
 			&user.CreatedBy,
+			&user.Active,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)
@@ -213,7 +218,7 @@ func (m *MYSQL) UpdateRole(ctx context.Context, userID string, role string) erro
 // ListAll returns all registered users.
 func (m *MYSQL) ListAll(ctx context.Context) ([]*User, error) {
 	rows, err := m.Conn.QueryContext(ctx,
-		`SELECT id, first_name, last_name, email, company, post_code, created_by, role, created_at, updated_at
+		`SELECT id, first_name, last_name, email, company, post_code, created_by, active, role, created_at, updated_at
 		 FROM identity_users`)
 	if err != nil {
 		return nil, err
@@ -225,7 +230,7 @@ func (m *MYSQL) ListAll(ctx context.Context) ([]*User, error) {
 		u := &User{}
 		if err := rows.Scan(
 			&u.ID, &u.FirstName, &u.LastName, &u.Email,
-			&u.Company, &u.PostCode, &u.CreatedBy, &u.Role, &u.CreatedAt, &u.UpdatedAt,
+			&u.Company, &u.PostCode, &u.CreatedBy, &u.Active, &u.Role, &u.CreatedAt, &u.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -237,7 +242,7 @@ func (m *MYSQL) ListAll(ctx context.Context) ([]*User, error) {
 // ListByRole returns all users with the given role.
 func (m *MYSQL) ListByRole(ctx context.Context, role string) ([]*User, error) {
 	rows, err := m.Conn.QueryContext(ctx,
-		`SELECT id, first_name, last_name, email, company, post_code, created_by, role, created_at, updated_at
+		`SELECT id, first_name, last_name, email, company, post_code, created_by, active, role, created_at, updated_at
 		 FROM identity_users WHERE role = ?`, role)
 	if err != nil {
 		return nil, err
@@ -249,11 +254,33 @@ func (m *MYSQL) ListByRole(ctx context.Context, role string) ([]*User, error) {
 		u := &User{}
 		if err := rows.Scan(
 			&u.ID, &u.FirstName, &u.LastName, &u.Email,
-			&u.Company, &u.PostCode, &u.CreatedBy, &u.Role, &u.CreatedAt, &u.UpdatedAt,
+			&u.Company, &u.PostCode, &u.CreatedBy, &u.Active, &u.Role, &u.CreatedAt, &u.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
 		users = append(users, u)
 	}
 	return users, nil
+}
+
+// ToggleActive flips the active flag for a user and returns the new value.
+func (m *MYSQL) ToggleActive(ctx context.Context, userID string) (bool, error) {
+	result, err := m.Conn.ExecContext(ctx,
+		`UPDATE identity_users SET active = NOT active WHERE id = ?`, userID)
+	if err != nil {
+		return false, err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if rows == 0 {
+		return false, errors.New("user not found")
+	}
+
+	user, err := m.Retrieve(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	return user.Active, nil
 }

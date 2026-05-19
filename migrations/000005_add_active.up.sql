@@ -1,0 +1,1 @@
+ALTER TABLE identity_users ADD COLUMN active BOOLEAN NOT NULL DEFAULT TRUE AFTER created_by;

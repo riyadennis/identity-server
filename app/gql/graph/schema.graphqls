@@ -58,9 +58,15 @@ type RegisterResponse {
     createdAt: String
 }
 
+type ActivationResponse {
+    userId: String!
+    active: Boolean!
+}
+
 type Mutation {
     Login(input: LoginInput!): LoginResponse!
     Register(input: RegisterInput!): RegisterResponse!
     createUser(input: RegisterInput!): RegisterResponse!
     assignRole(userId: String!, role: Role!): RoleResponse!
+    userActivation(userId: String!): ActivationResponse!
 }
