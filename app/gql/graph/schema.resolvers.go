@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -16,8 +15,6 @@ import (
 	"github.com/riyadennis/identity-server/app/gql/graph/generated"
 	"github.com/riyadennis/identity-server/app/gql/graph/model"
 	"github.com/riyadennis/identity-server/business"
-	"github.com/riyadennis/identity-server/business/store"
-	"github.com/riyadennis/identity-server/business/validation"
 	"github.com/riyadennis/identity-server/foundation/middleware"
 )
 
@@ -68,56 +65,6 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.RegisterI
 	return r.insertUser(ctx, input, adminID)
 }
 
-func (r *mutationResolver) insertUser(ctx context.Context, input model.RegisterInput, createdBy string) (*model.RegisterResponse, error) {
-	u := &store.User{
-		FirstName: input.FirstName,
-		LastName:  input.LastName,
-		Email:     input.Email,
-		Password:  input.Password,
-		Terms:     input.Terms,
-		CreatedBy: createdBy,
-	}
-	if input.Company != nil {
-		u.Company = *input.Company
-	}
-	if input.PostCode != nil {
-		u.PostCode = *input.PostCode
-	}
-
-	if err := validation.ValidateUser(u); err != nil {
-		return nil, err
-	}
-
-	existing, err := r.Store.Read(ctx, u.Email)
-	if err != nil {
-		return nil, err
-	}
-	if existing.Email == u.Email {
-		return nil, errors.New("email already exists")
-	}
-
-	u.Password, err = business.EncryptPassword(u.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	created, err := r.Store.Insert(ctx, u)
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.RegisterResponse{
-		ID:        &created.ID,
-		FirstName: &created.FirstName,
-		LastName:  &created.LastName,
-		Email:     &created.Email,
-		Company:   &created.Company,
-		PostCode:  &created.PostCode,
-		Terms:     &created.Terms,
-		CreatedAt: &created.CreatedAt,
-	}, nil
-}
-
 // AssignRole is the resolver for the assignRole field.
 func (r *mutationResolver) AssignRole(ctx context.Context, userID string, role model.Role) (*model.RoleResponse, error) {
 	if err := callerIsAdmin(ctx, r.Store, r.Logger); err != nil {
@@ -133,6 +80,25 @@ func (r *mutationResolver) AssignRole(ctx context.Context, userID string, role m
 	return &model.RoleResponse{
 		UserID: userID,
 		Role:   role,
+	}, nil
+}
+
+// UserActivation is the resolver for the userActivation field.
+func (r *mutationResolver) UserActivation(ctx context.Context, userID string) (*model.ActivationResponse, error) {
+	if err := callerIsAdmin(ctx, r.Store, r.Logger); err != nil {
+		return nil, err
+	}
+
+	r.Logger.Infof("toggling active status for user %s", userID)
+
+	active, err := r.Store.ToggleActive(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to toggle user activation: %w", err)
+	}
+
+	return &model.ActivationResponse{
+		UserID: userID,
+		Active: active,
 	}, nil
 }
 

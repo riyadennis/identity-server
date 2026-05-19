@@ -37,6 +37,11 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	ActivationResponse struct {
+		Active func(childComplexity int) int
+		UserID func(childComplexity int) int
+	}
+
 	LoginResponse struct {
 		AccessToken func(childComplexity int) int
 		Expiry      func(childComplexity int) int
@@ -47,10 +52,11 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AssignRole func(childComplexity int, userID string, role model.Role) int
-		CreateUser func(childComplexity int, input model.RegisterInput) int
-		Login      func(childComplexity int, input model.LoginInput) int
-		Register   func(childComplexity int, input model.RegisterInput) int
+		AssignRole     func(childComplexity int, userID string, role model.Role) int
+		CreateUser     func(childComplexity int, input model.RegisterInput) int
+		Login          func(childComplexity int, input model.LoginInput) int
+		Register       func(childComplexity int, input model.RegisterInput) int
+		UserActivation func(childComplexity int, userID string) int
 	}
 
 	Query struct {
@@ -95,6 +101,7 @@ type MutationResolver interface {
 	Register(ctx context.Context, input model.RegisterInput) (*model.RegisterResponse, error)
 	CreateUser(ctx context.Context, input model.RegisterInput) (*model.RegisterResponse, error)
 	AssignRole(ctx context.Context, userID string, role model.Role) (*model.RoleResponse, error)
+	UserActivation(ctx context.Context, userID string) (*model.ActivationResponse, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
@@ -116,6 +123,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	ec := newExecutionContext(nil, e, nil)
 	_ = ec
 	switch typeName + "." + field {
+
+	case "ActivationResponse.active":
+		if e.ComplexityRoot.ActivationResponse.Active == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ActivationResponse.Active(childComplexity), true
+	case "ActivationResponse.userId":
+		if e.ComplexityRoot.ActivationResponse.UserID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ActivationResponse.UserID(childComplexity), true
 
 	case "LoginResponse.accessToken":
 		if e.ComplexityRoot.LoginResponse.AccessToken == nil {
@@ -198,6 +218,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.Register(childComplexity, args["input"].(model.RegisterInput)), true
+	case "Mutation.userActivation":
+		if e.ComplexityRoot.Mutation.UserActivation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_userActivation_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UserActivation(childComplexity, args["userId"].(string)), true
 
 	case "Query.getUserRole":
 		if e.ComplexityRoot.Query.GetUserRole == nil {
@@ -486,11 +517,17 @@ type RegisterResponse {
     createdAt: String
 }
 
+type ActivationResponse {
+    userId: String!
+    active: Boolean!
+}
+
 type Mutation {
     Login(input: LoginInput!): LoginResponse!
     Register(input: RegisterInput!): RegisterResponse!
     createUser(input: RegisterInput!): RegisterResponse!
     assignRole(userId: String!, role: Role!): RoleResponse!
+    userActivation(userId: String!): ActivationResponse!
 }
 `, BuiltIn: false},
 	{Name: "../../../../federation/directives.graphql", Input: `
@@ -517,6 +554,16 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // childFields_* functions provide shared child field context lookups.
 // Each function is generated once per unique object type, deduplicating the
 // switch statements that were previously inlined in every fieldContext_* function.
+
+func (ec *executionContext) childFields_ActivationResponse(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "userId":
+		return ec.fieldContext_ActivationResponse_userId(ctx, field)
+	case "active":
+		return ec.fieldContext_ActivationResponse_active(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type ActivationResponse", field.Name)
+}
 
 func (ec *executionContext) childFields_LoginResponse(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
@@ -772,6 +819,20 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_userActivation_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "userId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["userId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -877,6 +938,52 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _ActivationResponse_userId(ctx context.Context, field graphql.CollectedField, obj *model.ActivationResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ActivationResponse_userId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UserID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ActivationResponse_userId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ActivationResponse", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ActivationResponse_active(ctx context.Context, field graphql.CollectedField, obj *model.ActivationResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ActivationResponse_active(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Active, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ActivationResponse_active(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ActivationResponse", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
 
 func (ec *executionContext) _LoginResponse_status(ctx context.Context, field graphql.CollectedField, obj *model.LoginResponse) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
@@ -1186,6 +1293,50 @@ func (ec *executionContext) fieldContext_Mutation_assignRole(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_assignRole_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_userActivation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_userActivation(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UserActivation(ctx, fc.Args["userId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.ActivationResponse) graphql.Marshaler {
+			return ec.marshalNActivationResponse2ᚖgithubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐActivationResponse(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_userActivation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ActivationResponse(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_userActivation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2996,6 +3147,50 @@ func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj
 
 // region    **************************** object.gotpl ****************************
 
+var activationResponseImplementors = []string{"ActivationResponse"}
+
+func (ec *executionContext) _ActivationResponse(ctx context.Context, sel ast.SelectionSet, obj *model.ActivationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, activationResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ActivationResponse")
+		case "userId":
+			out.Values[i] = ec._ActivationResponse_userId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "active":
+			out.Values[i] = ec._ActivationResponse_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var loginResponseImplementors = []string{"LoginResponse"}
 
 func (ec *executionContext) _LoginResponse(ctx context.Context, sel ast.SelectionSet, obj *model.LoginResponse) graphql.Marshaler {
@@ -3085,6 +3280,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "assignRole":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_assignRole(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "userActivation":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_userActivation(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -3789,6 +3991,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNActivationResponse2githubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐActivationResponse(ctx context.Context, sel ast.SelectionSet, v model.ActivationResponse) graphql.Marshaler {
+	return ec._ActivationResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNActivationResponse2ᚖgithubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐActivationResponse(ctx context.Context, sel ast.SelectionSet, v *model.ActivationResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ActivationResponse(ctx, sel, v)
+}
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)

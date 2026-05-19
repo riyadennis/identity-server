@@ -188,3 +188,7 @@ func (s *insertMockStore) ListByRole(_ context.Context, _ string) ([]*store.User
 func (s *insertMockStore) ListAll(_ context.Context) ([]*store.User, error) {
 	return nil, nil
 }
+
+func (s *insertMockStore) ToggleActive(_ context.Context, _ string) (bool, error) {
+	return false, nil
+}

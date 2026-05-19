@@ -9,6 +9,11 @@ import (
 	"strconv"
 )
 
+type ActivationResponse struct {
+	UserID string `json:"userId"`
+	Active bool   `json:"active"`
+}
+
 type LoginInput struct {
 	Email    *string `json:"email,omitempty"`
 	Password *string `json:"password,omitempty"`

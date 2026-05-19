@@ -49,6 +49,13 @@ func (s *Store) ListAll(_ context.Context) ([]*store.User, error) {
 	return []*store.User{s.User}, s.Error
 }
 
+func (s *Store) ToggleActive(_ context.Context, _ string) (bool, error) {
+	if s.User != nil {
+		return s.User.Active, s.Error
+	}
+	return false, s.Error
+}
+
 type Authenticator struct {
 	ReturnVal bool
 	Error     error
