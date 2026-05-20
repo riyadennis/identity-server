@@ -63,10 +63,28 @@ type ActivationResponse {
     active: Boolean!
 }
 
+input UpdateUserInput {
+    firstName: String
+    lastName: String
+    company: String
+    postCode: String
+}
+
+type UpdateUserResponse {
+    id: String!
+    firstName: String
+    lastName: String
+    email: String
+    company: String
+    postCode: String
+    updatedAt: String
+}
+
 type Mutation {
     Login(input: LoginInput!): LoginResponse!
     Register(input: RegisterInput!): RegisterResponse!
     createUser(input: RegisterInput!): RegisterResponse!
     assignRole(userId: String!, role: Role!): RoleResponse!
     userActivation(userId: String!): ActivationResponse!
+    updateUser(userId: String!, input: UpdateUserInput!): UpdateUserResponse!
 }

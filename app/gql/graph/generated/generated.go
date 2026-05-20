@@ -56,6 +56,7 @@ type ComplexityRoot struct {
 		CreateUser     func(childComplexity int, input model.RegisterInput) int
 		Login          func(childComplexity int, input model.LoginInput) int
 		Register       func(childComplexity int, input model.RegisterInput) int
+		UpdateUser     func(childComplexity int, userID string, input model.UpdateUserInput) int
 		UserActivation func(childComplexity int, userID string) int
 	}
 
@@ -83,6 +84,16 @@ type ComplexityRoot struct {
 		UserID func(childComplexity int) int
 	}
 
+	UpdateUserResponse struct {
+		Company   func(childComplexity int) int
+		Email     func(childComplexity int) int
+		FirstName func(childComplexity int) int
+		ID        func(childComplexity int) int
+		LastName  func(childComplexity int) int
+		PostCode  func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+	}
+
 	User struct {
 		Email         func(childComplexity int) int
 		EmailVerified func(childComplexity int) int
@@ -102,6 +113,7 @@ type MutationResolver interface {
 	CreateUser(ctx context.Context, input model.RegisterInput) (*model.RegisterResponse, error)
 	AssignRole(ctx context.Context, userID string, role model.Role) (*model.RoleResponse, error)
 	UserActivation(ctx context.Context, userID string) (*model.ActivationResponse, error)
+	UpdateUser(ctx context.Context, userID string, input model.UpdateUserInput) (*model.UpdateUserResponse, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
@@ -218,6 +230,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.Register(childComplexity, args["input"].(model.RegisterInput)), true
+	case "Mutation.updateUser":
+		if e.ComplexityRoot.Mutation.UpdateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUser_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdateUser(childComplexity, args["userId"].(string), args["input"].(model.UpdateUserInput)), true
 	case "Mutation.userActivation":
 		if e.ComplexityRoot.Mutation.UserActivation == nil {
 			break
@@ -334,6 +357,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.RoleResponse.UserID(childComplexity), true
 
+	case "UpdateUserResponse.company":
+		if e.ComplexityRoot.UpdateUserResponse.Company == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdateUserResponse.Company(childComplexity), true
+	case "UpdateUserResponse.email":
+		if e.ComplexityRoot.UpdateUserResponse.Email == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdateUserResponse.Email(childComplexity), true
+	case "UpdateUserResponse.firstName":
+		if e.ComplexityRoot.UpdateUserResponse.FirstName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdateUserResponse.FirstName(childComplexity), true
+	case "UpdateUserResponse.id":
+		if e.ComplexityRoot.UpdateUserResponse.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdateUserResponse.ID(childComplexity), true
+	case "UpdateUserResponse.lastName":
+		if e.ComplexityRoot.UpdateUserResponse.LastName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdateUserResponse.LastName(childComplexity), true
+	case "UpdateUserResponse.postCode":
+		if e.ComplexityRoot.UpdateUserResponse.PostCode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdateUserResponse.PostCode(childComplexity), true
+	case "UpdateUserResponse.updatedAt":
+		if e.ComplexityRoot.UpdateUserResponse.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.UpdateUserResponse.UpdatedAt(childComplexity), true
+
 	case "User.email":
 		if e.ComplexityRoot.User.Email == nil {
 			break
@@ -382,6 +448,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputLoginInput,
 		ec.unmarshalInputRegisterInput,
+		ec.unmarshalInputUpdateUserInput,
 	)
 	first := true
 
@@ -522,12 +589,30 @@ type ActivationResponse {
     active: Boolean!
 }
 
+input UpdateUserInput {
+    firstName: String
+    lastName: String
+    company: String
+    postCode: String
+}
+
+type UpdateUserResponse {
+    id: String!
+    firstName: String
+    lastName: String
+    email: String
+    company: String
+    postCode: String
+    updatedAt: String
+}
+
 type Mutation {
     Login(input: LoginInput!): LoginResponse!
     Register(input: RegisterInput!): RegisterResponse!
     createUser(input: RegisterInput!): RegisterResponse!
     assignRole(userId: String!, role: Role!): RoleResponse!
     userActivation(userId: String!): ActivationResponse!
+    updateUser(userId: String!, input: UpdateUserInput!): UpdateUserResponse!
 }
 `, BuiltIn: false},
 	{Name: "../../../../federation/directives.graphql", Input: `
@@ -613,6 +698,26 @@ func (ec *executionContext) childFields_RoleResponse(ctx context.Context, field 
 		return ec.fieldContext_RoleResponse_role(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type RoleResponse", field.Name)
+}
+
+func (ec *executionContext) childFields_UpdateUserResponse(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_UpdateUserResponse_id(ctx, field)
+	case "firstName":
+		return ec.fieldContext_UpdateUserResponse_firstName(ctx, field)
+	case "lastName":
+		return ec.fieldContext_UpdateUserResponse_lastName(ctx, field)
+	case "email":
+		return ec.fieldContext_UpdateUserResponse_email(ctx, field)
+	case "company":
+		return ec.fieldContext_UpdateUserResponse_company(ctx, field)
+	case "postCode":
+		return ec.fieldContext_UpdateUserResponse_postCode(ctx, field)
+	case "updatedAt":
+		return ec.fieldContext_UpdateUserResponse_updatedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type UpdateUserResponse", field.Name)
 }
 
 func (ec *executionContext) childFields_User(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -816,6 +921,28 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "userId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["userId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.UpdateUserInput, error) {
+			return ec.unmarshalNUpdateUserInput2githubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐUpdateUserInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1343,6 +1470,50 @@ func (ec *executionContext) fieldContext_Mutation_userActivation(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_updateUser(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdateUser(ctx, fc.Args["userId"].(string), fc.Args["input"].(model.UpdateUserInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.UpdateUserResponse) graphql.Marshaler {
+			return ec.marshalNUpdateUserResponse2ᚖgithubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐUpdateUserResponse(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_UpdateUserResponse(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1831,6 +2002,167 @@ func (ec *executionContext) _RoleResponse_role(ctx context.Context, field graphq
 }
 func (ec *executionContext) fieldContext_RoleResponse_role(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("RoleResponse", field, false, false, errors.New("field of type Role does not have child fields"))
+}
+
+func (ec *executionContext) _UpdateUserResponse_id(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_UpdateUserResponse_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_UpdateUserResponse_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("UpdateUserResponse", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _UpdateUserResponse_firstName(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_UpdateUserResponse_firstName(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FirstName, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_UpdateUserResponse_firstName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("UpdateUserResponse", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _UpdateUserResponse_lastName(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_UpdateUserResponse_lastName(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LastName, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_UpdateUserResponse_lastName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("UpdateUserResponse", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _UpdateUserResponse_email(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_UpdateUserResponse_email(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Email, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_UpdateUserResponse_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("UpdateUserResponse", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _UpdateUserResponse_company(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_UpdateUserResponse_company(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Company, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_UpdateUserResponse_company(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("UpdateUserResponse", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _UpdateUserResponse_postCode(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_UpdateUserResponse_postCode(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PostCode, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_UpdateUserResponse_postCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("UpdateUserResponse", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _UpdateUserResponse_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserResponse) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_UpdateUserResponse_updatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_UpdateUserResponse_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("UpdateUserResponse", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -3139,6 +3471,57 @@ func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj any) (model.UpdateUserInput, error) {
+	var it model.UpdateUserInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"firstName", "lastName", "company", "postCode"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "firstName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirstName = data
+		case "lastName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastName = data
+		case "company":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Company = data
+		case "postCode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("postCode"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PostCode = data
+		}
+	}
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3287,6 +3670,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "userActivation":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_userActivation(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateUser":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUser(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -3545,6 +3935,57 @@ func (ec *executionContext) _RoleResponse(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var updateUserResponseImplementors = []string{"UpdateUserResponse"}
+
+func (ec *executionContext) _UpdateUserResponse(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateUserResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateUserResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateUserResponse")
+		case "id":
+			out.Values[i] = ec._UpdateUserResponse_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "firstName":
+			out.Values[i] = ec._UpdateUserResponse_firstName(ctx, field, obj)
+		case "lastName":
+			out.Values[i] = ec._UpdateUserResponse_lastName(ctx, field, obj)
+		case "email":
+			out.Values[i] = ec._UpdateUserResponse_email(ctx, field, obj)
+		case "company":
+			out.Values[i] = ec._UpdateUserResponse_company(ctx, field, obj)
+		case "postCode":
+			out.Values[i] = ec._UpdateUserResponse_postCode(ctx, field, obj)
+		case "updatedAt":
+			out.Values[i] = ec._UpdateUserResponse_updatedAt(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4114,6 +4555,25 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdateUserInput2githubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐUpdateUserInput(ctx context.Context, v any) (model.UpdateUserInput, error) {
+	res, err := ec.unmarshalInputUpdateUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpdateUserResponse2githubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐUpdateUserResponse(ctx context.Context, sel ast.SelectionSet, v model.UpdateUserResponse) graphql.Marshaler {
+	return ec._UpdateUserResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateUserResponse2ᚖgithubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐUpdateUserResponse(ctx context.Context, sel ast.SelectionSet, v *model.UpdateUserResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateUserResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋriyadennisᚋidentityᚑserverᚋappᚋgqlᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
