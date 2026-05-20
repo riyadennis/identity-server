@@ -189,6 +189,10 @@ func (s *insertMockStore) ListAll(_ context.Context) ([]*store.User, error) {
 	return nil, nil
 }
 
+func (s *insertMockStore) UpdateUser(_ context.Context, _ string, _ *store.User) (*store.User, error) {
+	return s.created, nil
+}
+
 func (s *insertMockStore) ToggleActive(_ context.Context, _ string) (bool, error) {
 	return false, nil
 }

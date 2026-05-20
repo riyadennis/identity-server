@@ -22,6 +22,7 @@ type Store interface {
 	ListByRole(ctx context.Context, role string) ([]*User, error)
 	ListAll(ctx context.Context) ([]*User, error)
 	ToggleActive(ctx context.Context, userID string) (bool, error)
+	UpdateUser(ctx context.Context, userID string, u *User) (*User, error)
 }
 
 // User holds data from the registration request body.
@@ -261,6 +262,34 @@ func (m *MYSQL) ListByRole(ctx context.Context, role string) ([]*User, error) {
 		users = append(users, u)
 	}
 	return users, nil
+}
+
+// UpdateUser updates editable fields for a user identified by userID.
+func (m *MYSQL) UpdateUser(ctx context.Context, userID string, u *User) (*User, error) {
+	if m.Conn == nil {
+		return nil, errEmptyDBConnection
+	}
+
+	stmt, err := m.Conn.Prepare(
+		`UPDATE identity_users SET first_name = ?, last_name = ?, company = ?, post_code = ? WHERE id = ?`)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := stmt.ExecContext(ctx, u.FirstName, u.LastName, u.Company, u.PostCode, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if rows == 0 {
+		return nil, errors.New("user not found")
+	}
+
+	return m.Retrieve(ctx, userID)
 }
 
 // ToggleActive flips the active flag for a user and returns the new value.
