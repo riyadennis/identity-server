@@ -15,6 +15,7 @@ import (
 	"github.com/riyadennis/identity-server/app/gql/graph/generated"
 	"github.com/riyadennis/identity-server/app/gql/graph/model"
 	"github.com/riyadennis/identity-server/business"
+	"github.com/riyadennis/identity-server/business/store"
 	"github.com/riyadennis/identity-server/foundation/middleware"
 )
 
@@ -99,6 +100,67 @@ func (r *mutationResolver) UserActivation(ctx context.Context, userID string) (*
 	return &model.ActivationResponse{
 		UserID: userID,
 		Active: active,
+	}, nil
+}
+
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, userID string, input model.UpdateUserInput) (*model.UpdateUserResponse, error) {
+	adminID, err := callerID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := callerIsAdmin(ctx, r.Store, r.Logger); err != nil {
+		return nil, err
+	}
+
+	existing, err := r.Store.Retrieve(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	}
+	if existing == nil {
+		return nil, fmt.Errorf("user %s not found", userID)
+	}
+
+	if existing.CreatedBy != adminID {
+		return nil, fmt.Errorf("forbidden: only the admin who created this user can update them")
+	}
+
+	// Apply partial updates — only overwrite fields that were provided.
+	u := &store.User{
+		FirstName: existing.FirstName,
+		LastName:  existing.LastName,
+		Company:   existing.Company,
+		PostCode:  existing.PostCode,
+	}
+	if input.FirstName != nil {
+		u.FirstName = *input.FirstName
+	}
+	if input.LastName != nil {
+		u.LastName = *input.LastName
+	}
+	if input.Company != nil {
+		u.Company = *input.Company
+	}
+	if input.PostCode != nil {
+		u.PostCode = *input.PostCode
+	}
+
+	r.Logger.Infof("admin %s updating user %s", adminID, userID)
+
+	updated, err := r.Store.UpdateUser(ctx, userID, u)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return &model.UpdateUserResponse{
+		ID:        updated.ID,
+		FirstName: &updated.FirstName,
+		LastName:  &updated.LastName,
+		Email:     &updated.Email,
+		Company:   &updated.Company,
+		PostCode:  &updated.PostCode,
+		UpdatedAt: &updated.UpdatedAt,
 	}, nil
 }
 

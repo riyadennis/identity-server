@@ -271,7 +271,7 @@ func (m *MYSQL) UpdateUser(ctx context.Context, userID string, u *User) (*User, 
 	}
 
 	stmt, err := m.Conn.Prepare(
-		`UPDATE identity_users SET first_name = ?, last_name = ?, company = ?, post_code = ? WHERE id = ?`)
+		`UPDATE identity_users SET first_name = ?, last_name = ?, company = ?, post_code = ?, updated_at = NOW() WHERE id = ?`)
 	if err != nil {
 		return nil, err
 	}
