@@ -20,6 +20,9 @@ const (
 	// DeleteEndpoint is to delete a user.
 	DeleteEndpoint = "/delete/{userID}"
 
+	// UpdateUserEndpoint is to update user data.
+	UpdateUserEndpoint = "/update/{userID}"
+
 	// LoginEndPoint creates a token for the  user of credentials are valid.
 	LoginEndPoint = "/login"
 
@@ -74,6 +77,7 @@ func LoadRESTEndpoints(tc *store.TokenConfig, logger *logrus.Logger, st store.St
 	r.Route("/admin", func(r chi.Router) {
 		r.Use(ac.Auth)
 		r.Delete(DeleteEndpoint, h.Delete)
+		r.Put(UpdateUserEndpoint, h.UpdateUser)
 	})
 
 	return r

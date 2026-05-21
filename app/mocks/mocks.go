@@ -49,6 +49,10 @@ func (s *Store) ListAll(_ context.Context) ([]*store.User, error) {
 	return []*store.User{s.User}, s.Error
 }
 
+func (s *Store) UpdateUser(_ context.Context, _ string, _ *store.User) (*store.User, error) {
+	return s.User, s.Error
+}
+
 func (s *Store) ToggleActive(_ context.Context, _ string) (bool, error) {
 	if s.User != nil {
 		return s.User.Active, s.Error

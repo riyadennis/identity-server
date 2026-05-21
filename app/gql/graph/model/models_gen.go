@@ -60,6 +60,23 @@ type RoleResponse struct {
 	Role   Role   `json:"role"`
 }
 
+type UpdateUserInput struct {
+	FirstName *string `json:"firstName,omitempty"`
+	LastName  *string `json:"lastName,omitempty"`
+	Company   *string `json:"company,omitempty"`
+	PostCode  *string `json:"postCode,omitempty"`
+}
+
+type UpdateUserResponse struct {
+	ID        string  `json:"id"`
+	FirstName *string `json:"firstName,omitempty"`
+	LastName  *string `json:"lastName,omitempty"`
+	Email     *string `json:"email,omitempty"`
+	Company   *string `json:"company,omitempty"`
+	PostCode  *string `json:"postCode,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
 type User struct {
 	ID            string  `json:"id"`
 	Email         string  `json:"email"`

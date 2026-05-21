@@ -5,9 +5,11 @@ import (
 	"errors"
 	"testing"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/riyadennis/identity-server/app/gql/graph/model"
 	"github.com/riyadennis/identity-server/app/mocks"
 	"github.com/riyadennis/identity-server/business/store"
+	"github.com/riyadennis/identity-server/foundation/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -189,6 +191,140 @@ func (s *insertMockStore) ListAll(_ context.Context) ([]*store.User, error) {
 	return nil, nil
 }
 
+func (s *insertMockStore) UpdateUser(_ context.Context, _ string, _ *store.User) (*store.User, error) {
+	return s.created, nil
+}
+
 func (s *insertMockStore) ToggleActive(_ context.Context, _ string) (bool, error) {
+	return false, nil
+}
+
+// --- UpdateUser ---
+
+func adminCtx(adminID string) context.Context {
+	claims := &jwt.RegisteredClaims{Subject: adminID}
+	ctx := context.WithValue(context.Background(), middleware.UserClaimsKey, claims)
+	return ctx
+}
+
+func TestUpdateUser_NoAuth(t *testing.T) {
+	r := &mutationResolver{newResolver(&mocks.Store{}, &mocks.Authenticator{}, tokenConfig())}
+	firstName := "Jane"
+	_, err := r.UpdateUser(context.Background(), "user-1", model.UpdateUserInput{FirstName: &firstName})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unauthorized")
+}
+
+func TestUpdateUser_NotAdmin(t *testing.T) {
+	// Caller exists but has USER role
+	st := &mocks.Store{User: &store.User{ID: "caller-1", Role: "USER"}}
+	r := &mutationResolver{newResolver(st, &mocks.Authenticator{}, tokenConfig())}
+	firstName := "Jane"
+	_, err := r.UpdateUser(adminCtx("caller-1"), "user-1", model.UpdateUserInput{FirstName: &firstName})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "admin role required")
+}
+
+func TestUpdateUser_NotCreator(t *testing.T) {
+	adminID := "admin-1"
+	targetUser := &store.User{
+		ID:        "user-1",
+		FirstName: "John",
+		CreatedBy: "other-admin",
+		Role:      "ADMIN",
+	}
+	// Retrieve returns admin first (for callerIsAdmin), then target user
+	st := &updateMockStore{
+		admin:  &store.User{ID: adminID, Role: "ADMIN"},
+		target: targetUser,
+	}
+	r := &mutationResolver{newResolver(st, &mocks.Authenticator{}, tokenConfig())}
+	firstName := "Jane"
+	_, err := r.UpdateUser(adminCtx(adminID), "user-1", model.UpdateUserInput{FirstName: &firstName})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "only the admin who created this user")
+}
+
+func TestUpdateUser_Success(t *testing.T) {
+	adminID := "admin-1"
+	targetUser := &store.User{
+		ID:        "user-1",
+		FirstName: "John",
+		LastName:  "Doe",
+		Email:     "john@example.com",
+		Company:   "OldCo",
+		PostCode:  "12345",
+		CreatedBy: adminID,
+		Role:      "USER",
+	}
+	updatedUser := &store.User{
+		ID:        "user-1",
+		FirstName: "Jane",
+		LastName:  "Doe",
+		Email:     "john@example.com",
+		Company:   "NewCo",
+		PostCode:  "12345",
+		CreatedBy: adminID,
+		UpdatedAt: "2026-05-20 10:00:00",
+	}
+	st := &updateMockStore{
+		admin:   &store.User{ID: adminID, Role: "ADMIN"},
+		target:  targetUser,
+		updated: updatedUser,
+	}
+	r := &mutationResolver{newResolver(st, &mocks.Authenticator{}, tokenConfig())}
+	firstName := "Jane"
+	company := "NewCo"
+	resp, err := r.UpdateUser(adminCtx(adminID), "user-1", model.UpdateUserInput{
+		FirstName: &firstName,
+		Company:   &company,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "user-1", resp.ID)
+	assert.Equal(t, "Jane", *resp.FirstName)
+	assert.Equal(t, "NewCo", *resp.Company)
+}
+
+// updateMockStore returns different users for admin (callerIsAdmin) vs target (by ID).
+type updateMockStore struct {
+	admin   *store.User
+	target  *store.User
+	updated *store.User
+	calls   int
+}
+
+func (s *updateMockStore) Insert(_ context.Context, _ *store.User) (*store.User, error) {
+	return nil, nil
+}
+
+func (s *updateMockStore) Read(_ context.Context, _ string) (*store.User, error) {
+	return &store.User{}, nil
+}
+
+func (s *updateMockStore) Retrieve(_ context.Context, _ string) (*store.User, error) {
+	s.calls++
+	// First call is callerIsAdmin checking the admin, second is fetching the target user
+	if s.calls == 1 {
+		return s.admin, nil
+	}
+	return s.target, nil
+}
+func (s *updateMockStore) Delete(_ string) (int64, error) { return 0, nil }
+func (s *updateMockStore) Ping() error                    { return nil }
+func (s *updateMockStore) UpdateRole(_ context.Context, _ string, _ string) error {
+	return nil
+}
+
+func (s *updateMockStore) ListByRole(_ context.Context, _ string) ([]*store.User, error) {
+	return nil, nil
+}
+
+func (s *updateMockStore) ListAll(_ context.Context) ([]*store.User, error) { return nil, nil }
+func (s *updateMockStore) UpdateUser(_ context.Context, _ string, _ *store.User) (*store.User, error) {
+	return s.updated, nil
+}
+
+func (s *updateMockStore) ToggleActive(_ context.Context, _ string) (bool, error) {
 	return false, nil
 }

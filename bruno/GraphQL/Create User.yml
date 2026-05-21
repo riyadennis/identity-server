@@ -8,12 +8,12 @@ graphql:
   url: http://localhost:8097/graphql
   body:
     query: |-
-      mutation createUser($input: RegisterInput!) { createUser(input: $input) { 
+      mutation createUser($input: RegisterInput!) { createUser(input: $input) {
       	id
       	firstName
       	lastName
       	email
-      	company 
+      	company
       	postCode
       	terms
       	createdAt
